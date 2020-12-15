@@ -1,5 +1,5 @@
 {
-  "name": "skydb_app",
+  "name": "geodid-browser",
   "version": "0.1.0",
   "private": true,
   "keywords": [
@@ -11,7 +11,7 @@
     "javascript",
     "solidity"
   ],
-  "author": "Vault Labs",
+  "author": "AstralDAO",
   "scripts": {
     "coverage": "yarn run test --coverage",
     "start": "react-app-rewired start",

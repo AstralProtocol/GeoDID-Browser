@@ -178,10 +178,10 @@
     multihashing-async "^2.0.1"
     reflect-metadata "^0.1.13"
 
-"@astraldao/stac-validator-js@^0.0.20":
-  version "0.0.20"
-  resolved "https://npm.pkg.github.com/download/@astraldao/stac-validator-js/0.0.20/fb6e835943b10cb0ea4fde441dd90099ae543aa59cc2bfe7f80092969ab05721#35f84f2983a114b86018c8e8e10f9f2282bc2e5a"
-  integrity sha512-mTzqLHQepo6kqyzlreirL4T6I4wSANi8YlIKN/GwTzxAtOt8Gz+z1cHZW/7sMOl3xlnIn2LZx2sxw2/lPpsMOA==
+"@astraldao/stac-validator-js@^0.0.24":
+  version "0.0.24"
+  resolved "https://registry.yarnpkg.com/@astraldao/stac-validator-js/-/stac-validator-js-0.0.24.tgz#655259efb00323e64782b2aa8b9f9636ec11cbf4"
+  integrity sha512-Rf0MbneRiCWiRQbrKFLx8SE2XFR9FxovV2rjsrRmdXWURJ4SQNIHgGBXvr1ilZvtu/eHyWESjEvoLXxjJ9xjjA==
   dependencies:
     "@apidevtools/json-schema-ref-parser" "^9.0.1"
     ajv "^6.12.2"

@@ -1,24 +1,31 @@
-# Geolocker
+# Filecoin GeoDID front-end browser.
 
-### SkyDB Geolocker - a dApp for storing Spatio Temporal Asset Catalogs (https://stacspec.org) over Skynet, using Ceramic, IDX and The Graph
+### A dApp for storing Spatio Temporal Asset Catalogs (https://stacspec.org) over Filecoin, using Ceramic, IDX and The Graph
 
-Note: The project builds in development mode with a 3id-connect warning, but fails in production: `Critical dependency: the request of a dependency is an expression`. We are already in discussion with the Ceramic team and the issue is being tracked [here](https://github.com/3box/3id-connect/issues/86)
+This will be the front-end interface that allows spatial data providers to register spatial assets
+that follow the STAC spec and transform them into a GeoDID format, managing all the related
+CRUD operations within the Filecoin network and Ethereum registry smart contracts.
 
-### [Submission Video](https://www.youtube.com/watch?v=YZ0QWzr-mQk&feature=youtu.be)
+We believe web3 currently has some interaction barriers and we want to make it as frictionless
+as possible to register a spatial asset for a data provider. Given this, the interface will be built
+using React according to the latest front end methodologies and will be UX focused, allowing for
+a seamless and beautiful overview of GeoDIDs using react-mapbox-gl.
 
-### [Geolocker dApp over Skynet](https://siasky.net/LACxsA6d6wQVF7pOdJlljYCtvAV-E94XvmVLfSwFELqVXw) (did not build because of 3id-connect error)
+It will also allow for a seamless browsing of registered GeoDIDs and their properties, allowing a
+user to quickly query and find any spatial data asset they find relevant over the Filecoin network.
 
-### [Geolocker dApp over Netlify](https://geolocker.vaultlabs.org) (with CI=false in envinronmental variables so that build is possible)
+DID Controllers will sign into the client-side dapp with Metamask or a similar gateway. This will
+automatically fetch the GeoDID(s) they have registered, and provide UI elements enabling them
+to update metadata or spatial data assets, and to deregister the DID. This architectural design
+provides the DID Controller full sovereignty over their spatial data assets.
 
-### [Geolocker Subgraph for the registry Smart Contract](https://api.thegraph.com/subgraphs/name/vaultlabs/skydb-bounty-geo-browser)
-
-## How to work with the dApp:
+## How to work with the dApp in development mode:
 
 1. `yarn`
 2. Create a .env file with the following variables:
 
-- REACT_APP_GRAPHQL_HTTP_ENDPOINT=https://api.thegraph.com/subgraphs/name/vaultlabs/skydb-bounty-geo-browser
-- REACT_APP_GRAPHQL_WS_ENDPOINT=wss://api.thegraph.com/subgraphs/name/vaultlabs/skydb-bounty-geo-browser
+- REACT_APP_GRAPHQL_HTTP_ENDPOINT=
+- REACT_APP_GRAPHQL_WS_ENDPOINT=
 - REACT_APP_MapboxAccessToken= ADD A MAPBOX API KEY HERE, YOU CAN GET ONE BY REGISTERING AT https://www.mapbox.com/
 
 3. Do `yarn start`. Connect with your metamask wallet to the Ropsten network. You should be able to authenticate with the dApp
@@ -49,11 +56,3 @@ STAC is supported by an active community of developers, with involvement from a 
 The problem is that the aforementioned specification and file standard are only beneficial for the web2 ecosystem. They are optimized and designed to leverage cloud architecture, and location based addresses. When porting these to web3, we see that they become useless because they are not interoperable with CIDs and distributed file systems, as they do not offer web3 leveraged features.
 
 In order to solve these problems, we decided to hack geospatial applications into the Skynet Ecosystem and ultimately the greater web3 ecosystem as well. We believe that SkyDB can be a leading distributed file system of geospatial data in the web3 ecosystem.
-
-## GeoLocker
-
-For the SkyDB hackathon we decided to create our alpha prototype of the GeoLocker. GeoLocker is a STAC (Spatio Temporal Asset Catalog) Explorer that utilizes SkyDB as a means of storage. The STAC Items are stored on SkyDB and can be pulled by the user to view on the front end. In addition we implemented IDX and Ceramic to give the user’s a more fine grained approach to utilizing their own geospatial data. This allows different user's to maintain many types of SkyDB instances all of which can have their own set of STAC Items.
-
-## Future Iterations and Value
-
-In further iterations, we hope to add more value to the Skynet and Ceramic Ecosystems, by furthering the development of our GeoDID specification. We hope to create the GeoDID specification as a web3 means to organize and utilize geo-spatial data. These GeoDIDs will contain several service endpoints that have web3 optimized geospatial data.
