@@ -142,14 +142,15 @@ function* REGISTER_SPATIAL_ASSET_SAGA() {
   // generate 256 bit long id from STAC id
   const itemId = yield call(utils.itemIdGenerator, spatialAsset.id);
 
-  const idCreated = yield call(SpatialAssets.instance.methods.idStatus(itemId).call);
+  const owner = yield call(SpatialAssets.instance.methods.idToOwner(itemId).call);
 
-  if (!idCreated) {
+  console.log(owner)
+  if (owner === '0x0000000000000000000000000000000000000000') {
     // fork to handle channel
     yield fork(handleGeoDIDRegistration);
 
     const gasEstimate = yield call(
-      SpatialAssets.instance.methods.mint(selectedAccount, itemId, 1, '0x0').estimateGas,
+      SpatialAssets.instance.methods.registerSpatialAsset(selectedAccount, itemId, web3.utils.asciiToHex('Filecoin')).estimateGas,
       {
         from: selectedAccount,
       },
@@ -157,7 +158,7 @@ function* REGISTER_SPATIAL_ASSET_SAGA() {
 
     try {
       SpatialAssets.instance.methods
-        .mint(selectedAccount, itemId, 1, '0x0')
+        .registerSpatialAsset(selectedAccount, itemId, web3.utils.asciiToHex('Filecoin'))
         .send({
           from: selectedAccount,
           gas: gasEstimate,

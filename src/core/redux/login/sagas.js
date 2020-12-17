@@ -3,7 +3,7 @@ import { all, takeEvery, put, call, take, fork, select, race } from 'redux-saga/
 import { push } from 'connected-react-router';
 import { notification } from 'antd';
 import Web3 from 'web3';
-import { cleanWeb3Modal } from 'core/services/Web3Modal';
+import { getWeb3Modal, cleanWeb3Modal } from 'core/services/Web3Modal';
 import {
   actions as commitActions,
   commitSendSuccess,
@@ -11,7 +11,6 @@ import {
   commitError,
 } from 'core/redux/contracts/actions';
 import { FETCH_MENU } from 'core/redux/menu/actions';
-import { didAuthentication, setupIdx, linkIDXSkyDB } from 'core/services/SkyDB';
 import { actions } from './actions';
 
 // we need to import idx.ts to create the idx instance along with Ceramic
@@ -78,65 +77,30 @@ function* INIT_WEB3_SAGA() {
   });
 
   try {
-    const { authProvider, ceramic, idx, web3Modal } = yield call(didAuthentication);
+    const web3Modal = yield call(getWeb3Modal);
 
-    yield put({
-      type: actions.AUTHENTICATED_WITH_DID,
-      payload: {
-        didAuthenticated: true,
-        authProvider,
-        ceramic,
-        idx,
-        selectedAccount: authProvider.address.toLowerCase(),
-        web3Modal,
-      },
-    });
+    const provider = yield call(web3Modal.connect);
 
-    notification.info({
-      message: `Authenticated with DID ${idx.id}`,
-      placement: 'bottomRight',
-    });
+    const web3 = new Web3(provider);
 
-    const seedKey = yield call(setupIdx, ceramic);
-
-    yield put({
-      type: actions.IDX_SETUP_CREATED,
-      payload: {
-        idxSetup: true,
-        idxDefinitionID: seedKey,
-      },
-    });
-
-    notification.info({
-      message: `IDX setup created with definition ID ${seedKey}`,
-      placement: 'bottomRight',
-    });
-
-    const skynetClient = yield call(linkIDXSkyDB, idx, seedKey);
-
-    yield put({
-      type: actions.IDX_SKYDB_LINK,
-      payload: {
-        idxSkyDBLink: true,
-        skynetClient,
-      },
-    });
-
-    notification.info({
-      message: `IDX linked to SKYDb`,
-      placement: 'bottomRight',
-    });
-
-    const web3 = new Web3(authProvider.provider);
+    const selectedAccount = yield call(web3.eth.getCoinbase);
 
     yield put({
       type: actions.SET_WEB3,
       payload: {
-        web3,
         initializingWeb3: false,
+        provider,
+        web3Modal,
+        web3,
+        selectedAccount: selectedAccount.toLowerCase(),
         end2endLoadingIndicator: false,
         isLoggedIn: true,
       },
+    });
+
+    notification.info({
+      message: 'You may now interact with the dApp',
+      placement: 'bottomRight',
     });
 
     if (web3Modal.cachedProvider === 'injected') {
@@ -226,7 +190,7 @@ function* CHECK_ROLES_SAGA() {
   const { SpatialAssets } = yield select(getContractsState);
 
   const hasRole = yield call(
-    SpatialAssets.instance.methods.hasRole(web3.utils.sha3('MINTER_ROLE'), selectedAccount).call,
+    SpatialAssets.instance.methods.hasRole(web3.utils.sha3('DATA_SUPPLIER'), selectedAccount).call,
   );
 
   if (hasRole) {
@@ -252,13 +216,13 @@ function* CHECK_ROLES_SAGA() {
     // fork to handle channel
     yield fork(handleRegistration);
 
-    const gasEstimate = yield call(SpatialAssets.instance.methods.register().estimateGas, {
+    const gasEstimate = yield call(SpatialAssets.instance.methods.registerRole().estimateGas, {
       from: selectedAccount,
     });
 
     try {
       SpatialAssets.instance.methods
-        .register()
+        .registerRole()
         .send({
           from: selectedAccount,
           gas: gasEstimate,
