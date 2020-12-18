@@ -153,7 +153,7 @@ const Register = (props) => {
   if (!spatialAssetRegistered && !registeringSpatialAsset) {
     registerBlock = (
       <Button block onClick={() => handleRegister()} loading={registeringSpatialAsset}>
-        Register STAC Item on SkyDB
+        Register STAC Item
       </Button>
     );
   } else if (!spatialAssetRegistered && registeringSpatialAsset) {

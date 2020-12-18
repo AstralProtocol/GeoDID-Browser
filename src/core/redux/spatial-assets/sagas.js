@@ -7,7 +7,7 @@ import {
   commitMinedSuccess,
   commitError,
 } from 'core/redux/contracts/actions';
-import { setStac, getStac, loadKeyPair } from 'core/services/SkyDB';
+import AstralCore from 'core/services/AstralCore';
 import utils from 'utils';
 import { notification } from 'antd';
 import { actions } from './actions';
@@ -17,6 +17,7 @@ const getContractsState = (state) => state.contracts;
 const getLoginState = (state) => state.login;
 
 const geoDIDRegistrationChannel = channel();
+const enableStorageChannel = channel();
 
 async function fetchFromTilesRdnt(loadedCogs) {
   const responses = [];
@@ -66,6 +67,110 @@ function* LOAD_COGS_SAGA(action) {
 /**
  * @dev Event channel to control the smart contract update events
  */
+function* handleEnableStorageChannel() {
+  while (true) {
+    const eventAction = yield take(enableStorageChannel);
+    switch (eventAction.type) {
+      case commitActions.COMMIT_SEND_SUCCESS: {
+        yield put(commitSendSuccess(eventAction.tx));
+        break;
+      }
+
+      case commitActions.COMMIT_MINED_SUCCESS: {
+        yield put(commitMinedSuccess(eventAction.receipt));
+
+        yield put({
+          type: actions.STORAGE_ENABLED,
+          payload: {
+            enablingStorage: false,
+            storageEnabled: true,
+          },
+        });
+
+        yield put({
+          type: actions.STOP_CHANNEL_FORK,
+        });
+
+        break;
+      }
+      case commitActions.COMMIT_ERROR: {
+        yield put(commitError(eventAction.error));
+        break;
+      }
+
+      case actions.STOP_CHANNEL_FORK: {
+        return;
+      }
+
+      default: {
+        break;
+      }
+    }
+  }
+}
+
+function* ENABLE_STORAGE_SAGA(action) {
+  yield put({
+    type: actions.ENABLING_STORAGE,
+    payload: {
+      enablingStorage: true,
+      storageEnabled: false,
+    },
+  });
+
+  const { payload } = action;
+
+  const { storageSignature } = payload;
+
+  const { SpatialAssets } = yield select(getContractsState);
+  const { selectedAccount, web3 } = yield select(getLoginState);
+
+  // fork to handle channel
+  yield fork(handleEnableStorageChannel);
+
+  const gasEstimate = yield call(
+    SpatialAssets.instance.methods.enableStorage(web3.utils.asciiToHex(storageSignature))
+      .estimateGas,
+    {
+      from: selectedAccount,
+    },
+  );
+
+  try {
+    SpatialAssets.instance.methods
+      .enableStorage(web3.utils.asciiToHex(storageSignature))
+      .send({
+        from: selectedAccount,
+        gas: gasEstimate,
+      })
+      .once('transactionHash', (tx) => {
+        enableStorageChannel.put({
+          type: commitActions.COMMIT_SEND_SUCCESS,
+          tx,
+        });
+      })
+      .once('receipt', (receipt) => {
+        enableStorageChannel.put({
+          type: commitActions.COMMIT_MINED_SUCCESS,
+          receipt,
+        });
+      })
+      .on('error', (error) => {
+        enableStorageChannel.put({
+          type: commitActions.COMMIT_ERROR,
+          error,
+        });
+      });
+  } catch (err) {
+    const errMsg = err.toString();
+    const shortErr = errMsg.substring(0, errMsg.indexOf('.') + 1);
+    put(commitError(shortErr));
+  }
+}
+
+/**
+ * @dev Event channel to control the smart contract update events
+ */
 function* handleGeoDIDRegistration() {
   while (true) {
     const eventAction = yield take(geoDIDRegistrationChannel);
@@ -78,17 +183,14 @@ function* handleGeoDIDRegistration() {
       case commitActions.COMMIT_MINED_SUCCESS: {
         yield put(commitMinedSuccess(eventAction.receipt));
 
-        const { skynetClient, idx, idxDefinitionID } = yield select(getLoginState);
-
-        const kp = yield call(loadKeyPair, idx, idxDefinitionID);
-
-        yield call(
-          setStac,
-          skynetClient,
-          kp.privateKey,
+        const geodidid = yield call(
+          AstralCore.generateGeoDID,
           eventAction.itemId,
           eventAction.spatialAsset,
+          eventAction.selectedAccount,
         );
+
+        console.log(geodidid);
 
         yield put({
           type: actions.SPATIAL_ASSET_REGISTERED,
@@ -136,7 +238,7 @@ function* REGISTER_SPATIAL_ASSET_SAGA() {
   });
 
   const { SpatialAssets } = yield select(getContractsState);
-  const { selectedAccount } = yield select(getLoginState);
+  const { selectedAccount, web3 } = yield select(getLoginState);
   const { spatialAsset } = yield select(getSpatialAssetsState);
 
   // generate 256 bit long id from STAC id
@@ -144,13 +246,17 @@ function* REGISTER_SPATIAL_ASSET_SAGA() {
 
   const owner = yield call(SpatialAssets.instance.methods.idToOwner(itemId).call);
 
-  console.log(owner)
+  console.log(owner);
   if (owner === '0x0000000000000000000000000000000000000000') {
     // fork to handle channel
     yield fork(handleGeoDIDRegistration);
 
     const gasEstimate = yield call(
-      SpatialAssets.instance.methods.registerSpatialAsset(selectedAccount, itemId, web3.utils.asciiToHex('Filecoin')).estimateGas,
+      SpatialAssets.instance.methods.registerSpatialAsset(
+        selectedAccount,
+        itemId,
+        web3.utils.asciiToHex('Filecoin'),
+      ).estimateGas,
       {
         from: selectedAccount,
       },
@@ -205,38 +311,34 @@ function* REGISTER_SPATIAL_ASSET_SAGA() {
   }
 }
 
-function* FETCH_FROM_SKYDB_SAGA(action) {
+function* FETCH_SPATIAL_ASSET_SAGA(action) {
   const { payload } = action;
 
   const { stacId } = payload;
 
   yield put({
-    type: actions.FETCHING_FROM_SKYDB,
+    type: actions.FETCHING_SPATIAL_ASSET,
     payload: {
-      fetchingFromSkydb: true,
-      fetchedFromSkydb: false,
+      fetchingSpatialAsset: true,
+      fetchedSpatialAsset: false,
       spatialAssetId: stacId,
     },
   });
 
-  const { skynetClient, idx, idxDefinitionID } = yield select(getLoginState);
-
-  const kp = yield call(loadKeyPair, idx, idxDefinitionID);
-
-  const skyReturn = yield call(getStac, skynetClient, kp.publicKey, stacId);
+  const spatialAsset = yield call(AstralCore.loadGeoDid);
 
   yield put({
-    type: actions.FETCHED_FROM_SKYDB,
+    type: actions.FETCHED_SPATIAL_ASSET,
     payload: {
-      fetchingFromSkydb: false,
-      fetchedFromSkydb: true,
+      fetchingSpatialAsset: false,
+      fetchedSpatialAsset: true,
     },
   });
 
   yield put({
     type: actions.SET_SPATIAL_ASSET,
     payload: {
-      spatialAsset: skyReturn.data,
+      spatialAsset,
       spatialAssetLoaded: true,
       spatialAssetId: stacId,
     },
@@ -246,6 +348,7 @@ export default function* rootSaga() {
   yield all([
     takeEvery(actions.LOAD_COGS, LOAD_COGS_SAGA),
     takeEvery(actions.REGISTER_SPATIAL_ASSET, REGISTER_SPATIAL_ASSET_SAGA),
-    takeEvery(actions.FETCH_FROM_SKYDB, FETCH_FROM_SKYDB_SAGA),
+    takeEvery(actions.FETCH_SPATIAL_ASSET, FETCH_SPATIAL_ASSET_SAGA),
+    takeEvery(actions.ENABLE_STORAGE, ENABLE_STORAGE_SAGA),
   ]);
 }

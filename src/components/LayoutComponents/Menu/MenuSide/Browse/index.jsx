@@ -3,7 +3,7 @@ import { List, Button, Menu, Tag } from 'antd';
 import { connect } from 'react-redux';
 import { useSubscription } from '@apollo/react-hooks';
 import { CodeBlock, nord } from 'react-code-blocks';
-import { fetchFromSkyDB } from 'core/redux/spatial-assets/actions';
+import { fetchSpatialAsset } from 'core/redux/spatial-assets/actions';
 import spatialAssetsSubscription from 'core/graphql/spatialAssetsSubscription';
 import { SyncOutlined, CheckCircleOutlined } from '@ant-design/icons';
 
@@ -13,10 +13,10 @@ const { SubMenu } = Menu;
 const Browse = (props) => {
   const {
     selectedAccount,
-    dispatchFetchFromSkyDB,
+    dispatchFetchSpatialAsset,
     spatialAsset,
-    fetchingFromSkydb,
-    fetchedFromSkydb,
+    fetchingSpatialAsset,
+    fetchedSpatialAsset,
     spatialAssetId,
   } = props;
   const [openKeys, setOpenKeys] = useState(OPEN_KEYS);
@@ -36,7 +36,7 @@ const Browse = (props) => {
   const onOpenChange = (okeys) => setOpenKeys([...OPEN_KEYS, ...okeys]);
 
   const handleStacLoad = (stacId) => {
-    dispatchFetchFromSkyDB(stacId);
+    dispatchFetchSpatialAsset(stacId);
   };
 
   let codeBlock;
@@ -63,21 +63,21 @@ const Browse = (props) => {
     let loadButton;
 
     if (id === spatialAssetId) {
-      if (!fetchingFromSkydb && !fetchedFromSkydb) {
+      if (!fetchingSpatialAsset && !fetchedSpatialAsset) {
         loadButton = (
           <Button block type="primary" onClick={() => handleStacLoad(id)}>
             Load
           </Button>
         );
-      } else if (fetchingFromSkydb && !fetchedFromSkydb) {
+      } else if (fetchingSpatialAsset && !fetchedSpatialAsset) {
         loadButton = (
           <div style={{ textAlign: 'center' }}>
             <Tag icon={<SyncOutlined spin />} color="processing">
-              Loading from SkyDB
+              Loading Spatial Asset
             </Tag>
           </div>
         );
-      } else if (!fetchingFromSkydb && fetchedFromSkydb) {
+      } else if (!fetchingSpatialAsset && fetchedSpatialAsset) {
         loadButton = (
           <div style={{ textAlign: 'center' }}>
             <Tag icon={<CheckCircleOutlined />} color="success">
@@ -145,13 +145,13 @@ const mapStateToProps = (state) => ({
   web3: state.login.web3,
   selectedAccount: state.login.selectedAccount,
   spatialAsset: state.spatialAssets.spatialAsset,
-  fetchingFromSkydb: state.spatialAssets.fetchingFromSkydb,
-  fetchedFromSkydb: state.spatialAssets.fetchedFromSkydb,
+  fetchingSpatialAsset: state.spatialAssets.fetchingSpatialAsset,
+  fetchedSpatialAsset: state.spatialAssets.fetchedSpatialAsset,
   spatialAssetId: state.spatialAssets.spatialAssetId,
 });
 
 const mapStateToDispatch = (dispatch) => ({
-  dispatchFetchFromSkyDB: (stacId) => dispatch(fetchFromSkyDB(stacId)),
+  dispatchFetchSpatialAsset: (stacId) => dispatch(fetchSpatialAsset(stacId)),
 });
 
 export default connect(mapStateToProps, mapStateToDispatch)(Browse);

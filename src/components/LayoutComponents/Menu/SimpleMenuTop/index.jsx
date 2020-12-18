@@ -40,7 +40,7 @@ const SimpleMenuTop = (props) => {
         </div>
       </div>
       <Menu selectedKeys={['title']} theme="dark" mode="horizontal">
-        <Menu.Item key="title">SKYDB STAC Browser</Menu.Item>
+        <Menu.Item key="title">Astral Studio</Menu.Item>
         <Menu theme="dark" mode="horizontal" style={{ float: 'right' }}>
           {selectedAccount && (
             <Menu.Item key="account">{utils.getShortAddress(selectedAccount)}</Menu.Item>

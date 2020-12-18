@@ -7,17 +7,11 @@ const initialState = {
   selectedAccount: null,
   provider: null,
   web3: null,
-  idx: null,
-  ceramic: null,
-  seedKey: null,
   signingOut: false,
   isLoggedIn: false,
   checkingRoles: false,
   rolesChecked: false,
   hasRole: false,
-  didAuthenticated: false,
-  idxSetup: false,
-  idxSkyDBLink: false,
 };
 
 export default function loginReducer(state = initialState, action) {
@@ -73,27 +67,6 @@ export default function loginReducer(state = initialState, action) {
       break;
 
     case actions.REGISTRATION_SUCCEEDED:
-      reduced = {
-        ...state,
-        ...action.payload,
-      };
-      break;
-
-    case actions.AUTHENTICATED_WITH_DID:
-      reduced = {
-        ...state,
-        ...action.payload,
-      };
-      break;
-
-    case actions.IDX_SETUP_CREATED:
-      reduced = {
-        ...state,
-        ...action.payload,
-      };
-      break;
-
-    case actions.IDX_SKYDB_LINK:
       reduced = {
         ...state,
         ...action.payload,

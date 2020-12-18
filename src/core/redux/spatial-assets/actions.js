@@ -10,9 +10,12 @@ export const actions = {
   SPATIAL_ASSET_REGISTERED: 'spatial-assets/SPATIAL_ASSET_REGISTERED',
   STOP_CHANNEL_FORK: 'spatial-assets/STOP_CHANNEL_FORK',
   CLEAN_REGISTRATION_STATUS: 'spatial-assets/REGISTRATION_CLEANED',
-  FETCH_FROM_SKYDB: 'spatial-assets/FETCH_FROM_SKYDB',
-  FETCHING_FROM_SKYDB: 'spatial-assets/FETCHING_FROM_SKYDB',
-  FETCHED_FROM_SKYDB: 'spatial-assets/FETCHED_FROM_SKYDB',
+  FETCH_SPATIAL_ASSET: 'spatial-assets/FETCH_SPATIAL_ASSET',
+  FETCHING_SPATIAL_ASSET: 'spatial-assets/FETCHING_SPATIAL_ASSET',
+  FETCHED_SPATIAL_ASSET: 'spatial-assets/FETCHED_SPATIAL_ASSET',
+  ENABLE_STORAGE: 'spatial-assets/ENABLE_STORAGE',
+  ENABLING_STORAGE: 'spatial-assets/ENABLING_STORAGE',
+  STORAGE_ENABLED: 'spatial-assets/STORAGE_ENABLED',
 };
 
 export const setFileList = (fileList) => {
@@ -78,11 +81,20 @@ export const cleanRegistrationStatus = () => {
   };
 };
 
-export const fetchFromSkyDB = (stacId) => {
+export const fetchSpatialAsset = (stacId) => {
   return {
-    type: actions.FETCH_FROM_SKYDB,
+    type: actions.FETCH_SPATIAL_ASSET,
     payload: {
       stacId,
+    },
+  };
+};
+
+export const enableStorage = (storageSignature) => {
+  return {
+    type: actions.ENABLE_STORAGE,
+    payload: {
+      storageSignature,
     },
   };
 };
