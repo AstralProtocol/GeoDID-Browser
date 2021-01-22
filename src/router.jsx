@@ -7,8 +7,8 @@ import MainLayout from 'layouts';
 const routes = [
   // Home
   {
-    path: '/map',
-    component: loadable(() => import('pages/Map')),
+    path: '/main',
+    component: loadable(() => import('pages/Main')),
     exact: true,
   },
 ];
@@ -20,7 +20,7 @@ const Router = (props) => {
     <ConnectedRouter history={history}>
       <MainLayout>
         <Switch>
-          <Route exact path="/" render={() => <Redirect to="/map" />} />
+          <Route exact path="/" render={() => <Redirect to="/main" />} />
           {routes.map((route) => (
             <Route
               path={route.path}

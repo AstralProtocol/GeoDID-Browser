@@ -6,7 +6,7 @@ import { initWeb3, checkRoles } from 'core/redux/login/actions';
 import { initializeContracts } from 'core/redux/contracts/actions';
 import { Contracts } from 'core/redux/contracts/reducers';
 // import WithMenuLayout from './WithMenu';
-import FullMapLayout from './FullMap';
+// import AppLayout from './AppLayout';
 
 function MainLayout(props) {
   const {
@@ -40,7 +40,7 @@ function MainLayout(props) {
     }
   }, [contractsInitialized, checkRolesProps]);
 
-  return <FullMapLayout>{children}</FullMapLayout>;
+  return children;
 }
 
 const mapStateToProps = (state) => ({
