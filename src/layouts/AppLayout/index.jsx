@@ -1,17 +1,21 @@
 import React from 'react';
-import Container from '@material-ui/core/Container';
-import AppBar from 'components/LayoutComponents/AppBar';
-// import MenuSide from 'components/LayoutComponents/Menu/MenuSide';
+import { connect } from 'react-redux';
+import TabPanel from 'components/LayoutComponents/TabPanel';
+import routes from 'utils/routes';
 
 const AppLayout = (props) => {
-  const { children } = props;
+  const { children, pathname } = props;
 
   return (
     <div>
-      <AppBar />
-      <Container maxWidth="sm">{children}</Container>
+      <TabPanel value={pathname !== '/' ? pathname : false} routes={routes} />
+      {children}
     </div>
   );
 };
 
-export default AppLayout;
+const mapStateToProps = (state) => ({
+  pathname: state.router.location.pathname,
+});
+
+export default connect(mapStateToProps, null)(AppLayout);

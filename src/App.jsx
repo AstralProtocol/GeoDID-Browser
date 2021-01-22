@@ -16,7 +16,7 @@ import rootSaga from 'core/redux/sagas';
 import rootReducer, { history } from 'core/redux/reducers';
 import { createLogger } from 'redux-logger';
 // Router
-import { routerMiddleware } from 'connected-react-router';
+import { routerMiddleware, ConnectedRouter } from 'connected-react-router';
 import Router from './router';
 
 import './global.scss';
@@ -66,7 +66,9 @@ function App() {
   return (
     <Provider store={store}>
       <ApolloProvider client={client}>
-        <Router history={history} />
+        <ConnectedRouter history={history}>
+          <Router />
+        </ConnectedRouter>
       </ApolloProvider>
     </Provider>
   );

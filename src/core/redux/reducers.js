@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux';
 import { connectRouter } from 'connected-react-router';
-import { createHashHistory } from 'history';
+import { createBrowserHistory } from 'history';
 import contracts from 'core/redux/contracts/reducers';
 import login from 'core/redux/login/reducers';
 import menu from 'core/redux/menu/reducers';
@@ -8,7 +8,7 @@ import settings from 'core/redux/settings/reducers';
 import spatialAssets from 'core/redux/spatial-assets/reducers';
 import { actions } from 'core/redux/login/actions';
 
-export const history = createHashHistory();
+export const history = createBrowserHistory();
 
 const appReducer = combineReducers({
   contracts,
