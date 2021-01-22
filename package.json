@@ -54,7 +54,7 @@
     "ethereum-blockies-base64": "^1.0.2",
     "graphql": "^15.4.0",
     "graphql-tag": "^2.11.0",
-    "history": "4.10.1",
+    "history": "5.0.0",
     "lodash": "^4.17.20",
     "mapbox-gl": "^2.0.1",
     "memoize-one": "^5.1.1",
