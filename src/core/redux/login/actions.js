@@ -17,29 +17,21 @@ export const actions = {
   STOP_CHANNEL_FORK: 'login/stop-channel-fork',
 };
 
-export const changeAuthorization = () => {
-  return {
-    type: actions.CHANGE_AUTHORIZATION,
-    payload: {
-      authorized: true,
-    },
-  };
-};
+export const changeAuthorization = () => ({
+  type: actions.CHANGE_AUTHORIZATION,
+  payload: {
+    authorized: true,
+  },
+});
 
-export const initWeb3 = () => {
-  return {
-    type: actions.INIT_WEB3,
-  };
-};
+export const initWeb3 = () => ({
+  type: actions.INIT_WEB3,
+});
 
-export const checkRoles = () => {
-  return {
-    type: actions.CHECK_ROLES,
-  };
-};
+export const checkRoles = () => ({
+  type: actions.CHECK_ROLES,
+});
 
-export const logout = () => {
-  return {
-    type: actions.LOGOUT,
-  };
-};
+export const logout = () => ({
+  type: actions.LOGOUT,
+});

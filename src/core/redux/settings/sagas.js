@@ -115,15 +115,15 @@ function* changeSettings(search) {
   const query = qs.parse(search, { ignoreQueryPrefix: true });
 
   yield all(
-    Object.keys(query).map((key) => {
-      return put({
+    Object.keys(query).map((key) =>
+      put({
         type: 'settings/CHANGE_SETTING',
         payload: {
           setting: key,
           value: query[key] === 'true',
         },
-      });
-    }),
+      }),
+    ),
   );
 }
 

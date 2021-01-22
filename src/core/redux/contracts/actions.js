@@ -11,13 +11,11 @@ export const actions = {
   COMMIT_ERROR: 'contracts/commit-error',
 };
 
-export const initializeContracts = (contracts, web3) => {
-  return {
-    type: actions.INITIALIZE_CONTRACTS,
-    contracts,
-    web3,
-  };
-};
+export const initializeContracts = (contracts, web3) => ({
+  type: actions.INITIALIZE_CONTRACTS,
+  contracts,
+  web3,
+});
 
 export function commitSendSuccess(commitSendTx) {
   return {

@@ -23,16 +23,13 @@ const MenuSide = (props) => {
     }
   };
 
-  useEffect(
-    function openSideBar() {
-      if (isLoggedIn && rolesChecked) {
-        const siderWidth = parentRef.current.offsetWidth;
+  useEffect(() => {
+    if (isLoggedIn && rolesChecked) {
+      const siderWidth = parentRef.current.offsetWidth;
 
-        dispatchSetSiderCollapse(false, siderWidth);
-      }
-    },
-    [isLoggedIn, rolesChecked],
-  );
+      dispatchSetSiderCollapse(false, siderWidth);
+    }
+  }, [isLoggedIn, rolesChecked]);
 
   return (
     <div ref={parentRef}>

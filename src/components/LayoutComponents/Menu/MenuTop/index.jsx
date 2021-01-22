@@ -41,20 +41,14 @@ const MenuTop = (props) => {
   };
 
   // Fetch Manu
-  useEffect(
-    function fetchMenuEffect() {
-      dispatchFetchMenu();
-    },
-    [dispatchFetchMenu],
-  );
+  useEffect(() => {
+    dispatchFetchMenu();
+  }, [dispatchFetchMenu]);
 
   // Update selected keys
-  useEffect(
-    function selectedKeysEffect() {
-      getSelectedKeys();
-    },
-    [menuData],
-  );
+  useEffect(() => {
+    getSelectedKeys();
+  }, [menuData]);
 
   const handleClick = (e) => {
     // Menu links forbidden to be selected
