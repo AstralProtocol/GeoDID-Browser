@@ -1,16 +1,24 @@
 import React from 'react';
 import { Switch, Route, Link } from 'react-router-dom';
-import loadable from '@loadable/component';
+// import loadable from '@loadable/component';
 import MainLayout from 'layouts';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import { makeStyles } from '@material-ui/core/styles';
+import Main from 'pages/Main';
+import Map from 'pages/Map';
 
 const routes = [
-  // Home
   {
     path: '/main',
-    component: loadable(() => import('pages/Main')),
+    name: 'Main',
+    component: <Main />,
+    exact: true,
+  },
+  {
+    path: '/map',
+    name: 'Map',
+    component: <Map />,
     exact: true,
   },
 ];
@@ -42,7 +50,7 @@ function Router() {
       <Route
         path="/"
         render={({ location }) => (
-          <>
+          <div className={classes.root}>
             <Tabs
               orientation="vertical"
               variant="scrollable"
@@ -55,18 +63,17 @@ function Router() {
                   key={route.path}
                   value={route.path}
                   component={Link}
-                  to="/main"
-                  label={route.path}
+                  to={route.path}
+                  label={route.name}
                   {...a11yProps(i)}
                 />
               ))}
             </Tabs>
             <Switch>
-              {routes.map((route) => (
-                <Route path={route.path} render={() => route.component()} key={route.path} />
-              ))}
+              <Route path="/main" render={() => <Main />} key="/main" />
+              <Route path="/map" render={() => <Map />} key="/map" />
             </Switch>
-          </>
+          </div>
         )}
       />
     </MainLayout>

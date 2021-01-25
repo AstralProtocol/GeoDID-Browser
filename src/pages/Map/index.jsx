@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMapGL, { Source, Layer, FlyToInterpolator, WebMercatorViewport } from 'react-map-gl';
 import { connect } from 'react-redux';
 import { easeCubic } from 'd3-ease';
 import { loadCogs, setSelectedCog } from 'core/redux/spatial-assets/actions';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 const regex = /(?:\.([^.]+))?$/;
 
 const Map = (props) => {
   const {
-    collapsed,
+    // collapsed,
     initialMapLoad,
-    siderWidth,
+    // siderWidth,
     spatialAsset,
     spatialAssetLoaded,
     dispatchLoadCogs,
@@ -19,15 +20,18 @@ const Map = (props) => {
     dispatchSetSelectedCog,
   } = props;
 
-  const parentRef = useRef(null);
+  // const parentRef = useRef(null);
   const [viewport, setViewport] = useState({
     latitude: 30,
     longitude: 0,
     zoom: 2,
+    width: '100vw',
+    height: '100vh',
   });
   const [rasterSources, setRasterSources] = useState(null);
   const [selectedRasterSource, setSelectedRasterSource] = useState(null);
 
+  console.log(viewport);
   const onStacDataLoad = (sAsset = null) => {
     if (sAsset) {
       const { longitude, latitude, zoom } = new WebMercatorViewport(viewport).fitBounds(
@@ -63,6 +67,7 @@ const Map = (props) => {
     }
   };
 
+  /*
   useEffect(() => {
     if (parentRef.current) {
       setViewport({
@@ -82,6 +87,7 @@ const Map = (props) => {
       });
     }
   }, [initialMapLoad, collapsed]);
+  
 
   useEffect(() => {
     const handleResize = () => {
@@ -96,7 +102,7 @@ const Map = (props) => {
       window.removeEventListener('resize', handleResize);
     };
   });
-
+*/
   useEffect(() => {
     if (spatialAssetLoaded && spatialAsset) {
       const cogs =
@@ -153,32 +159,25 @@ const Map = (props) => {
   };
 
   return (
-    <div
-      style={{
-        height: '100%',
-      }}
-      ref={parentRef}
+    <ReactMapGL
+      mapStyle="mapbox://styles/j-mars/ckhsfy2if2w8d19mteyfb2z1u"
+      mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
+      // eslint-disable-next-line
+      {...viewport}
+      onViewportChange={(vp) => setViewport(vp)}
     >
-      <ReactMapGL
-        mapStyle="mapbox://styles/j-mars/ckhsfy2if2w8d19mteyfb2z1u"
-        mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
-        // eslint-disable-next-line
-        {...viewport}
-        onViewportChange={(vp) => setViewport(vp)}
-      >
-        {spatialAssetLoaded && (
-          <>
-            <Source id="geojson" type="geojson" data={spatialAsset.geometry}>
-              <Layer
-                // eslint-disable-next-line
-                {...dataLayer}
-              />
-            </Source>
-            {selectedRasterSource}
-          </>
-        )}
-      </ReactMapGL>
-    </div>
+      {spatialAssetLoaded && (
+        <>
+          <Source id="geojson" type="geojson" data={spatialAsset.geometry}>
+            <Layer
+              // eslint-disable-next-line
+              {...dataLayer}
+            />
+          </Source>
+          {selectedRasterSource}
+        </>
+      )}
+    </ReactMapGL>
   );
 };
 
