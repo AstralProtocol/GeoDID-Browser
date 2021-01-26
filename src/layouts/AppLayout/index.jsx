@@ -34,6 +34,9 @@ const useStyles = makeStyles((theme) => ({
     width: drawerWidth,
     backgroundColor: theme.palette.sider.default,
   },
+  listItem: {
+    color: '#fff',
+  },
   // necessary for content to be below app bar
   toolbar: theme.mixins.toolbar,
   content: {
@@ -47,10 +50,10 @@ function AppLayout(props) {
   const { children, selectedAccount } = props;
 
   let menuData = (
-    <List className={classes.list}>
+    <List>
       {defaultMenuData.map((data, index) => (
         <Link to={data.url}>
-          <ListItem button key={data.key}>
+          <ListItem className={classes.listItem} button key={data.key}>
             <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
             <ListItemText primary={data.title} />
           </ListItem>

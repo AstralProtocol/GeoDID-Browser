@@ -4,6 +4,7 @@ import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import Link from '@material-ui/core/Link';
 import ProTip from './ProTip';
+import Connect from './connect';
 
 function Copyright() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
         </Typography>
         <ProTip />
         <Copyright />
+        <Connect />
       </Box>
     </Container>
   );
