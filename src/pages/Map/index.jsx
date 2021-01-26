@@ -25,8 +25,8 @@ const Map = (props) => {
     latitude: 30,
     longitude: 0,
     zoom: 2,
-    width: '100vw',
-    height: '100vh',
+    width: `100%`,
+    height: `calc(100vh - 64px)`,
   });
   const [rasterSources, setRasterSources] = useState(null);
   const [selectedRasterSource, setSelectedRasterSource] = useState(null);
@@ -160,7 +160,7 @@ const Map = (props) => {
 
   return (
     <ReactMapGL
-      mapStyle="mapbox://styles/j-mars/ckhsfy2if2w8d19mteyfb2z1u"
+      mapStyle="mapbox://styles/mapbox/streets-v11"
       mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
       // eslint-disable-next-line
       {...viewport}

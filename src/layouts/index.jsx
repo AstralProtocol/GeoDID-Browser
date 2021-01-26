@@ -1,12 +1,10 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-
 import { initWeb3, checkRoles } from 'core/redux/login/actions';
 import { initializeContracts } from 'core/redux/contracts/actions';
 import { Contracts } from 'core/redux/contracts/reducers';
-// import WithMenuLayout from './WithMenu';
-// import AppLayout from './AppLayout';
+import AppLayout from './AppLayout';
 
 function MainLayout(props) {
   const {
@@ -40,7 +38,7 @@ function MainLayout(props) {
     }
   }, [contractsInitialized, checkRolesProps]);
 
-  return children;
+  return <AppLayout>{children}</AppLayout>;
 }
 
 const mapStateToProps = (state) => ({

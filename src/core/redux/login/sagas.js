@@ -10,7 +10,6 @@ import {
   commitMinedSuccess,
   commitError,
 } from 'core/redux/contracts/actions';
-import { FETCH_MENU } from 'core/redux/menu/actions';
 import { actions } from './actions';
 
 // we need to import idx.ts to create the idx instance along with Ceramic
@@ -274,10 +273,6 @@ function* LOGOUT_SAGA() {
   });
 
   yield put(push(`/`));
-
-  yield put({
-    type: FETCH_MENU,
-  });
 }
 
 export default function* rootSaga() {
