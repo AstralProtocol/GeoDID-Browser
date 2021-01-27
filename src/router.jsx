@@ -5,14 +5,14 @@ import MainLayout from 'layouts';
 
 const routes = [
   {
-    path: '/browse',
-    name: 'Browse',
-    component: loadable(() => import('pages/Browse')),
+    path: '/landing',
+    name: 'Landing',
+    component: loadable(() => import('pages/Landing')),
     exact: true,
   },
   {
-    path: '/map',
-    name: 'Map',
+    path: '/dashboard',
+    name: 'Dashboard',
     component: loadable(() => import('pages/Map')),
     exact: true,
   },
@@ -22,7 +22,7 @@ function Router() {
   return (
     <MainLayout>
       <Switch>
-        <Route exact path="/" render={() => <Redirect to="/Browse" />} />
+        <Route exact path="/" render={() => <Redirect to="/Landing" />} />
         {routes.map((route) => (
           <Route
             path={route.path}

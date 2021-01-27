@@ -17,9 +17,4 @@ export const loggedInMenuData = [
     key: 'dasboard',
     url: '/dashboard',
   },
-  {
-    title: 'Dashboard',
-    key: 'dashboard',
-    url: '/dashboard',
-  },
 ];

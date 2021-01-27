@@ -7,6 +7,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import List from '@material-ui/core/List';
+import MaterialLink from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
 import ListItem from '@material-ui/core/ListItem';
@@ -45,6 +46,19 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+function Copyright() {
+  return (
+    <Typography variant="body2" color="white" align="center">
+      {'Copyright © '}
+      <MaterialLink color="inherit" href="https://astral.global/">
+        Astral
+      </MaterialLink>{' '}
+      {new Date().getFullYear()}
+      {'.'}
+    </Typography>
+  );
+}
+
 function AppLayout(props) {
   const classes = useStyles();
   const { children, selectedAccount } = props;
@@ -52,7 +66,7 @@ function AppLayout(props) {
   let menuData = (
     <List>
       {defaultMenuData.map((data, index) => (
-        <Link to={data.url}>
+        <Link to={data.url} key={data.key}>
           <ListItem className={classes.listItem} button key={data.key}>
             <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
             <ListItemText primary={data.title} />
@@ -66,7 +80,7 @@ function AppLayout(props) {
     menuData = (
       <List className={classes.list}>
         {loggedInMenuData.map((data, index) => (
-          <Link to={data.url}>
+          <Link to={data.url} key={data.key}>
             <ListItem button key={data.key}>
               <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
               <ListItemText primary={data.title} />
@@ -97,6 +111,8 @@ function AppLayout(props) {
         <div className={classes.toolbar} />
         <Divider />
         {menuData}
+        <Divider />
+        <Copyright />
       </Drawer>
       <main className={classes.content}>
         <div className={classes.toolbar} />
