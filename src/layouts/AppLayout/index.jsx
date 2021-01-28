@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
   },
   drawerPaper: {
     width: drawerWidth,
-    backgroundColor: theme.palette.sider.default,
+    backgroundColor: theme.palette.sider.background,
   },
   listItem: {
     color: '#fff',
@@ -42,13 +42,14 @@ const useStyles = makeStyles((theme) => ({
   toolbar: theme.mixins.toolbar,
   content: {
     flexGrow: 1,
-    backgroundColor: theme.palette.background.default,
+    backgroundColor: theme.palette.content.background,
+    height: `100vh`,
   },
 }));
 
 function Copyright() {
   return (
-    <Typography variant="body2" color="white" align="center">
+    <Typography variant="body2" align="center">
       {'Copyright © '}
       <MaterialLink color="inherit" href="https://astral.global/">
         Astral

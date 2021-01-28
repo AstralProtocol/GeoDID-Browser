@@ -12,18 +12,20 @@ const theme = createMuiTheme({
       main: '#ffa300', // $astral-yellow
       white: '#fffff',
       grey: '#333333', // $astral-grey
+      orange: '#f97b3d', // $astral-orange
     },
     secondary: {
-      main: '#e5e5e5', // $astral-white
+      main: '#333333', // $astral-grey
     },
     error: {
       main: red.A400,
     },
     sider: {
-      default: '#333333', // $astral-grey
+      background: '#333333', // $astral-grey
+      text: '#fff',
     },
-    background: {
-      default: '#e5e5e5', // $astral-white
+    content: {
+      background: '#e5e5e5', // $astral-white
     },
   },
 });

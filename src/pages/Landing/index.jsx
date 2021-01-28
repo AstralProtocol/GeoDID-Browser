@@ -2,20 +2,21 @@ import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
-import ConnectButton from './ConnectButton';
-import ProTip from './ProTip';
+import TextField from '@material-ui/core/TextField';
+import AstralButton from 'components/AstralButton';
 
 const useStyles = makeStyles(() => ({
   header: {
     paddingTop: '20vh',
-    paddingBottom: '8em',
+    paddingBottom: '4em',
     textAlign: 'center',
   },
   interactionAreaContainer: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    justifyItems: 'center',
+    gridTemplateColumns: `repeat( auto-fit, minmax(250px, 1fr) )`,
     textAlign: 'center',
+    justifyItems: 'center',
+    alignItems: 'center',
   },
 }));
 
@@ -25,15 +26,27 @@ export default function App() {
     <>
       <div className={classes.header}>
         <Container maxWidth="md">
-          <Typography variant="h3" component="h1" gutterBottom>
+          <Typography variant="h2" component="h1" gutterBottom>
             Enter the Astral Studio
           </Typography>
-          <ProTip />
         </Container>
       </div>
       <div className={classes.interactionAreaContainer}>
-        <div>empty</div>
-        <ConnectButton />
+        <div className={classes.element1}>
+          <Typography variant="h3" component="h1" gutterBottom>
+            Read a GeoDID
+          </Typography>
+          <TextField id="filled-basic" label="GeoDid" variant="filled" />
+        </div>
+        <div className={classes.element2}>
+          <Typography variant="h3" component="h1" gutterBottom>
+            Log-in
+          </Typography>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Create / Edit / Delete
+          </Typography>
+          <AstralButton>Connect your Wallet</AstralButton>
+        </div>
       </div>
     </>
   );
