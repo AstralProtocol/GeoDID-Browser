@@ -14,8 +14,14 @@ const useStyles = makeStyles(() => ({
   interactionAreaContainer: {
     display: 'grid',
     gridTemplateColumns: `repeat( auto-fit, minmax(250px, 1fr) )`,
+    gridGap: '1rem',
     textAlign: 'center',
     justifyItems: 'center',
+  },
+  element1: {
+    width: '60%',
+    height: '100%',
+    objectFit: 'cover',
     alignItems: 'center',
   },
 }));
@@ -36,7 +42,7 @@ export default function App() {
           <Typography variant="h3" component="h1" gutterBottom>
             Read a GeoDID
           </Typography>
-          <TextField id="filled-basic" label="GeoDid" variant="filled" />
+          <TextField fullWidth id="filled-basic" label="GeoDid" variant="filled" />
         </div>
         <div className={classes.element2}>
           <Typography variant="h3" component="h1" gutterBottom>

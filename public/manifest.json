@@ -1,14 +1,14 @@
 {
-  "short_name": "Geolocker",
-  "name": "Geolocker dApp",
+  "short_name": "Astral Studio",
+  "name": "Astral Studio",
   "icons": [
     {
-      "src": "favicon-vaultlabs.png",
+      "src": "favicon-32x32.png",
       "sizes": "32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "vaultlabslogo.png",
+      "src": "Transparent-Symbol.png",
       "type": "image/png",
       "sizes": "512x512"
     }
