@@ -17,12 +17,11 @@ const useStyles = makeStyles(() => ({
     gridGap: '1rem',
     textAlign: 'center',
     justifyItems: 'center',
+    alignItems: 'center',
   },
   element1: {
     width: '60%',
-    height: '100%',
     objectFit: 'cover',
-    alignItems: 'center',
   },
 }));
 

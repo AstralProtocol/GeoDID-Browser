@@ -10,7 +10,7 @@ const theme = createMuiTheme({
   palette: {
     primary: {
       main: '#ffa300', // $astral-yellow
-      white: '#fffff',
+      white: '#e5e5e5',
       grey: '#333333', // $astral-grey
       orange: '#f97b3d', // $astral-orange
     },

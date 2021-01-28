@@ -15,6 +15,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import InboxIcon from '@material-ui/icons/MoveToInbox';
 import MailIcon from '@material-ui/icons/Mail';
+import AstralButton from 'components/AstralButton';
 import { defaultMenuData, loggedInMenuData } from 'core/services/menu';
 
 const drawerWidth = 240;
@@ -27,6 +28,30 @@ const useStyles = makeStyles((theme) => ({
     width: `calc(100% - ${drawerWidth}px)`,
     marginLeft: drawerWidth,
   },
+  appName: {
+    color: theme.palette.primary.white,
+    alignItems: 'center',
+  },
+  accountArea: {
+    alignItems: 'top',
+  },
+  barSpace: {
+    minHeight: '64px',
+  },
+  content: {
+    flexGrow: 1,
+    backgroundColor: theme.palette.content.background,
+    height: `100vh`,
+  },
+  copyright: {
+    color: theme.palette.primary.white,
+    position: 'absolute',
+    left: '10px',
+    bottom: '20px',
+  },
+  divider: {
+    background: '#444444',
+  },
   drawer: {
     width: drawerWidth,
     flexShrink: 0,
@@ -36,14 +61,21 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.sider.background,
   },
   listItem: {
-    color: '#fff',
+    color: theme.palette.primary.white,
   },
   // necessary for content to be below app bar
-  toolbar: theme.mixins.toolbar,
-  content: {
-    flexGrow: 1,
-    backgroundColor: theme.palette.content.background,
-    height: `100vh`,
+  logoContainer: {
+    display: 'grid',
+    gridTemplateColumns: '1fr',
+    gridTemplateRows: '100px 50px 1fr',
+    textAlign: 'center',
+    minHeight: '250px',
+    justifyItems: 'center',
+  },
+  logo: {
+    alignItems: 'center',
+    width: '100px',
+    height: '100px',
   },
 }));
 
@@ -65,7 +97,7 @@ function AppLayout(props) {
   const { children, selectedAccount } = props;
 
   let menuData = (
-    <List>
+    <List className={classes.list}>
       {defaultMenuData.map((data, index) => (
         <Link to={data.url} key={data.key}>
           <ListItem className={classes.listItem} button key={data.key}>
@@ -82,7 +114,7 @@ function AppLayout(props) {
       <List className={classes.list}>
         {loggedInMenuData.map((data, index) => (
           <Link to={data.url} key={data.key}>
-            <ListItem button key={data.key}>
+            <ListItem className={classes.listItem} button key={data.key}>
               <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
               <ListItemText primary={data.title} />
             </ListItem>
@@ -109,14 +141,23 @@ function AppLayout(props) {
         }}
         anchor="left"
       >
-        <div className={classes.toolbar} />
-        <Divider />
+        <div className={classes.logoContainer}>
+          <img className={classes.logo} src="Transparent-Symbol.png" alt="logo" />
+          <Typography className={classes.appName} variant="h6" noWrap>
+            Astral Studio
+          </Typography>
+          <div className={classes.accountArea}>
+            <AstralButton>Connect</AstralButton>
+          </div>
+        </div>
+        <Divider className={classes.divider} />
         {menuData}
-        <Divider />
-        <Copyright />
+        <div className={classes.copyright}>
+          <Copyright />
+        </div>
       </Drawer>
       <main className={classes.content}>
-        <div className={classes.toolbar} />
+        <div className={classes.barSpace} />
         {children}
       </main>
     </div>
