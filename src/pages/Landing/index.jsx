@@ -4,6 +4,8 @@ import Container from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import AstralButton from 'components/AstralButton';
+import { connect } from 'react-redux';
+import { changeAuthorization } from 'core/redux/login/actions';
 
 const useStyles = makeStyles(() => ({
   header: {
@@ -25,8 +27,10 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export default function App() {
+function Landing(props) {
   const classes = useStyles();
+  const { dispatchChangeAuthorization } = props;
+
   return (
     <>
       <div className={classes.header}>
@@ -50,9 +54,17 @@ export default function App() {
           <Typography variant="h4" component="h1" gutterBottom>
             Create / Edit / Delete
           </Typography>
-          <AstralButton>Connect your Wallet</AstralButton>
+          <AstralButton click={() => dispatchChangeAuthorization()}>
+            Connect your Wallet
+          </AstralButton>
         </div>
       </div>
     </>
   );
 }
+
+const mapDispatchToProps = (dispatch) => ({
+  dispatchChangeAuthorization: () => dispatch(changeAuthorization()),
+});
+
+export default connect(null, mapDispatchToProps)(Landing);

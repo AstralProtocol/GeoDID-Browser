@@ -9,13 +9,23 @@ const useStyles = makeStyles((theme) => ({
     border: 0,
     color: theme.palette.secondary.main,
     fontSize: 20,
-    height: 60,
+    height: 50,
     padding: '0 30px',
     boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .3)',
   },
 }));
 
-export default function AreaButton() {
+export default function AreaButton(props) {
   const classes = useStyles();
-  return <Button className={classes.button}>Connect your Wallet</Button>;
+  const { click } = props;
+
+  const clickAction = () => {
+    click();
+  };
+
+  return (
+    <Button onClick={clickAction} className={classes.button}>
+      Connect your Wallet
+    </Button>
+  );
 }

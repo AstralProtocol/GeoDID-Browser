@@ -31,7 +31,6 @@ const Map = (props) => {
   const [rasterSources, setRasterSources] = useState(null);
   const [selectedRasterSource, setSelectedRasterSource] = useState(null);
 
-  console.log(viewport);
   const onStacDataLoad = (sAsset = null) => {
     if (sAsset) {
       const { longitude, latitude, zoom } = new WebMercatorViewport(viewport).fitBounds(

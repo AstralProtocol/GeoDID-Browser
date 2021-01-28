@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import { withRouter, Link } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
@@ -15,6 +15,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import InboxIcon from '@material-ui/icons/MoveToInbox';
 import MailIcon from '@material-ui/icons/Mail';
+import SearchBar from 'material-ui-search-bar';
 import AstralButton from 'components/AstralButton';
 import { defaultMenuData, loggedInMenuData } from 'core/services/menu';
 
@@ -94,6 +95,8 @@ function Copyright() {
 
 function AppLayout(props) {
   const classes = useStyles();
+  const [searchValue, setSearchValue] = useState('');
+
   const { children, selectedAccount } = props;
 
   let menuData = (
@@ -153,6 +156,12 @@ function AppLayout(props) {
         <Divider className={classes.divider} />
         {menuData}
         <div className={classes.copyright}>
+          <SearchBar
+            placeholder="Search GeoDID"
+            value={searchValue}
+            onChange={(newValue) => setSearchValue(newValue)}
+            onRequestSearch={() => console.log(searchValue)}
+          />
           <Copyright />
         </div>
       </Drawer>
