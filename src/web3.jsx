@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers';
 import Web3Modal from 'web3modal';
 import WalletConnectProvider from '@walletconnect/web3-provider';
@@ -13,15 +13,15 @@ import {
   useBalance,
   // useExternalContractLoader,
 } from 'core/newhooks';
-import { Transactor } from 'utils/helpers';
+import Transactor from 'utils/Transactor';
 import { formatEther } from '@ethersproject/units';
-//import Hints from "./Hints";
+// import Hints from "./Hints";
 import { INFURA_ID, NETWORKS } from 'utils/constants';
 
 const WalletContext = React.createContext();
 
 /// 📡 What chain are your contracts deployed to?
-const targetNetwork = NETWORKS['ropsten']; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+const targetNetwork = NETWORKS.ropsten; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
 // 😬 Sorry for all the console logging
 const DEBUG = true;
@@ -30,7 +30,7 @@ const DEBUG = true;
 if (DEBUG) console.log('📡 Connecting to Mainnet Ethereum');
 // const mainnetProvider = getDefaultProvider("mainnet", { infura: INFURA_ID, etherscan: ETHERSCAN_KEY, quorum: 1 });
 // const mainnetProvider = new InfuraProvider("mainnet",INFURA_ID);
-const mainnetProvider = new JsonRpcProvider('https://mainnet.infura.io/v3/' + INFURA_ID);
+const mainnetProvider = new JsonRpcProvider(`https://mainnet.infura.io/v3/${INFURA_ID}`);
 // ( ⚠️ Getting "failed to meet quorum" errors? Check your INFURA_ID)
 
 // 🏠 Your local provider is usually pointed at your local blockchain
@@ -43,7 +43,7 @@ if (DEBUG) console.log('🏠 Connecting to provider:', localProviderUrlFromEnv);
 const localProvider = new JsonRpcProvider(localProviderUrlFromEnv);
 
 // 🔭 block explorer URL
-const blockExplorer = targetNetwork.blockExplorer;
+const { blockExplorer } = targetNetwork;
 
 /*
   Web3 modal helps us "connect" external wallets:
@@ -88,10 +88,10 @@ export function WalletContextProvider({ children }) {
   if (DEBUG) console.log('👩‍💼 selected address:', address);
 
   // You can warn the user if you would like them to be on a specific network
-  let localChainId = localProvider && localProvider._network && localProvider._network.chainId;
+  const localChainId = localProvider && localProvider._network && localProvider._network.chainId;
   if (DEBUG) console.log('🏠 localChainId', localChainId);
 
-  let selectedChainId = userProvider && userProvider._network && userProvider._network.chainId;
+  const selectedChainId = userProvider && userProvider._network && userProvider._network.chainId;
   if (DEBUG) console.log('🕵🏻‍♂️ selectedChainId:', selectedChainId);
 
   // For more hooks, check out 🔗eth-hooks at: https://www.npmjs.com/package/eth-hooks
@@ -126,18 +126,18 @@ export function WalletContextProvider({ children }) {
   // EXTERNAL CONTRACT EXAMPLE:
   //
   // If you want to bring in the mainnet DAI contract it would look like:
-  //const mainnetDAIContract = useExternalContractLoader(mainnetProvider, DAI_ADDRESS, DAI_ABI)
-  //console.log("🥇DAI contract on mainnet:",mainnetDAIContract)
+  // const mainnetDAIContract = useExternalContractLoader(mainnetProvider, DAI_ADDRESS, DAI_ABI)
+  // console.log("🥇DAI contract on mainnet:",mainnetDAIContract)
   //
   // Then read your DAI balance like:
-  //const myMainnetBalance = useContractReader({DAI: mainnetDAIContract},"DAI", "balanceOf",["0x34aA3F359A9D614239015126635CE7732c18fDF3"])
+  // const myMainnetBalance = useContractReader({DAI: mainnetDAIContract},"DAI", "balanceOf",["0x34aA3F359A9D614239015126635CE7732c18fDF3"])
   //
 
   // keep track of a variable from the contract in the local React state:
   const purpose = useContractReader(readContracts, 'YourContract', 'purpose');
   console.log('🤗 purpose:', purpose);
 
-  //📟 Listen for broadcast events
+  // 📟 Listen for broadcast events
   const setPurposeEvents = useEventListener(
     readContracts,
     'YourContract',

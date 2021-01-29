@@ -2,15 +2,12 @@
 /* eslint-disable global-require */
 import { Contract } from '@ethersproject/contracts';
 import { useState, useEffect } from 'react';
+import contractList from 'utils/contracts';
 
-const loadContract = (contractName, signer) => {
-  const newContract = new Contract(
-    require(`../contracts/${contractName}.address.js`),
-    require(`../contracts/${contractName}.abi.js`),
-    signer,
-  );
+const loadContract = (contract, signer) => {
+  const newContract = new Contract(contract.address, contract.abi, signer);
   try {
-    newContract.bytecode = require(`utils/contracts/${contractName}.bytecode.js`);
+    newContract.bytecode = contract.bytecode;
   } catch (e) {
     console.log(e);
   }
@@ -35,8 +32,6 @@ export default function useContractLoader(providerOrSigner) {
           } else {
             signer = providerOrSigner;
           }
-
-          const contractList = require('../contracts/contracts.js');
 
           const newContracts = contractList.reduce((accumulator, contractName) => {
             accumulator[contractName] = loadContract(contractName, signer);
