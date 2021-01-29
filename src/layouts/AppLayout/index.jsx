@@ -44,18 +44,18 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.content.background,
     height: `100vh`,
   },
-  copyright: {
-    color: theme.palette.primary.white,
-    position: 'absolute',
-    left: '10px',
-    bottom: '20px',
-  },
   divider: {
     background: '#444444',
   },
   drawer: {
     width: drawerWidth,
     flexShrink: 0,
+  },
+  drawerBottom: {
+    color: theme.palette.primary.white,
+    position: 'absolute',
+    left: '10px',
+    bottom: '20px',
   },
   drawerPaper: {
     width: drawerWidth,
@@ -77,6 +77,10 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
     width: '100px',
     height: '100px',
+  },
+  searchBar: {
+    marginBottom: '20px',
+    marginRight: '10px',
   },
 }));
 
@@ -155,8 +159,9 @@ function AppLayout(props) {
         </div>
         <Divider className={classes.divider} />
         {menuData}
-        <div className={classes.copyright}>
+        <div className={classes.drawerBottom}>
           <SearchBar
+            className={classes.searchBar}
             placeholder="Search GeoDID"
             value={searchValue}
             onChange={(newValue) => setSearchValue(newValue)}

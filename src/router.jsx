@@ -2,6 +2,7 @@ import React from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
 import loadable from '@loadable/component';
 import MainLayout from 'layouts';
+import { useWallet } from './wallet';
 
 const routes = [
   {
@@ -19,6 +20,8 @@ const routes = [
 ];
 
 function Router() {
+  const { account } = useWallet();
+  console.log(account);
   return (
     <MainLayout>
       <Switch>

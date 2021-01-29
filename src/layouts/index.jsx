@@ -1,22 +1,15 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { initWeb3, checkRoles } from 'core/redux/login/actions';
 import { initializeContracts } from 'core/redux/contracts/actions';
-import { Contracts } from 'core/redux/contracts/reducers';
+// import { Contracts } from 'core/redux/contracts/reducers';
 import AppLayout from './AppLayout';
 
 function MainLayout(props) {
-  const {
-    children,
-    web3,
-    initWeb3Props,
-    initializeContractsProps,
-    authorized,
-    contractsInitialized,
-    checkRolesProps,
-  } = props;
+  const { children } = props;
 
+  /*
   // Connect to provider and init web3
   useEffect(() => {
     if (authorized) {
@@ -37,7 +30,7 @@ function MainLayout(props) {
       checkRolesProps();
     }
   }, [contractsInitialized, checkRolesProps]);
-
+ */
   return <AppLayout>{children}</AppLayout>;
 }
 
