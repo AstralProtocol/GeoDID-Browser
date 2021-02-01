@@ -283,30 +283,22 @@ export const DAI_ABI = [
   },
 ];
 
-export const NETWORK = (chainId) => {
-  for (const n in NETWORKS) {
-    if (NETWORKS[n].chainId == chainId) {
-      return NETWORKS[n];
-    }
-  }
-};
-
-export const NETWORKS = {
-  localhost: {
+export const NETWORKS = [
+  {
     name: 'localhost',
     color: '#666666',
     chainId: 31337,
     blockExplorer: '',
     rpcUrl: `http://${window.location.hostname}:8545`,
   },
-  mainnet: {
+  {
     name: 'mainnet',
     color: '#ffffff',
     chainId: 1,
     rpcUrl: `https://mainnet.infura.io/v3/${INFURA_ID}`,
     blockExplorer: 'https://etherscan.io/',
   },
-  kovan: {
+  {
     name: 'kovan',
     color: '#7003DD',
     chainId: 42,
@@ -314,7 +306,7 @@ export const NETWORKS = {
     blockExplorer: 'https://kovan.etherscan.io/',
     faucet: 'https://gitter.im/kovan-testnet/faucet', // https://faucet.kovan.network/
   },
-  rinkeby: {
+  {
     name: 'rinkeby',
     color: '#e0d068',
     chainId: 4,
@@ -322,7 +314,7 @@ export const NETWORKS = {
     faucet: 'https://faucet.rinkeby.io/',
     blockExplorer: 'https://rinkeby.etherscan.io/',
   },
-  ropsten: {
+  {
     name: 'ropsten',
     color: '#F60D09',
     chainId: 3,
@@ -330,7 +322,7 @@ export const NETWORKS = {
     blockExplorer: 'https://ropsten.etherscan.io/',
     rpcUrl: `https://ropsten.infura.io/v3/${INFURA_ID}`,
   },
-  goerli: {
+  {
     name: 'goerli',
     color: '#0975F6',
     chainId: 5,
@@ -338,7 +330,7 @@ export const NETWORKS = {
     blockExplorer: 'https://goerli.etherscan.io/',
     rpcUrl: `https://goerli.infura.io/v3/${INFURA_ID}`,
   },
-  xdai: {
+  {
     name: 'xdai',
     color: '#48a9a6',
     chainId: 100,
@@ -348,7 +340,7 @@ export const NETWORKS = {
     faucet: 'https://xdai-faucet.top/',
     blockExplorer: 'https://blockscout.com/poa/xdai/',
   },
-  matic: {
+  {
     name: 'matic',
     color: '#2bbdf7',
     chainId: 137,
@@ -358,4 +350,19 @@ export const NETWORKS = {
     faucet: 'https://faucet.matic.network/',
     blockExplorer: 'https://explorer-mainnet.maticvigil.com//',
   },
+];
+
+export const NETWORK = (name) => {
+  let selectedNetwork;
+
+  NETWORKS.every((network) => {
+    if (network.name === name) {
+      selectedNetwork = network;
+      return false;
+    }
+    // Make sure you return true. If you don't return a value, `every()` will stop.
+    return true;
+  });
+
+  return selectedNetwork;
 };

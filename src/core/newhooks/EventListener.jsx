@@ -1,13 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function useEventListener(
-  contracts,
-  contractName,
-  eventName,
-  provider,
-  startBlock,
-  args,
-) {
+export default function useEventListener(contracts, contractName, eventName, provider, startBlock) {
   const [updates, setUpdates] = useState([]);
 
   useEffect(() => {
@@ -28,6 +21,8 @@ export default function useEventListener(
         console.log(e);
       }
     }
+
+    return undefined;
   }, [provider, startBlock, contracts, contractName, eventName]);
 
   return updates;

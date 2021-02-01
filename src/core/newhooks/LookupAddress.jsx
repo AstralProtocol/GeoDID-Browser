@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAddress } from '@ethersproject/address';
-import { useLocalStorage } from '.';
+import useLocalStorage from './LocalStorage';
 
 const lookupAddress = async (provider, address) => {
   try {

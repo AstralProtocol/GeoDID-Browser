@@ -1,4 +1,5 @@
-import React, { useContext, useState } from 'react';
+/* eslint-disable no-underscore-dangle */
+import React, { useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers';
 import Web3Modal from 'web3modal';
 import WalletConnectProvider from '@walletconnect/web3-provider';
@@ -16,12 +17,12 @@ import {
 import Transactor from 'utils/Transactor';
 import { formatEther } from '@ethersproject/units';
 // import Hints from "./Hints";
-import { INFURA_ID, NETWORKS } from 'utils/constants';
+import { INFURA_ID, NETWORK } from 'utils/constants';
 
 const WalletContext = React.createContext();
 
 /// 📡 What chain are your contracts deployed to?
-const targetNetwork = NETWORKS.ropsten; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+const targetNetwork = NETWORK('ropsten'); // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
 // 😬 Sorry for all the console logging
 const DEBUG = true;
@@ -68,12 +69,14 @@ const logoutOfWeb3Modal = async () => {
   }, 1);
 };
 
+/* eslint-disable no-unused-expressions */
 window.ethereum &&
   window.ethereum.on('chainChanged', () => {
     setTimeout(() => {
       window.location.reload();
     }, 1);
   });
+/* eslint-enable no-unused-expressions */
 
 export function WalletContextProvider({ children }) {
   const [injectedProvider, setInjectedProvider] = useState();
@@ -211,7 +214,6 @@ export function WalletContextProvider({ children }) {
       readContracts,
       purpose,
       setPurposeEvents,
-      yourLocalBalance,
       web3Modal,
       loadWeb3Modal,
       logoutOfWeb3Modal,
@@ -229,7 +231,6 @@ export function WalletContextProvider({ children }) {
       readContracts,
       purpose,
       setPurposeEvents,
-      yourLocalBalance,
       web3Modal,
       loadWeb3Modal,
       logoutOfWeb3Modal,
