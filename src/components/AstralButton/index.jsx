@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function AreaButton(props) {
   const classes = useStyles();
-  const { click } = props;
+  const { click, title } = props;
 
   const clickAction = () => {
     click();
@@ -25,7 +25,7 @@ export default function AreaButton(props) {
 
   return (
     <Button onClick={clickAction} className={classes.button}>
-      Connect your Wallet
+      {title}
     </Button>
   );
 }

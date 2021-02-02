@@ -16,8 +16,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import InboxIcon from '@material-ui/icons/MoveToInbox';
 import MailIcon from '@material-ui/icons/Mail';
 import SearchBar from 'material-ui-search-bar';
-import AstralButton from 'components/AstralButton';
 import { defaultMenuData, loggedInMenuData } from 'core/services/menu';
+import Account from 'components/Account';
 
 const drawerWidth = 240;
 
@@ -154,7 +154,7 @@ function AppLayout(props) {
             Astral Studio
           </Typography>
           <div className={classes.accountArea}>
-            <AstralButton>Connect</AstralButton>
+            <Account />
           </div>
         </div>
         <Divider className={classes.divider} />

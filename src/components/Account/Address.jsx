@@ -1,6 +1,6 @@
 import React from 'react';
 import Blockies from 'react-blockies';
-import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
 import { useLookupAddress } from 'core/newhooks';
 
 const blockExplorerLink = (address, blockExplorer) =>
@@ -28,7 +28,7 @@ export default function Address(props) {
     return (
       <span style={{ verticalAlign: 'middle' }}>
         <a
-          style={{ color: '#222222' }}
+          style={{ color: '#e5e5e5' }}
           target="_blank"
           href={etherscanLink}
           rel="noopener noreferrer"
@@ -42,29 +42,29 @@ export default function Address(props) {
   let text;
   if (props.onChange) {
     text = (
-      <TextField>
+      <Typography>
         <a
-          style={{ color: '#222222' }}
+          style={{ color: '#e5e5e5' }}
           target="_blank"
           href={etherscanLink}
           rel="noopener noreferrer"
         >
           {displayAddress}
         </a>
-      </TextField>
+      </Typography>
     );
   } else {
     text = (
-      <TextField>
+      <Typography>
         <a
-          style={{ color: '#222222' }}
+          style={{ color: '#e5e5e5' }}
           target="_blank"
           href={etherscanLink}
           rel="noopener noreferrer"
         >
           {displayAddress}
         </a>
-      </TextField>
+      </Typography>
     );
   }
 

@@ -1,5 +1,5 @@
 import SpatialAssets from '@astraldao/astral-protocol-contracts/build/contracts/SpatialAssets.json';
 
-const contractList = [{ SpatialAssets }];
+const contractList = [SpatialAssets];
 
 export default contractList;

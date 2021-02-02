@@ -6,7 +6,6 @@ import TextField from '@material-ui/core/TextField';
 import AstralButton from 'components/AstralButton';
 import { connect } from 'react-redux';
 import { changeAuthorization } from 'core/redux/login/actions';
-import Account from 'components/Account';
 
 const useStyles = makeStyles(() => ({
   header: {
@@ -39,7 +38,6 @@ function Landing(props) {
           <Typography variant="h2" component="h1" gutterBottom>
             Enter the Astral Studio
           </Typography>
-          <Account />
         </Container>
       </div>
       <div className={classes.interactionAreaContainer}>
@@ -56,9 +54,7 @@ function Landing(props) {
           <Typography variant="h4" component="h1" gutterBottom>
             Create / Edit / Delete
           </Typography>
-          <AstralButton click={() => dispatchChangeAuthorization()}>
-            Connect your Wallet
-          </AstralButton>
+          <AstralButton click={() => dispatchChangeAuthorization()} title="Connect your wallet" />
         </div>
       </div>
     </>

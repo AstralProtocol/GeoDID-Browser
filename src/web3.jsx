@@ -138,18 +138,19 @@ export function WalletContextProvider({ children }) {
   //
 
   // keep track of a variable from the contract in the local React state:
-  const purpose = useContractReader(readContracts, 'YourContract', 'purpose');
-  console.log('🤗 purpose:', purpose);
+  // pass these below in memo to use in useWallet
+  const uri = useContractReader(readContracts, 'SpatialAssets', 'uri');
+  console.log('🤗 uri:', uri);
 
   // 📟 Listen for broadcast events
-  const setPurposeEvents = useEventListener(
+  const spatialAssetRegisteredEvents = useEventListener(
     readContracts,
-    'YourContract',
-    'SetPurpose',
+    'SpatialAssets',
+    'SpatialAssetRegistered',
     localProvider,
     1,
   );
-  console.log('📟 SetPurpose events:', setPurposeEvents);
+  console.log('📟 SpatialAssetRegistered events:', spatialAssetRegisteredEvents);
 
   /*
     const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
@@ -213,8 +214,6 @@ export function WalletContextProvider({ children }) {
       tx,
       writeContracts,
       readContracts,
-      purpose,
-      setPurposeEvents,
       web3Modal,
       loadWeb3Modal,
       logoutOfWeb3Modal,
@@ -230,8 +229,6 @@ export function WalletContextProvider({ children }) {
       tx,
       writeContracts,
       readContracts,
-      purpose,
-      setPurposeEvents,
       web3Modal,
       loadWeb3Modal,
       logoutOfWeb3Modal,

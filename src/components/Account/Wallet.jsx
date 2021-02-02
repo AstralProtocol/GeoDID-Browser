@@ -347,7 +347,7 @@ export default function Wallet(props) {
     <span>
       {providerSend}
       <Modal
-        visible={open}
+        open={open}
         aria-labelledby="modal-title"
         aria-describedby="simple-modal-description"
         onClose={() => {

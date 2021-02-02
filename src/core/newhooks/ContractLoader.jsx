@@ -4,8 +4,8 @@ import { Contract } from '@ethersproject/contracts';
 import { useState, useEffect } from 'react';
 import contractList from 'utils/contracts';
 
-const loadContract = (contract, signer) => {
-  const newContract = new Contract(contract.address, contract.abi, signer);
+const loadContract = (contract, signer, chainId) => {
+  const newContract = new Contract(contract.networks[chainId].address, contract.abi, signer);
   try {
     newContract.bytecode = contract.bytecode;
   } catch (e) {
@@ -27,14 +27,16 @@ export default function useContractLoader(providerOrSigner) {
             accounts = await providerOrSigner.listAccounts();
           }
 
+          const network = await providerOrSigner.getNetwork();
+
           if (accounts && accounts.length > 0) {
             signer = providerOrSigner.getSigner();
           } else {
             signer = providerOrSigner;
           }
 
-          const newContracts = contractList.reduce((accumulator, contractName) => {
-            accumulator[contractName] = loadContract(contractName, signer);
+          const newContracts = contractList.reduce((accumulator, contract) => {
+            accumulator[contract.contractName] = loadContract(contract, signer, network.chainId);
             return accumulator;
           }, {});
           setContracts(newContracts);
