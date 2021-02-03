@@ -15,8 +15,8 @@ const fortmaticKey = process.env.REACT_APP_FORTMATIC_API_KEY;
 const portisKey = process.env.REACT_APP_PORTIS_API_KEY;
 */
 
-export const getWeb3Modal = () => {
-  return new Web3Modal({
+export const getWeb3Modal = () =>
+  new Web3Modal({
     theme: 'dark',
     cacheProvider: false,
     providerOptions: {
@@ -68,7 +68,6 @@ export const getWeb3Modal = () => {
       */
     },
   });
-};
 
 export const cleanWeb3Modal = async (provider, wb3Modal) => {
   // eslint-disable-next-line

@@ -18,83 +18,65 @@ export const actions = {
   STORAGE_ENABLED: 'spatial-assets/STORAGE_ENABLED',
 };
 
-export const setFileList = (fileList) => {
-  return {
-    type: actions.SET_FILELIST,
-    payload: {
-      fileList,
-    },
-  };
-};
+export const setFileList = (fileList) => ({
+  type: actions.SET_FILELIST,
+  payload: {
+    fileList,
+  },
+});
 
-export const setSpatialAsset = (spatialAsset, spatialAssetLoaded) => {
-  return {
-    type: actions.SET_SPATIAL_ASSET,
-    payload: {
-      spatialAsset,
-      spatialAssetLoaded,
-    },
-  };
-};
+export const setSpatialAsset = (spatialAsset, spatialAssetLoaded) => ({
+  type: actions.SET_SPATIAL_ASSET,
+  payload: {
+    spatialAsset,
+    spatialAssetLoaded,
+  },
+});
 
-export const loadCogs = (loadedCogs) => {
-  return {
-    type: actions.LOAD_COGS,
-    payload: {
-      loadedCogs,
-    },
-  };
-};
+export const loadCogs = (loadedCogs) => ({
+  type: actions.LOAD_COGS,
+  payload: {
+    loadedCogs,
+  },
+});
 
-export const unloadCogs = () => {
-  return {
-    type: actions.UNLOAD_COGS,
-    payload: {
-      loadedCogs: null,
-      loadedTiffJson: [],
-      selectedCog: null,
-    },
-  };
-};
+export const unloadCogs = () => ({
+  type: actions.UNLOAD_COGS,
+  payload: {
+    loadedCogs: null,
+    loadedTiffJson: [],
+    selectedCog: null,
+  },
+});
 
-export const setSelectedCog = (selectedCog) => {
-  return {
-    type: actions.SET_SELECTED_COG,
-    payload: {
-      selectedCog,
-    },
-  };
-};
+export const setSelectedCog = (selectedCog) => ({
+  type: actions.SET_SELECTED_COG,
+  payload: {
+    selectedCog,
+  },
+});
 
-export const registerSpatialAsset = () => {
-  return {
-    type: actions.REGISTER_SPATIAL_ASSET,
-  };
-};
+export const registerSpatialAsset = () => ({
+  type: actions.REGISTER_SPATIAL_ASSET,
+});
 
-export const cleanRegistrationStatus = () => {
-  return {
-    type: actions.CLEAN_REGISTRATION_STATUS,
-    payload: {
-      spatialAssetRegistered: false,
-    },
-  };
-};
+export const cleanRegistrationStatus = () => ({
+  type: actions.CLEAN_REGISTRATION_STATUS,
+  payload: {
+    spatialAssetRegistered: false,
+  },
+});
 
-export const fetchSpatialAsset = (stacId) => {
-  return {
-    type: actions.FETCH_SPATIAL_ASSET,
-    payload: {
-      stacId,
-    },
-  };
-};
+export const fetchSpatialAsset = (stacId) => ({
+  type: actions.FETCH_SPATIAL_ASSET,
+  payload: {
+    stacId,
+  },
+});
 
-export const enableStorage = (storageSignature) => {
-  return {
-    type: actions.ENABLE_STORAGE,
-    payload: {
-      storageSignature,
-    },
-  };
-};
+export const enableStorage = (storageSignature) => ({
+  type: actions.ENABLE_STORAGE,
+  payload: {
+    storageSignature,
+  },
+});

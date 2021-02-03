@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Menu, Button } from 'antd';
 import { withRouter } from 'react-router-dom';
+
 import { logout } from 'core/redux/login/actions';
 import utils from 'utils';
 import Login from './Login';
