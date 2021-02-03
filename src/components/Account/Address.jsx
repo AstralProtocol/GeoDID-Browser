@@ -1,12 +1,25 @@
 import React from 'react';
 import Blockies from 'react-blockies';
 import Typography from '@material-ui/core/Typography';
-import { useLookupAddress } from 'core/newhooks';
+import { makeStyles } from '@material-ui/core/styles';
+import { useLookupAddress } from 'core/hooks/web3hooks';
+
+const useStyles = makeStyles(() => ({
+  address: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    textAlign: 'center',
+    justifyItems: 'center',
+    alignItems: 'center',
+  },
+}));
 
 const blockExplorerLink = (address, blockExplorer) =>
   `${blockExplorer || 'https://etherscan.io/'}${'address/'}${address}`;
 
 export default function Address(props) {
+  const classes = useStyles();
+
   const ens = useLookupAddress(props.ensProvider, props.value);
 
   if (!props.value) {
@@ -69,23 +82,13 @@ export default function Address(props) {
   }
 
   return (
-    <span>
-      <span style={{ verticalAlign: 'middle' }}>
-        <Blockies
-          seed={props.value.toLowerCase()}
-          size={8}
-          scale={props.fontSize ? props.fontSize / 7 : 4}
-        />
-      </span>
-      <span
-        style={{
-          verticalAlign: 'middle',
-          paddingLeft: 5,
-          fontSize: props.fontSize ? props.fontSize : 28,
-        }}
-      >
-        {text}
-      </span>
-    </span>
+    <div className={classes.address}>
+      <Blockies
+        seed={props.value.toLowerCase()}
+        size={8}
+        scale={props.fontSize ? props.fontSize / 7 : 4}
+      />
+      {text}
+    </div>
   );
 }

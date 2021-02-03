@@ -7,11 +7,11 @@ import { useState, useEffect } from 'react';
   when you want to load a local contract's abi but supply a custom address
 */
 
-export default function useCustomContractLoader(provider, contractName, address) {
-  const [contract, setContract] = useState();
+export default function useCustomContractLoader(provider, contract, address) {
+  const [newContract, setContract] = useState();
   useEffect(() => {
     async function loadContract() {
-      if (typeof provider !== 'undefined' && contractName && address) {
+      if (typeof provider !== 'undefined' && contract && address) {
         try {
           // we need to check to see if this provider has a signer or not
           let signer;
@@ -22,13 +22,16 @@ export default function useCustomContractLoader(provider, contractName, address)
             signer = provider;
           }
 
+          const network = await provider.getNetwork();
+
           const customContract = new Contract(
-            address,
-            require(`../../utils/contracts/${contractName}.abi.js`),
+            contract.networks[network.chainId].address,
+            contract.abi,
             signer,
           );
+
           try {
-            customContract.bytecode = require(`../../utils/contracts/${contractName}.bytecode.js`);
+            customContract.bytecode = contract.bytecode;
           } catch (e) {
             console.log(e);
           }
@@ -40,6 +43,6 @@ export default function useCustomContractLoader(provider, contractName, address)
       }
     }
     loadContract();
-  }, [provider, contractName, address]);
-  return contract;
+  }, [provider, contract, address]);
+  return newContract;
 }

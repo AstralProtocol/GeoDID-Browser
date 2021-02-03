@@ -16,8 +16,11 @@ import ListItemText from '@material-ui/core/ListItemText';
 import InboxIcon from '@material-ui/icons/MoveToInbox';
 import MailIcon from '@material-ui/icons/Mail';
 import SearchBar from 'material-ui-search-bar';
+import { Alert, AlertTitle } from '@material-ui/lab';
+import { NETWORK } from 'utils/constants';
 import { defaultMenuData, loggedInMenuData } from 'core/services/menu';
 import Account from 'components/Account';
+import { useWallet } from 'core/hooks/web3';
 
 const drawerWidth = 240;
 
@@ -31,10 +34,6 @@ const useStyles = makeStyles((theme) => ({
   },
   appName: {
     color: theme.palette.primary.white,
-    alignItems: 'center',
-  },
-  accountArea: {
-    alignItems: 'top',
   },
   barSpace: {
     minHeight: '64px',
@@ -68,10 +67,10 @@ const useStyles = makeStyles((theme) => ({
   logoContainer: {
     display: 'grid',
     gridTemplateColumns: '1fr',
-    gridTemplateRows: '100px 50px 1fr',
     textAlign: 'center',
-    minHeight: '250px',
+    minHeight: '275px',
     justifyItems: 'center',
+    alignItems: 'center',
   },
   logo: {
     alignItems: 'center',
@@ -100,6 +99,7 @@ function Copyright() {
 function AppLayout(props) {
   const classes = useStyles();
   const [searchValue, setSearchValue] = useState('');
+  const { targetNetworkChainId, selectedChainId, targetNetwork } = useWallet();
 
   const { children, selectedAccount } = props;
 
@@ -130,6 +130,31 @@ function AppLayout(props) {
       </List>
     );
   }
+
+  let networkError = '';
+  if (targetNetworkChainId && selectedChainId && targetNetworkChainId !== selectedChainId) {
+    networkError = (
+      <div
+        style={{
+          zIndex: 2,
+          position: 'absolute',
+          right: 0,
+          bottom: 60,
+          padding: 16,
+          width: '30vw',
+        }}
+      >
+        <Alert severity="error">
+          <AlertTitle>⚠️ Wrong Network</AlertTitle>
+          <Typography variant="h6">
+            You have <b>{NETWORK(selectedChainId).name}</b> selected and you need to be on{' '}
+            <b>{targetNetwork.name}</b>.{' '}
+          </Typography>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -173,6 +198,7 @@ function AppLayout(props) {
       <main className={classes.content}>
         <div className={classes.barSpace} />
         {children}
+        <div>{networkError}</div>;
       </main>
     </div>
   );

@@ -4,8 +4,7 @@ import Container from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import AstralButton from 'components/AstralButton';
-import { connect } from 'react-redux';
-import { changeAuthorization } from 'core/redux/login/actions';
+import { useWallet } from 'core/hooks/web3';
 
 const useStyles = makeStyles(() => ({
   header: {
@@ -27,9 +26,27 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function Landing(props) {
+export default function Landing() {
   const classes = useStyles();
-  const { dispatchChangeAuthorization } = props;
+  const { web3Modal, logoutOfWeb3Modal, loadWeb3Modal } = useWallet();
+
+  const connectButton = [];
+  if (web3Modal) {
+    if (web3Modal.cachedProvider) {
+      connectButton.push(
+        <AstralButton key="logoutbutton" click={logoutOfWeb3Modal} title="Logout" />,
+      );
+    } else {
+      connectButton.push(
+        <AstralButton
+          key="loginbutton"
+          /* type={minimized ? "default" : "primary"}     too many people just defaulting to MM and having a bad time */
+          click={loadWeb3Modal}
+          title="Connect"
+        />,
+      );
+    }
+  }
 
   return (
     <>
@@ -54,15 +71,9 @@ function Landing(props) {
           <Typography variant="h4" component="h1" gutterBottom>
             Create / Edit / Delete
           </Typography>
-          <AstralButton click={() => dispatchChangeAuthorization()} title="Connect your wallet" />
+          {connectButton}
         </div>
       </div>
     </>
   );
 }
-
-const mapDispatchToProps = (dispatch) => ({
-  dispatchChangeAuthorization: () => dispatch(changeAuthorization()),
-});
-
-export default connect(null, mapDispatchToProps)(Landing);

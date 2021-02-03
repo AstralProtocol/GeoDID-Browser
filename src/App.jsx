@@ -17,9 +17,9 @@ import rootReducer, { history } from 'core/redux/reducers';
 import { createLogger } from 'redux-logger';
 // Router
 import { routerMiddleware, ConnectedRouter } from 'connected-react-router';
+import { WalletContextProvider } from 'core/hooks/web3';
 import Router from './router';
 // Web3
-import { WalletContextProvider } from './web3';
 
 import './global.scss';
 

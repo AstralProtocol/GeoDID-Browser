@@ -286,21 +286,21 @@ export const DAI_ABI = [
 export const NETWORKS = [
   {
     name: 'localhost',
-    color: '#666666',
+    color: '#05c9e9',
     chainId: 31337,
     blockExplorer: '',
     rpcUrl: `http://${window.location.hostname}:8545`,
   },
   {
     name: 'mainnet',
-    color: '#ffffff',
+    color: '#d7806d',
     chainId: 1,
     rpcUrl: `https://mainnet.infura.io/v3/${INFURA_ID}`,
     blockExplorer: 'https://etherscan.io/',
   },
   {
     name: 'kovan',
-    color: '#7003DD',
+    color: '#d7ae9c',
     chainId: 42,
     rpcUrl: `https://kovan.infura.io/v3/${INFURA_ID}`,
     blockExplorer: 'https://kovan.etherscan.io/',
@@ -308,7 +308,7 @@ export const NETWORKS = [
   },
   {
     name: 'rinkeby',
-    color: '#e0d068',
+    color: '#e7cb95',
     chainId: 4,
     rpcUrl: `https://rinkeby.infura.io/v3/${INFURA_ID}`,
     faucet: 'https://faucet.rinkeby.io/',
@@ -316,7 +316,7 @@ export const NETWORKS = [
   },
   {
     name: 'ropsten',
-    color: '#F60D09',
+    color: '#e5dfc8',
     chainId: 3,
     faucet: 'https://faucet.ropsten.be/',
     blockExplorer: 'https://ropsten.etherscan.io/',
@@ -352,11 +352,11 @@ export const NETWORKS = [
   },
 ];
 
-export const NETWORK = (name) => {
+export const NETWORK = (chainId) => {
   let selectedNetwork;
 
   NETWORKS.every((network) => {
-    if (network.name === name) {
+    if (network.chainId === chainId) {
       selectedNetwork = network;
       return false;
     }
@@ -366,3 +366,5 @@ export const NETWORK = (name) => {
 
   return selectedNetwork;
 };
+
+export const targetNetwork = NETWORK(3); // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
