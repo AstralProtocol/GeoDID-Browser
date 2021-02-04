@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
 import ReactMapGL, { Source, Layer, FlyToInterpolator, WebMercatorViewport } from 'react-map-gl';
 import { connect } from 'react-redux';
 import { easeCubic } from 'd3-ease';
@@ -7,11 +8,24 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 const regex = /(?:\.([^.]+))?$/;
 
-const Map = (props) => {
+const useStyles = makeStyles(() => ({
+  root: {
+    display: 'grid',
+    gridTemplateColumns: `repeat(auto-fit, minmax(384px, 1fr))`,
+    textAlign: 'center',
+    justifyItems: 'center',
+    minHeight: '100vh',
+  },
+  map: {
+    position: 'relative',
+    width: '100%',
+    height: '500px',
+  },
+}));
+
+const Dashboard = (props) => {
   const {
-    // collapsed,
     initialMapLoad,
-    // siderWidth,
     spatialAsset,
     spatialAssetLoaded,
     dispatchLoadCogs,
@@ -19,14 +33,16 @@ const Map = (props) => {
     selectedCog,
     dispatchSetSelectedCog,
   } = props;
+  const parentRef = useRef(null);
 
-  // const parentRef = useRef(null);
+  const classes = useStyles();
+
   const [viewport, setViewport] = useState({
     latitude: 30,
     longitude: 0,
     zoom: 2,
     width: `100%`,
-    height: `calc(100vh - 64px)`,
+    height: `100vh`,
   });
   const [rasterSources, setRasterSources] = useState(null);
   const [selectedRasterSource, setSelectedRasterSource] = useState(null);
@@ -66,7 +82,6 @@ const Map = (props) => {
     }
   };
 
-  /*
   useEffect(() => {
     if (parentRef.current) {
       setViewport({
@@ -76,17 +91,6 @@ const Map = (props) => {
       });
     }
   }, [parentRef]);
-
-  useEffect(() => {
-    if (!initialMapLoad && collapsed) {
-      setViewport({
-        ...viewport,
-        width: parentRef.current.offsetWidth + siderWidth - 80,
-        height: parentRef.current.offsetHeight,
-      });
-    }
-  }, [initialMapLoad, collapsed]);
-  
 
   useEffect(() => {
     const handleResize = () => {
@@ -101,7 +105,7 @@ const Map = (props) => {
       window.removeEventListener('resize', handleResize);
     };
   });
-*/
+
   useEffect(() => {
     if (spatialAssetLoaded && spatialAsset) {
       const cogs =
@@ -158,25 +162,30 @@ const Map = (props) => {
   };
 
   return (
-    <ReactMapGL
-      mapStyle="mapbox://styles/mapbox/streets-v11"
-      mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
-      // eslint-disable-next-line
-      {...viewport}
-      onViewportChange={(vp) => setViewport(vp)}
-    >
-      {spatialAssetLoaded && (
-        <>
-          <Source id="geojson" type="geojson" data={spatialAsset.geometry}>
-            <Layer
-              // eslint-disable-next-line
-              {...dataLayer}
-            />
-          </Source>
-          {selectedRasterSource}
-        </>
-      )}
-    </ReactMapGL>
+    <div className={classes.root}>
+      <div>empty</div>
+      <div className={classes.map} ref={parentRef}>
+        <ReactMapGL
+          mapStyle="mapbox://styles/mapbox/streets-v11"
+          mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
+          // eslint-disable-next-line
+          {...viewport}
+          onViewportChange={(vp) => setViewport(vp)}
+        >
+          {spatialAssetLoaded && (
+            <>
+              <Source id="geojson" type="geojson" data={spatialAsset.geometry}>
+                <Layer
+                  // eslint-disable-next-line
+                  {...dataLayer}
+                />
+              </Source>
+              {selectedRasterSource}
+            </>
+          )}
+        </ReactMapGL>
+      </div>
+    </div>
   );
 };
 
@@ -195,4 +204,4 @@ const mapDispatchToProps = (dispatch) => ({
   dispatchSetSelectedCog: (selectedCog) => dispatch(setSelectedCog(selectedCog)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Map);
+export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);
