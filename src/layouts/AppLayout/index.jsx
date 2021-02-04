@@ -4,8 +4,6 @@ import { withRouter, Link } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
 import List from '@material-ui/core/List';
 import MaterialLink from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
@@ -158,13 +156,16 @@ function AppLayout(props) {
   return (
     <div className={classes.root}>
       <CssBaseline />
+      {/*
       <AppBar position="fixed" className={classes.appBar}>
-        <Toolbar>
-          <Typography variant="h6" noWrap>
-            Permanent drawer
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <Toolbar>
+        <Typography variant="h6" noWrap>
+          Permanent drawer
+        </Typography>
+      </Toolbar>
+    </AppBar>
+    */}
+
       <Drawer
         className={classes.drawer}
         variant="permanent"
@@ -196,9 +197,11 @@ function AppLayout(props) {
         </div>
       </Drawer>
       <main className={classes.content}>
+        {/*
         <div className={classes.barSpace} />
+          */}
         {children}
-        <div>{networkError}</div>;
+        <div>{networkError}</div>
       </main>
     </div>
   );

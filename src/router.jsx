@@ -13,7 +13,7 @@ const routes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: loadable(() => import('pages/Map')),
+    component: loadable(() => import('pages/Dashboard')),
     exact: true,
   },
 ];
