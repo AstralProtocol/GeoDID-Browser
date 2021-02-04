@@ -4,7 +4,8 @@ import ReactMapGL, { Source, Layer, FlyToInterpolator, WebMercatorViewport } fro
 import { connect } from 'react-redux';
 import { easeCubic } from 'd3-ease';
 import { loadCogs, setSelectedCog } from 'core/redux/spatial-assets/actions';
-import { Card, CardContent, CardActions, Button, Grid } from '@material-ui/core';
+import SearchBar from 'material-ui-search-bar';
+import { Card, CardContent, CardActions, Button, Grid, Typography } from '@material-ui/core';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const regex = /(?:\.([^.]+))?$/;
@@ -16,12 +17,26 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: '10px',
     paddingBottom: '10px',
     width: '100%',
-    textAlign: 'center',
   },
   container: {
     height: '100%',
   },
-  card: {
+  button: {
+    textAlign: 'center',
+    position: 'relative',
+    top: '50%',
+    transform: `translateY(-50%)`,
+    background: 'linear-gradient(45deg, #8FB8ED 30%, #62BFED 90%)',
+    boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .3)',
+    borderRadius: '20px',
+  },
+  searchBar: {
+    textAlign: 'center',
+    position: 'relative',
+    top: '50%',
+    transform: `translateY(-50%)`,
+  },
+  list: {
     borderRadius: '20px',
   },
   paper: {
@@ -30,11 +45,10 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.text.secondary,
   },
   map: {
-    position: 'relative',
-    height: '50%',
+    borderRadius: '20px',
   },
   metadata: {
-    height: '50%',
+    borderRadius: '20px',
   },
 }));
 
@@ -61,6 +75,7 @@ const Dashboard = (props) => {
   });
   const [rasterSources, setRasterSources] = useState(null);
   const [selectedRasterSource, setSelectedRasterSource] = useState(null);
+  const [searchValue, setSearchValue] = useState('');
 
   const onStacDataLoad = (sAsset = null) => {
     if (sAsset) {
@@ -189,16 +204,29 @@ const Dashboard = (props) => {
       className={classes.root}
     >
       <Grid item xs={4}>
-        <Grid container spacing={0} className={classes.container}>
-          <Grid item style={{ height: '10%' }} xs={6}>
-            <Button size="small">Learn More</Button>
+        <Grid container spacing={1} className={classes.container}>
+          <Grid item style={{ height: '10%' }} xs={3}>
+            <Button fullWidth size="small" className={classes.button}>
+              Filter
+            </Button>
           </Grid>
-          <Grid item style={{ height: '10%' }} xs={6}>
-            <Button size="small">Learn More</Button>
+          <Grid item style={{ height: '10%' }} xs={9}>
+            <SearchBar
+              className={classes.searchBar}
+              placeholder="Search GeoDID"
+              value={searchValue}
+              onChange={(newValue) => setSearchValue(newValue)}
+              onRequestSearch={() => console.log(searchValue)}
+            />
           </Grid>
           <Grid item xs={12} style={{ height: '90%' }}>
-            <Card classes={{ root: classes.card }} variant="outlined" style={{ height: '100%' }}>
-              <CardContent style={{ height: '100%' }}>Geodidlist</CardContent>
+            <Card classes={{ root: classes.list }} variant="outlined" style={{ height: '100%' }}>
+              <CardContent style={{ height: '100%' }}>
+                <Typography variant="h5" component="h1" gutterBottom>
+                  Browse GeoDIDs
+                </Typography>
+                list
+              </CardContent>
             </Card>
           </Grid>
         </Grid>
@@ -206,33 +234,39 @@ const Dashboard = (props) => {
       <Grid item xs={8}>
         <Grid container spacing={0} className={classes.container}>
           <Grid item xs={12}>
-            <Card classes={{ root: classes.card }} variant="outlined" style={{ height: '48vh' }}>
-              <CardContent style={{ height: '100%' }}>
-                <ReactMapGL
-                  mapStyle="mapbox://styles/mapbox/streets-v11"
-                  mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
-                  // eslint-disable-next-line
-                  {...viewport}
-                  onViewportChange={(vp) => setViewport(vp)}
-                >
-                  {spatialAssetLoaded && (
-                    <>
-                      <Source id="geojson" type="geojson" data={spatialAsset.geometry}>
-                        <Layer
-                          // eslint-disable-next-line
-                          {...dataLayer}
-                        />
-                      </Source>
-                      {selectedRasterSource}
-                    </>
-                  )}
-                </ReactMapGL>
-              </CardContent>
+            <Card classes={{ root: classes.map }} variant="outlined" style={{ height: '48vh' }}>
+              <ReactMapGL
+                mapStyle="mapbox://styles/mapbox/streets-v11"
+                mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
+                // eslint-disable-next-line
+                {...viewport}
+                onViewportChange={(vp) => setViewport(vp)}
+              >
+                {spatialAssetLoaded && (
+                  <>
+                    <Source id="geojson" type="geojson" data={spatialAsset.geometry}>
+                      <Layer
+                        // eslint-disable-next-line
+                        {...dataLayer}
+                      />
+                    </Source>
+                    {selectedRasterSource}
+                  </>
+                )}
+              </ReactMapGL>
             </Card>
           </Grid>
           <Grid item xs={12}>
-            <Card classes={{ root: classes.card }} variant="outlined" style={{ height: '48vh' }}>
-              <CardContent style={{ height: '90%' }}>GeoDid metadata</CardContent>
+            <Card
+              classes={{ root: classes.metadata }}
+              variant="outlined"
+              style={{ height: '48vh' }}
+            >
+              <CardContent style={{ height: '90%' }}>
+                <Typography variant="h5" component="h1" gutterBottom>
+                  Selected GeoDID Metadata
+                </Typography>
+              </CardContent>
               <CardActions>
                 <Button size="small">Learn More</Button>
               </CardActions>
