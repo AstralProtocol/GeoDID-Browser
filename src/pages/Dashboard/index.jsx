@@ -1,25 +1,40 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import ReactMapGL, { Source, Layer, FlyToInterpolator, WebMercatorViewport } from 'react-map-gl';
 import { connect } from 'react-redux';
 import { easeCubic } from 'd3-ease';
 import { loadCogs, setSelectedCog } from 'core/redux/spatial-assets/actions';
+import { Card, CardContent, CardActions, Button, Grid } from '@material-ui/core';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const regex = /(?:\.([^.]+))?$/;
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
-    display: 'grid',
-    gridTemplateColumns: `repeat(auto-fit, minmax(384px, 1fr))`,
+    height: '100%',
+    paddingTop: '10px',
+    paddingLeft: '10px',
+    paddingBottom: '10px',
+    width: '100%',
     textAlign: 'center',
-    justifyItems: 'center',
-    minHeight: '100vh',
+  },
+  container: {
+    height: '100%',
+  },
+  card: {
+    borderRadius: '20px',
+  },
+  paper: {
+    padding: theme.spacing(2),
+    textAlign: 'center',
+    color: theme.palette.text.secondary,
   },
   map: {
     position: 'relative',
-    width: '100%',
-    height: '500px',
+    height: '50%',
+  },
+  metadata: {
+    height: '50%',
   },
 }));
 
@@ -33,16 +48,16 @@ const Dashboard = (props) => {
     selectedCog,
     dispatchSetSelectedCog,
   } = props;
-  const parentRef = useRef(null);
 
   const classes = useStyles();
+  // const parentRef = useRef(null);
 
   const [viewport, setViewport] = useState({
     latitude: 30,
     longitude: 0,
     zoom: 2,
-    width: `100%`,
-    height: `100vh`,
+    width: '100%',
+    height: '100%',
   });
   const [rasterSources, setRasterSources] = useState(null);
   const [selectedRasterSource, setSelectedRasterSource] = useState(null);
@@ -81,6 +96,7 @@ const Dashboard = (props) => {
       });
     }
   };
+  /*
 
   useEffect(() => {
     if (parentRef.current) {
@@ -105,7 +121,7 @@ const Dashboard = (props) => {
       window.removeEventListener('resize', handleResize);
     };
   });
-
+ */
   useEffect(() => {
     if (spatialAssetLoaded && spatialAsset) {
       const cogs =
@@ -161,31 +177,70 @@ const Dashboard = (props) => {
     paint: { 'fill-color': '#228b22', 'fill-opacity': 0.4 },
   };
 
+  console.log(viewport);
+
   return (
-    <div className={classes.root}>
-      <div>empty</div>
-      <div className={classes.map} ref={parentRef}>
-        <ReactMapGL
-          mapStyle="mapbox://styles/mapbox/streets-v11"
-          mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
-          // eslint-disable-next-line
-          {...viewport}
-          onViewportChange={(vp) => setViewport(vp)}
-        >
-          {spatialAssetLoaded && (
-            <>
-              <Source id="geojson" type="geojson" data={spatialAsset.geometry}>
-                <Layer
+    <Grid
+      container
+      spacing={2}
+      direction="row"
+      justify="center"
+      alignItems="stretch"
+      className={classes.root}
+    >
+      <Grid item xs={4}>
+        <Grid container spacing={0} className={classes.container}>
+          <Grid item style={{ height: '10%' }} xs={6}>
+            <Button size="small">Learn More</Button>
+          </Grid>
+          <Grid item style={{ height: '10%' }} xs={6}>
+            <Button size="small">Learn More</Button>
+          </Grid>
+          <Grid item xs={12} style={{ height: '90%' }}>
+            <Card classes={{ root: classes.card }} variant="outlined" style={{ height: '100%' }}>
+              <CardContent style={{ height: '100%' }}>Geodidlist</CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Grid>
+      <Grid item xs={8}>
+        <Grid container spacing={0} className={classes.container}>
+          <Grid item xs={12}>
+            <Card classes={{ root: classes.card }} variant="outlined" style={{ height: '48vh' }}>
+              <CardContent style={{ height: '100%' }}>
+                <ReactMapGL
+                  mapStyle="mapbox://styles/mapbox/streets-v11"
+                  mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
                   // eslint-disable-next-line
-                  {...dataLayer}
-                />
-              </Source>
-              {selectedRasterSource}
-            </>
-          )}
-        </ReactMapGL>
-      </div>
-    </div>
+                  {...viewport}
+                  onViewportChange={(vp) => setViewport(vp)}
+                >
+                  {spatialAssetLoaded && (
+                    <>
+                      <Source id="geojson" type="geojson" data={spatialAsset.geometry}>
+                        <Layer
+                          // eslint-disable-next-line
+                          {...dataLayer}
+                        />
+                      </Source>
+                      {selectedRasterSource}
+                    </>
+                  )}
+                </ReactMapGL>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Card classes={{ root: classes.card }} variant="outlined" style={{ height: '48vh' }}>
+              <CardContent style={{ height: '90%' }}>GeoDid metadata</CardContent>
+              <CardActions>
+                <Button size="small">Learn More</Button>
+              </CardActions>
+            </Card>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
   );
 };
 
