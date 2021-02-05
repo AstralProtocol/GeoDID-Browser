@@ -1,11 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import ReactMapGL, { Source, Layer, FlyToInterpolator, WebMercatorViewport } from 'react-map-gl';
 import { connect } from 'react-redux';
 import { easeCubic } from 'd3-ease';
 import { loadCogs, setSelectedCog } from 'core/redux/spatial-assets/actions';
 import SearchBar from 'material-ui-search-bar';
-import { Card, CardContent, CardActions, Button, Grid, Typography } from '@material-ui/core';
+import {
+  Card,
+  CardContent,
+  CardActions,
+  Button,
+  Grid,
+  Typography,
+  ListItem,
+  ListItemText,
+} from '@material-ui/core';
+import { Virtuoso } from 'react-virtuoso';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const regex = /(?:\.([^.]+))?$/;
@@ -18,9 +28,7 @@ const useStyles = makeStyles((theme) => ({
     paddingBottom: '10px',
     width: '100%',
   },
-  container: {
-    height: '100%',
-  },
+  container: {},
   button: {
     textAlign: 'center',
     position: 'relative',
@@ -38,6 +46,7 @@ const useStyles = makeStyles((theme) => ({
   },
   list: {
     borderRadius: '20px',
+    height: '100%',
   },
   paper: {
     padding: theme.spacing(2),
@@ -49,6 +58,14 @@ const useStyles = makeStyles((theme) => ({
   },
   metadata: {
     borderRadius: '20px',
+  },
+  scrollbar: {
+    msOverflowStyle: 'none',
+    scrollbarWidth: 'none',
+    overflowY: 'scroll',
+    '&::-webkit-scrollbar': {
+      width: '0px',
+    },
   },
 }));
 
@@ -64,7 +81,7 @@ const Dashboard = (props) => {
   } = props;
 
   const classes = useStyles();
-  // const parentRef = useRef(null);
+  const parentRef = useRef(null);
 
   const [viewport, setViewport] = useState({
     latitude: 30,
@@ -111,7 +128,6 @@ const Dashboard = (props) => {
       });
     }
   };
-  /*
 
   useEffect(() => {
     if (parentRef.current) {
@@ -136,7 +152,6 @@ const Dashboard = (props) => {
       window.removeEventListener('resize', handleResize);
     };
   });
- */
   useEffect(() => {
     if (spatialAssetLoaded && spatialAsset) {
       const cogs =
@@ -192,8 +207,6 @@ const Dashboard = (props) => {
     paint: { 'fill-color': '#228b22', 'fill-opacity': 0.4 },
   };
 
-  console.log(viewport);
-
   return (
     <Grid
       container
@@ -204,13 +217,13 @@ const Dashboard = (props) => {
       className={classes.root}
     >
       <Grid item xs={4}>
-        <Grid container spacing={1} className={classes.container}>
-          <Grid item style={{ height: '10%' }} xs={3}>
+        <Grid container spacing={0} className={classes.container}>
+          <Grid item xs={3} style={{ height: '10vh' }}>
             <Button fullWidth size="small" className={classes.button}>
               Filter
             </Button>
           </Grid>
-          <Grid item style={{ height: '10%' }} xs={9}>
+          <Grid item xs={9} style={{ height: '10vh' }}>
             <SearchBar
               className={classes.searchBar}
               placeholder="Search GeoDID"
@@ -219,13 +232,36 @@ const Dashboard = (props) => {
               onRequestSearch={() => console.log(searchValue)}
             />
           </Grid>
-          <Grid item xs={12} style={{ height: '90%' }}>
-            <Card classes={{ root: classes.list }} variant="outlined" style={{ height: '100%' }}>
+          <Grid item xs={12} style={{ height: '86vh' }}>
+            <Card classes={{ root: classes.list }} variant="outlined">
               <CardContent style={{ height: '100%' }}>
                 <Typography variant="h5" component="h1" gutterBottom>
                   Browse GeoDIDs
                 </Typography>
-                list
+                <Virtuoso
+                  style={{ height: '90%' }}
+                  totalCount={200}
+                  itemContent={(index) => (
+                    <ListItem button key={index} onClick={() => console.log(index)}>
+                      <ListItemText primary={`Item ${index + 1}`} />
+                    </ListItem>
+                  )}
+                  components={{
+                    Scroller: React.forwardRef(({ style, children }, ref) => (
+                      // an alternative option to assign the ref is
+                      // <div ref={(r) => ref.current = r}>
+                      <div
+                        style={{
+                          ...style,
+                        }}
+                        ref={ref}
+                        className={classes.scrollbar}
+                      >
+                        {children}
+                      </div>
+                    )),
+                  }}
+                />
               </CardContent>
             </Card>
           </Grid>
@@ -234,7 +270,12 @@ const Dashboard = (props) => {
       <Grid item xs={8}>
         <Grid container spacing={0} className={classes.container}>
           <Grid item xs={12}>
-            <Card classes={{ root: classes.map }} variant="outlined" style={{ height: '48vh' }}>
+            <Card
+              classes={{ root: classes.map }}
+              variant="outlined"
+              style={{ height: '48vh' }}
+              ref={parentRef}
+            >
               <ReactMapGL
                 mapStyle="mapbox://styles/mapbox/streets-v11"
                 mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
