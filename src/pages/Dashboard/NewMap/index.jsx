@@ -4,9 +4,8 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const styles = {
-  width: '100vw',
-  height: 'calc(100vh - 80px)',
-  position: 'absolute',
+  width: '100%',
+  height: '100%',
 };
 
 const MapboxGLMap = () => {

@@ -1,9 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import ReactMapGL, { Source, Layer, FlyToInterpolator, WebMercatorViewport } from 'react-map-gl';
-import { connect } from 'react-redux';
-import { easeCubic } from 'd3-ease';
-import { loadCogs, setSelectedCog } from 'core/redux/spatial-assets/actions';
 import SearchBar from 'material-ui-search-bar';
 import {
   Card,
@@ -14,11 +10,13 @@ import {
   Typography,
   ListItem,
   ListItemText,
+  CircularProgress,
 } from '@material-ui/core';
 import { Virtuoso } from 'react-virtuoso';
-import 'mapbox-gl/dist/mapbox-gl.css';
-
-const regex = /(?:\.([^.]+))?$/;
+import { useQuery } from '@apollo/react-hooks';
+import geoDIDsQuery from 'core/graphql/geoDIDsQuery';
+import { useWallet } from 'core/hooks/web3';
+import Map from './Map';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -69,143 +67,63 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Dashboard = (props) => {
-  const {
-    initialMapLoad,
-    spatialAsset,
-    spatialAssetLoaded,
-    dispatchLoadCogs,
-    loadedTiffJson,
-    selectedCog,
-    dispatchSetSelectedCog,
-  } = props;
-
+const Dashboard = () => {
   const classes = useStyles();
   const parentRef = useRef(null);
-
-  const [viewport, setViewport] = useState({
-    latitude: 30,
-    longitude: 0,
-    zoom: 2,
-    width: '100%',
-    height: '100%',
-  });
-  const [rasterSources, setRasterSources] = useState(null);
-  const [selectedRasterSource, setSelectedRasterSource] = useState(null);
   const [searchValue, setSearchValue] = useState('');
+  const { address } = useWallet();
 
-  const onStacDataLoad = (sAsset = null) => {
-    if (sAsset) {
-      const { longitude, latitude, zoom } = new WebMercatorViewport(viewport).fitBounds(
-        [
-          [sAsset.bbox[0], sAsset.bbox[1]],
-          [sAsset.bbox[2], sAsset.bbox[3]],
-        ],
-        {
-          padding: 20,
-          offset: [0, -100],
-        },
-      );
-
-      setViewport({
-        ...viewport,
-        longitude,
-        latitude,
-        zoom,
-        transitionDuration: 2000,
-        transitionInterpolator: new FlyToInterpolator(),
-        transitionEasing: easeCubic,
-      });
-    } else {
-      setViewport({
-        ...viewport,
-        latitude: 30,
-        longitude: 0,
-        zoom: 2,
-        transitionDuration: 2000,
-        transitionInterpolator: new FlyToInterpolator(),
-        transitionEasing: easeCubic,
-      });
-    }
-  };
-
-  useEffect(() => {
-    if (parentRef.current) {
-      setViewport({
-        ...viewport,
-        width: parentRef.current.offsetWidth,
-        height: parentRef.current.offsetHeight,
-      });
-    }
-  }, [parentRef]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setViewport({
-        ...viewport,
-        width: parentRef.current.offsetWidth,
-        height: parentRef.current.offsetHeight,
-      });
-    };
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
+  const { data, loading } = useQuery(geoDIDsQuery, {
+    variables: {
+      where: {
+        ...(address ? { owner: address.toLowerCase() } : {}),
+        ...{ root: true },
+        ...{ type: 'Collection' },
+      },
+    },
   });
-  useEffect(() => {
-    if (spatialAssetLoaded && spatialAsset) {
-      const cogs =
-        spatialAsset.assets &&
-        Object.values(spatialAsset.assets).reduce((newData, asset) => {
-          if (regex.exec(asset.href)[1] === 'tif') {
-            newData.push(asset.href);
-          }
-          return newData;
-        }, []);
 
-      onStacDataLoad(spatialAsset);
+  const geoDIDs = data ? data.geoDIDs : [];
 
-      if (cogs) {
-        dispatchLoadCogs(cogs);
-        dispatchSetSelectedCog(cogs[0]);
-      }
-    } else if (!initialMapLoad) {
-      onStacDataLoad(null);
-      setRasterSources(null);
-      setSelectedRasterSource(null);
-    }
-  }, [spatialAssetLoaded, spatialAsset, initialMapLoad, dispatchLoadCogs]);
+  console.log(data);
+  console.log(loading);
 
-  useEffect(() => {
-    if (loadedTiffJson) {
-      const newRasterSources = [];
+  let listArea;
 
-      loadedTiffJson.forEach((tiffJson) => {
-        newRasterSources.push(
-          <Source id={tiffJson.cog} key={tiffJson.cog} type="raster" tiles={tiffJson.tiles}>
-            <Layer id={tiffJson.cog} type="raster" />
-          </Source>,
-        );
-      });
-
-      setRasterSources(newRasterSources);
-    }
-  }, [loadedTiffJson]);
-
-  useEffect(() => {
-    if (rasterSources && selectedCog) {
-      setSelectedRasterSource(
-        rasterSources.find((rasterSource) => rasterSource.key === selectedCog),
-      );
-    }
-  }, [rasterSources, selectedCog]);
-
-  const dataLayer = {
-    id: 'dataLayer',
-    source: 'geojson',
-    type: 'fill',
-    paint: { 'fill-color': '#228b22', 'fill-opacity': 0.4 },
-  };
+  if (geoDIDs && !loading) {
+    listArea = (
+      <Virtuoso
+        data={geoDIDs}
+        style={{ height: '90%' }}
+        itemContent={(index, geoDID) => (
+          <ListItem button key={index} onClick={() => console.log(index)}>
+            <ListItemText primary={`GeoDID: ${geoDID.id}`} />
+          </ListItem>
+        )}
+        components={{
+          Scroller: React.forwardRef(({ style, children }, ref) => (
+            // an alternative option to assign the ref is
+            // <div ref={(r) => ref.current = r}>
+            <div
+              style={{
+                ...style,
+              }}
+              ref={ref}
+              className={classes.scrollbar}
+            >
+              {children}
+            </div>
+          )),
+        }}
+      />
+    );
+  } else {
+    listArea = (
+      <div style={{ height: '90%' }}>
+        <CircularProgress />
+      </div>
+    );
+  }
 
   return (
     <Grid
@@ -238,30 +156,7 @@ const Dashboard = (props) => {
                 <Typography variant="h5" component="h1" gutterBottom>
                   Browse GeoDIDs
                 </Typography>
-                <Virtuoso
-                  style={{ height: '90%' }}
-                  totalCount={200}
-                  itemContent={(index) => (
-                    <ListItem button key={index} onClick={() => console.log(index)}>
-                      <ListItemText primary={`Item ${index + 1}`} />
-                    </ListItem>
-                  )}
-                  components={{
-                    Scroller: React.forwardRef(({ style, children }, ref) => (
-                      // an alternative option to assign the ref is
-                      // <div ref={(r) => ref.current = r}>
-                      <div
-                        style={{
-                          ...style,
-                        }}
-                        ref={ref}
-                        className={classes.scrollbar}
-                      >
-                        {children}
-                      </div>
-                    )),
-                  }}
-                />
+                {listArea}
               </CardContent>
             </Card>
           </Grid>
@@ -276,25 +171,7 @@ const Dashboard = (props) => {
               style={{ height: '48vh' }}
               ref={parentRef}
             >
-              <ReactMapGL
-                mapStyle="mapbox://styles/mapbox/streets-v11"
-                mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
-                // eslint-disable-next-line
-                {...viewport}
-                onViewportChange={(vp) => setViewport(vp)}
-              >
-                {spatialAssetLoaded && (
-                  <>
-                    <Source id="geojson" type="geojson" data={spatialAsset.geometry}>
-                      <Layer
-                        // eslint-disable-next-line
-                        {...dataLayer}
-                      />
-                    </Source>
-                    {selectedRasterSource}
-                  </>
-                )}
-              </ReactMapGL>
+              <Map parentRef={parentRef} />
             </Card>
           </Grid>
           <Grid item xs={12}>
@@ -319,19 +196,4 @@ const Dashboard = (props) => {
   );
 };
 
-const mapStateToProps = (state) => ({
-  collapsed: state.settings.collapsed,
-  initialMapLoad: state.settings.initialMapLoad,
-  siderWidth: state.settings.siderWidth,
-  spatialAsset: state.spatialAssets.spatialAsset,
-  spatialAssetLoaded: state.spatialAssets.spatialAssetLoaded,
-  loadedTiffJson: state.spatialAssets.loadedTiffJson,
-  selectedCog: state.spatialAssets.selectedCog,
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  dispatchLoadCogs: (loadedCogs) => dispatch(loadCogs(loadedCogs)),
-  dispatchSetSelectedCog: (selectedCog) => dispatch(setSelectedCog(selectedCog)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);
+export default Dashboard;
