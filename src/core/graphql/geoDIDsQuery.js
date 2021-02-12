@@ -13,6 +13,20 @@ export default gql`
         id
         childGeoDID {
           id
+          owner
+          cid
+          storage
+          root
+          parent
+          active
+          type
+          edges {
+            id
+            childGeoDID {
+              id
+              type
+            }
+          }
         }
       }
       active

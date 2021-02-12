@@ -8,10 +8,13 @@ import {
   Button,
   Grid,
   Typography,
-  ListItem,
-  ListItemText,
+  // ListItem,
+  // ListItemText,
   CircularProgress,
 } from '@material-ui/core';
+import { TreeView, TreeItem } from '@material-ui/lab';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { Virtuoso } from 'react-virtuoso';
 import { useQuery } from '@apollo/react-hooks';
 import geoDIDsQuery from 'core/graphql/geoDIDsQuery';
@@ -73,7 +76,7 @@ const Dashboard = () => {
   const [searchValue, setSearchValue] = useState('');
   const { address } = useWallet();
 
-  const { data, loading } = useQuery(geoDIDsQuery, {
+  const { data } = useQuery(geoDIDsQuery, {
     variables: {
       where: {
         ...(address ? { owner: address.toLowerCase() } : {}),
@@ -85,20 +88,66 @@ const Dashboard = () => {
 
   const geoDIDs = data ? data.geoDIDs : [];
 
-  console.log(data);
-  console.log(loading);
+  const reduceSubTree = (nodes) =>
+    nodes.reduce((newEdges, level) => {
+      newEdges.push({
+        id: level.id,
+        geoDIDid: level.childGeoDID.id,
+        type: level.childGeoDID.type,
+        children: Array.isArray(level.childGeoDID.edges)
+          ? reduceSubTree(level.childGeoDID.edges)
+          : null,
+      });
+      return newEdges;
+    }, []);
+
+  const [expanded, setExpanded] = useState([]);
+  const [geoDIDID, setSelectedGeoDIDId] = useState(null);
+
+  const treeGeoDIDs =
+    geoDIDs.length > 0
+      ? geoDIDs.reduce((newData, geoDID) => {
+          const children = Array.isArray(geoDID.edges) ? reduceSubTree(geoDID.edges) : null;
+
+          newData.push({
+            id: geoDID.id,
+            geoDIDid: geoDID.id,
+            type: geoDID.type,
+            children,
+          });
+          return newData;
+        }, [])
+      : null;
+
+  const renderTree = (nodes) => {
+    const id = nodes.geoDIDid || nodes.id;
+
+    return (
+      <TreeItem key={id} nodeId={id} label={`${nodes.type} ${id}`}>
+        {Array.isArray(nodes.children) ? nodes.children.map((node) => renderTree(node)) : null}
+      </TreeItem>
+    );
+  };
 
   let listArea;
 
-  if (geoDIDs && !loading) {
+  if (treeGeoDIDs) {
     listArea = (
       <Virtuoso
-        data={geoDIDs}
+        data={treeGeoDIDs}
         style={{ height: '90%' }}
-        itemContent={(index, geoDID) => (
-          <ListItem button key={index} onClick={() => console.log(index)}>
-            <ListItemText primary={`GeoDID: ${geoDID.id}`} />
-          </ListItem>
+        itemContent={(index, node) => (
+          <TreeView
+            key={index}
+            defaultCollapseIcon={<ExpandMoreIcon />}
+            defaultExpanded={['root']}
+            expanded={expanded}
+            onNodeSelect={(event, nodeId) => setSelectedGeoDIDId(nodeId)}
+            onNodeToggle={(event, nodeIds) => setExpanded(nodeIds)}
+            defaultExpandIcon={<ChevronRightIcon />}
+          >
+            {renderTree(node)}
+          </TreeView>
         )}
         components={{
           Scroller: React.forwardRef(({ style, children }, ref) => (
@@ -183,6 +232,10 @@ const Dashboard = () => {
               <CardContent style={{ height: '90%' }}>
                 <Typography variant="h5" component="h1" gutterBottom>
                   Selected GeoDID Metadata
+                </Typography>
+
+                <Typography variant="subtitle1" gutterBottom>
+                  Geodid ID: {geoDIDID}
                 </Typography>
               </CardContent>
               <CardActions>
