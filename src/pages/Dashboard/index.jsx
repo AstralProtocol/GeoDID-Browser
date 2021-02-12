@@ -18,6 +18,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { Virtuoso } from 'react-virtuoso';
 import { useQuery } from '@apollo/react-hooks';
 import geoDIDsQuery from 'core/graphql/geoDIDsQuery';
+import geoDIDQuery from 'core/graphql/geoDIDQuery';
 import { useWallet } from 'core/hooks/web3';
 import Map from './Map';
 
@@ -74,6 +75,10 @@ const Dashboard = () => {
   const classes = useStyles();
   const parentRef = useRef(null);
   const [searchValue, setSearchValue] = useState('');
+  const [expanded, setExpanded] = useState([]);
+  const [geoDIDID, setSelectedGeoDIDId] = useState(null);
+
+  console.log(expanded);
   const { address } = useWallet();
 
   const { data } = useQuery(geoDIDsQuery, {
@@ -86,42 +91,45 @@ const Dashboard = () => {
     },
   });
 
+  const { data: dataSelected } = useQuery(geoDIDQuery, {
+    variables: {
+      ...(geoDIDID ? { geoDIDID } : {}),
+    },
+  });
+
   const geoDIDs = data ? data.geoDIDs : [];
+  const selectedGeoDID = dataSelected ? dataSelected.geoDID : null;
 
   const reduceSubTree = (nodes) =>
-    nodes.reduce((newEdges, level) => {
-      newEdges.push({
-        id: level.id,
-        geoDIDid: level.childGeoDID.id,
-        type: level.childGeoDID.type,
-        children: Array.isArray(level.childGeoDID.edges)
-          ? reduceSubTree(level.childGeoDID.edges)
+    nodes.reduce((newNodes, node) => {
+      newNodes.push({
+        id: node.id,
+        geoDIDid: node.childGeoDID.id,
+        type: node.childGeoDID.type,
+        children: Array.isArray(node.childGeoDID.edges)
+          ? reduceSubTree(node.childGeoDID.edges)
           : null,
       });
-      return newEdges;
+      return newNodes;
     }, []);
-
-  const [expanded, setExpanded] = useState([]);
-  const [geoDIDID, setSelectedGeoDIDId] = useState(null);
 
   const treeGeoDIDs =
     geoDIDs.length > 0
-      ? geoDIDs.reduce((newData, geoDID) => {
+      ? geoDIDs.reduce((newGeoDID, geoDID) => {
           const children = Array.isArray(geoDID.edges) ? reduceSubTree(geoDID.edges) : null;
 
-          newData.push({
+          newGeoDID.push({
             id: geoDID.id,
             geoDIDid: geoDID.id,
             type: geoDID.type,
             children,
           });
-          return newData;
+          return newGeoDID;
         }, [])
       : null;
 
   const renderTree = (nodes) => {
     const id = nodes.geoDIDid || nodes.id;
-
     return (
       <TreeItem key={id} nodeId={id} label={`${nodes.type} ${id}`}>
         {Array.isArray(nodes.children) ? nodes.children.map((node) => renderTree(node)) : null}
@@ -172,6 +180,25 @@ const Dashboard = () => {
         <CircularProgress />
       </div>
     );
+  }
+
+  let geoDIDMetadata;
+
+  if (expanded.length > 0 && selectedGeoDID) {
+    geoDIDMetadata = (
+      <>
+        <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
+          Geodid ID:
+        </Typography>
+        <Typography variant="subtitle1" gutterBottom>
+          {selectedGeoDID.id}
+        </Typography>
+      </>
+    );
+  } else if (expanded.length > 0 && !selectedGeoDID) {
+    geoDIDMetadata = <CircularProgress />;
+  } else if (expanded.length === 0 && !selectedGeoDID) {
+    geoDIDMetadata = '';
   }
 
   return (
@@ -233,10 +260,7 @@ const Dashboard = () => {
                 <Typography variant="h5" component="h1" gutterBottom>
                   Selected GeoDID Metadata
                 </Typography>
-
-                <Typography variant="subtitle1" gutterBottom>
-                  Geodid ID: {geoDIDID}
-                </Typography>
+                {geoDIDMetadata}
               </CardContent>
               <CardActions>
                 <Button size="small">Learn More</Button>
