@@ -36,7 +36,6 @@ export default function Account() {
   const {
     address,
     mainnetProvider,
-    web3Modal,
     loadWeb3Modal,
     logoutOfWeb3Modal,
     blockExplorer,
@@ -46,26 +45,24 @@ export default function Account() {
   const classes = useStyles();
 
   const connectButton = [];
-  if (web3Modal) {
-    if (web3Modal.cachedProvider) {
-      connectButton.push(
-        <AstralButton key="logoutbutton" click={logoutOfWeb3Modal} title="Logout" />,
-      );
-    } else {
-      connectButton.push(
-        <AstralButton
-          key="loginbutton"
-          /* type={minimized ? "default" : "primary"}     too many people just defaulting to MM and having a bad time */
-          click={loadWeb3Modal}
-          title="Connect"
-        />,
-      );
-    }
+  if (selectedChainId) {
+    connectButton.push(
+      <AstralButton key="logoutbutton" click={logoutOfWeb3Modal} title="Logout" />,
+    );
+  } else {
+    connectButton.push(
+      <AstralButton
+        key="loginbutton"
+        /* type={minimized ? "default" : "primary"}     too many people just defaulting to MM and having a bad time */
+        click={loadWeb3Modal}
+        title="Connect"
+      />,
+    );
   }
 
   return (
     <div className={classes.root}>
-      {web3Modal && web3Modal.cachedProvider && selectedChainId ? (
+      {selectedChainId ? (
         <div className={classes.accountContainer}>
           <Typography variant="h6" className={classes.network}>
             <FiberManualRecordIcon style={{ color: '#67fe9c' }} />{' '}

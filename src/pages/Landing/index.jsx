@@ -28,24 +28,22 @@ const useStyles = makeStyles(() => ({
 
 export default function Landing() {
   const classes = useStyles();
-  const { web3Modal, logoutOfWeb3Modal, loadWeb3Modal } = useWallet();
+  const { logoutOfWeb3Modal, loadWeb3Modal, selectedChainId } = useWallet();
 
   const connectButton = [];
-  if (web3Modal) {
-    if (web3Modal.cachedProvider) {
-      connectButton.push(
-        <AstralButton key="logoutbutton" click={logoutOfWeb3Modal} title="Logout" />,
-      );
-    } else {
-      connectButton.push(
-        <AstralButton
-          key="loginbutton"
-          /* type={minimized ? "default" : "primary"}     too many people just defaulting to MM and having a bad time */
-          click={loadWeb3Modal}
-          title="Connect"
-        />,
-      );
-    }
+  if (selectedChainId) {
+    connectButton.push(
+      <AstralButton key="logoutbutton" click={logoutOfWeb3Modal} title="Logout" />,
+    );
+  } else {
+    connectButton.push(
+      <AstralButton
+        key="loginbutton"
+        /* type={minimized ? "default" : "primary"}     too many people just defaulting to MM and having a bad time */
+        click={loadWeb3Modal}
+        title="Connect"
+      />,
+    );
   }
 
   return (

@@ -70,6 +70,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 }));
+const iff = (condition, then, otherwise) => (condition ? then : otherwise);
 
 const Dashboard = () => {
   const classes = useStyles();
@@ -77,44 +78,61 @@ const Dashboard = () => {
   const [searchValue, setSearchValue] = useState('');
   const [expanded, setExpanded] = useState([]);
   const [geoDIDID, setSelectedGeoDIDId] = useState(null);
-
-  console.log(expanded);
   const { address } = useWallet();
 
-  const { data } = useQuery(geoDIDsQuery, {
+  const { data, loading } = useQuery(geoDIDsQuery, {
     variables: {
       where: {
         ...(address ? { owner: address.toLowerCase() } : {}),
-        ...{ root: true },
+        ...{ active: true },
         ...{ type: 'Collection' },
+        ...{ isRoot: true },
+      },
+    },
+  });
+
+  const { data: dataAll } = useQuery(geoDIDsQuery, {
+    variables: {
+      where: {
+        ...{ active: true },
       },
     },
   });
 
   const { data: dataSelected } = useQuery(geoDIDQuery, {
     variables: {
-      ...(geoDIDID ? { geoDIDID } : {}),
+      geoDIDID,
     },
   });
 
   const geoDIDs = data ? data.geoDIDs : [];
+  const allGeoDIDs = dataAll ? dataAll.geoDIDs : [];
   const selectedGeoDID = dataSelected ? dataSelected.geoDID : null;
 
   const reduceSubTree = (nodes) =>
     nodes.reduce((newNodes, node) => {
+      let extraEdges = null;
+
+      const foundExtra = allGeoDIDs.some((geoDID) => {
+        if (geoDID.id === node.childGeoDID.id && Array.isArray(geoDID.edges)) {
+          extraEdges = geoDID.edges;
+        }
+        return extraEdges;
+      });
+
       newNodes.push({
         id: node.id,
         geoDIDid: node.childGeoDID.id,
         type: node.childGeoDID.type,
         children: Array.isArray(node.childGeoDID.edges)
           ? reduceSubTree(node.childGeoDID.edges)
-          : null,
+          : iff(foundExtra, reduceSubTree(extraEdges), null),
       });
       return newNodes;
     }, []);
 
   const treeGeoDIDs =
-    geoDIDs.length > 0
+    geoDIDs.length > 0 && allGeoDIDs.length > 0
       ? geoDIDs.reduce((newGeoDID, geoDID) => {
           const children = Array.isArray(geoDID.edges) ? reduceSubTree(geoDID.edges) : null;
 
@@ -126,12 +144,16 @@ const Dashboard = () => {
           });
           return newGeoDID;
         }, [])
-      : null;
+      : [];
 
   const renderTree = (nodes) => {
     const id = nodes.geoDIDid || nodes.id;
     return (
-      <TreeItem key={id} nodeId={id} label={`${nodes.type} ${id}`}>
+      <TreeItem
+        key={id}
+        nodeId={id}
+        label={`${nodes.type} ${id.substr(0, 15)}... ${id.substr(-4)}`}
+      >
         {Array.isArray(nodes.children) ? nodes.children.map((node) => renderTree(node)) : null}
       </TreeItem>
     );
@@ -139,7 +161,20 @@ const Dashboard = () => {
 
   let listArea;
 
-  if (treeGeoDIDs) {
+  /*
+  const traverseTree = (rootGeoDID, treeGeoDIDs) => {
+    const sequence = treeGeoDIDs.find((newSequence, node) => {
+
+      if (node.id !== targetGeoDID){
+        newSequence.push(node.id);
+      }
+
+      return newNodes;
+    }, []);
+  };
+*/
+
+  if (treeGeoDIDs.length > 0 && !loading) {
     listArea = (
       <Virtuoso
         data={treeGeoDIDs}
@@ -174,26 +209,44 @@ const Dashboard = () => {
         }}
       />
     );
-  } else {
+  } else if (loading) {
     listArea = (
       <div style={{ height: '90%' }}>
         <CircularProgress />
       </div>
     );
+  } else if (treeGeoDIDs.length === 0 && !loading) {
+    listArea = <div style={{ height: '90%' }}>No GeoDIDs found</div>;
   }
 
   let geoDIDMetadata;
 
   if (expanded.length > 0 && selectedGeoDID) {
     geoDIDMetadata = (
-      <>
-        <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
-          Geodid ID:
-        </Typography>
-        <Typography variant="subtitle1" gutterBottom>
-          {selectedGeoDID.id}
-        </Typography>
-      </>
+      <Grid container spacing={2} direction="row" justify="center">
+        <Grid item xs={2}>
+          <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
+            GeoDID ID
+          </Typography>
+          <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
+            Content ID
+          </Typography>
+          <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
+            Type
+          </Typography>
+        </Grid>
+        <Grid item xs={10}>
+          <Typography variant="subtitle1" gutterBottom>
+            {selectedGeoDID.id}
+          </Typography>
+          <Typography variant="subtitle1" gutterBottom>
+            {selectedGeoDID.cid}
+          </Typography>
+          <Typography variant="subtitle1" gutterBottom>
+            {selectedGeoDID.type}
+          </Typography>
+        </Grid>
+      </Grid>
     );
   } else if (expanded.length > 0 && !selectedGeoDID) {
     geoDIDMetadata = <CircularProgress />;
@@ -258,7 +311,7 @@ const Dashboard = () => {
             >
               <CardContent style={{ height: '90%' }}>
                 <Typography variant="h5" component="h1" gutterBottom>
-                  Selected GeoDID Metadata
+                  GeoDID Metadata
                 </Typography>
                 {geoDIDMetadata}
               </CardContent>

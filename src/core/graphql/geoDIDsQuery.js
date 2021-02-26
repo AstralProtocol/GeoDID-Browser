@@ -8,20 +8,24 @@ export default gql`
       cid
       storage
       root
+      isRoot
       parent
       edges {
         id
+        active
         childGeoDID {
           id
           owner
           cid
           storage
           root
+          isRoot
           parent
           active
           type
           edges {
             id
+            active
             childGeoDID {
               id
               type
