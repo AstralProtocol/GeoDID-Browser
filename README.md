@@ -1,6 +1,6 @@
 # Filecoin GeoDID front-end browser.
 
-### A dApp for storing Spatio Temporal Asset Catalogs (https://stacspec.org) over Filecoin, using Ceramic, IDX and The Graph
+### A dApp for storing Spatio Temporal Asset Catalogs (https://stacspec.org) over Filecoin, using The Graph
 
 This will be the front-end interface that allows spatial data providers to register spatial assets
 that follow the STAC spec and transform them into a GeoDID format, managing all the related
