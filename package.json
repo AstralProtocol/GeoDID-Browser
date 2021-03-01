@@ -71,6 +71,7 @@
     "history": "^4.10.1",
     "lodash": "^4.17.20",
     "mapbox-gl": "^2.0.1",
+    "material-ui-popup-state": "^1.7.1",
     "material-ui-search-bar": "^1.0.0",
     "memoize-one": "^5.1.1",
     "moment": "^2.29.1",

@@ -16,6 +16,12 @@ const routes = [
     component: loadable(() => import('pages/Dashboard')),
     exact: true,
   },
+  {
+    path: '/browse',
+    name: 'Browse',
+    component: loadable(() => import('pages/Dashboard')),
+    exact: true,
+  },
 ];
 
 function Router() {

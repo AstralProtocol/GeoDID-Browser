@@ -1,5 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import React, { useState, useRef, useMemo } from 'react';
+import { connect } from 'react-redux';
+// import { openFilter } from 'core/redux/modals/actions';
+import { makeStyles, withStyles } from '@material-ui/core/styles';
 import SearchBar from 'material-ui-search-bar';
 import {
   Card,
@@ -8,10 +10,20 @@ import {
   Button,
   Grid,
   Typography,
-  // ListItem,
-  // ListItemText,
   CircularProgress,
+  Popover,
+  List,
+  ListItem,
+  ListItemText,
+  FormLabel,
+  FormGroup,
+  FormControl,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Switch,
 } from '@material-ui/core';
+import { usePopupState, bindTrigger, bindPopover } from 'material-ui-popup-state/hooks';
 import { TreeView, TreeItem } from '@material-ui/lab';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
@@ -22,7 +34,39 @@ import geoDIDQuery from 'core/graphql/geoDIDQuery';
 import { useWallet } from 'core/hooks/web3';
 import Map from './Map';
 
+const AstralSwitch = withStyles({
+  switchBase: {
+    color: '#ffa300',
+    '&$checked': {
+      color: '#ffa300',
+    },
+    '&$checked + $track': {
+      backgroundColor: '#ffa300',
+    },
+  },
+  checked: {},
+  track: {},
+})(Switch);
+
+const AstralRadio = withStyles({
+  root: {
+    color: '#ffa300',
+    '&$checked': {
+      color: '#ffa300',
+    },
+  },
+  checked: {},
+})((props) => <Radio color="default" {...props} />);
+
 const useStyles = makeStyles((theme) => ({
+  formContainer: {
+    display: 'flex',
+    flexWrap: 'wrap',
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
+  },
   root: {
     height: '100%',
     paddingTop: '10px',
@@ -78,9 +122,28 @@ const Dashboard = () => {
   const [searchValue, setSearchValue] = useState('');
   const [expanded, setExpanded] = useState([]);
   const [geoDIDID, setSelectedGeoDIDId] = useState(null);
+  const [typeFilter, setTypeFilter] = useState(null);
+  const [toggleTree, setToggleTree] = useState(true);
+
+  // popper
+  const popupState = usePopupState({
+    variant: 'popover',
+    popupId: 'demoPopover',
+  });
+  //
+
+  console.log(typeFilter);
+  const handleTypeFilterChange = (event) => {
+    setTypeFilter(event.target.value);
+  };
+
+  const handleSetToggleTree = () => {
+    setToggleTree(!toggleTree);
+  };
+
   const { address } = useWallet();
 
-  const { data, loading } = useQuery(geoDIDsQuery, {
+  const { data, loading: loadingTree } = useQuery(geoDIDsQuery, {
     variables: {
       where: {
         ...(address ? { owner: address.toLowerCase() } : {}),
@@ -91,7 +154,7 @@ const Dashboard = () => {
     },
   });
 
-  const { data: dataAll } = useQuery(geoDIDsQuery, {
+  const { data: dataAll, loading: loadingAll } = useQuery(geoDIDsQuery, {
     variables: {
       where: {
         ...{ active: true },
@@ -174,7 +237,44 @@ const Dashboard = () => {
   };
 */
 
-  if (treeGeoDIDs.length > 0 && !loading) {
+  /* eslint-disable */
+  const Components = useMemo(() => {
+    return {
+      List: React.forwardRef(({ style, children }, listRef) => {
+        return (
+          <List style={{ padding: 0, ...style, margin: 0 }} component="div" ref={listRef}>
+            {children}
+          </List>
+        );
+      }),
+
+      Item: ({ children, ...props }) => {
+        return (
+          <ListItem component="div" {...props} style={{ margin: 0 }}>
+            {children}
+          </ListItem>
+        );
+      },
+
+      Scroller: React.forwardRef(({ style, children }, ref) => (
+        // an alternative option to assign the ref is
+        // <div ref={(r) => ref.current = r}>
+        <div
+          style={{
+            ...style,
+          }}
+          ref={ref}
+          className={classes.scrollbar}
+        >
+          {children}
+        </div>
+      )),
+    };
+  }, []);
+
+  /* eslint-enable */
+
+  if (treeGeoDIDs.length > 0 && !loadingTree && toggleTree) {
     listArea = (
       <Virtuoso
         data={treeGeoDIDs}
@@ -192,30 +292,35 @@ const Dashboard = () => {
             {renderTree(node)}
           </TreeView>
         )}
-        components={{
-          Scroller: React.forwardRef(({ style, children }, ref) => (
-            // an alternative option to assign the ref is
-            // <div ref={(r) => ref.current = r}>
-            <div
-              style={{
-                ...style,
-              }}
-              ref={ref}
-              className={classes.scrollbar}
-            >
-              {children}
-            </div>
-          )),
-        }}
       />
     );
-  } else if (loading) {
+  } else if (loadingTree && toggleTree) {
     listArea = (
       <div style={{ height: '90%' }}>
         <CircularProgress />
       </div>
     );
-  } else if (treeGeoDIDs.length === 0 && !loading) {
+  } else if (treeGeoDIDs.length === 0 && !loadingTree && toggleTree) {
+    listArea = <div style={{ height: '90%' }}>No GeoDIDs found</div>;
+  } else if (!toggleTree && allGeoDIDs.length > 0 && !loadingAll) {
+    listArea = (
+      <Virtuoso
+        data={allGeoDIDs}
+        style={{ height: '90%' }}
+        itemContent={(index) => {
+          const node = allGeoDIDs[index];
+          return <ListItemText primary={node.type} secondary={<span>{node.id}</span>} />;
+        }}
+        components={Components}
+      />
+    );
+  } else if (!toggleTree && loadingAll) {
+    listArea = (
+      <div style={{ height: '90%' }}>
+        <CircularProgress />
+      </div>
+    );
+  } else if (!toggleTree && allGeoDIDs.length === 0 && !loadingAll) {
     listArea = <div style={{ height: '90%' }}>No GeoDIDs found</div>;
   }
 
@@ -266,9 +371,70 @@ const Dashboard = () => {
       <Grid item xs={4}>
         <Grid container spacing={0} className={classes.container}>
           <Grid item xs={3} style={{ height: '10vh' }}>
-            <Button fullWidth size="small" className={classes.button}>
+            <Button
+              fullWidth
+              size="small"
+              className={classes.button}
+              variant="contained"
+              {...bindTrigger(popupState)}
+            >
               Filter
             </Button>
+            <Popover
+              {...bindPopover(popupState)}
+              anchorOrigin={{
+                vertical: 'center',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'center',
+                horizontal: 'left',
+              }}
+            >
+              <Typography component="span">
+                <FormGroup className={classes.formContainer}>
+                  <FormControl className={classes.formControl}>
+                    <FormLabel focused component="legend">
+                      Toggle GeoDID Tree View
+                    </FormLabel>
+                    <FormControlLabel
+                      control={
+                        <AstralSwitch
+                          checked={toggleTree}
+                          onChange={handleSetToggleTree}
+                          name="toggleTree"
+                        />
+                      }
+                      label="GeoDID Tree View"
+                    />
+                  </FormControl>
+                  <FormControl className={classes.formControl}>
+                    <FormLabel focused component="legend">
+                      Filter which GeoDID type to see
+                    </FormLabel>
+                    <RadioGroup
+                      aria-label="type"
+                      name="type"
+                      value={typeFilter}
+                      onChange={handleTypeFilterChange}
+                    >
+                      <FormControlLabel
+                        value="collection"
+                        disabled={toggleTree}
+                        control={<AstralRadio />}
+                        label="Collection"
+                      />
+                      <FormControlLabel
+                        value="item"
+                        disabled={toggleTree}
+                        control={<AstralRadio />}
+                        label="Item"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </FormGroup>
+              </Typography>
+            </Popover>
           </Grid>
           <Grid item xs={9} style={{ height: '10vh' }}>
             <SearchBar
@@ -325,5 +491,8 @@ const Dashboard = () => {
     </Grid>
   );
 };
+const mapStateToProps = () => ({});
 
-export default Dashboard;
+const mapDispatchToProps = () => ({});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);

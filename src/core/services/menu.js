@@ -8,13 +8,13 @@ export const defaultMenuData = [
 
 export const loggedInMenuData = [
   {
-    title: 'Browse',
-    key: 'browse',
-    url: '/browse',
-  },
-  {
     title: 'Dashboard',
     key: 'dasboard',
     url: '/dashboard',
+  },
+  {
+    title: 'Create',
+    key: 'create',
+    url: '/create',
   },
 ];

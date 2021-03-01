@@ -19,6 +19,7 @@ import { NETWORK } from 'utils/constants';
 import { defaultMenuData, loggedInMenuData } from 'core/services/menu';
 import Account from 'components/Account';
 import { useWallet } from 'core/hooks/web3';
+import FilterModal from 'components/FilterModal';
 
 const drawerWidth = 240;
 
@@ -97,27 +98,29 @@ function Copyright() {
 function AppLayout(props) {
   const classes = useStyles();
   const [searchValue, setSearchValue] = useState('');
-  const { targetNetworkChainId, selectedChainId, targetNetwork } = useWallet();
+  const { address, targetNetworkChainId, selectedChainId, targetNetwork } = useWallet();
 
-  const { children, selectedAccount } = props;
+  const { children } = props;
 
-  let menuData = (
-    <List className={classes.list}>
-      {defaultMenuData.map((data, index) => (
-        <Link to={data.url} key={data.key}>
-          <ListItem className={classes.listItem} button key={data.key}>
-            <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-            <ListItemText primary={data.title} />
-          </ListItem>
-        </Link>
-      ))}
-    </List>
-  );
+  let menuData;
 
-  if (selectedAccount) {
+  if (address) {
     menuData = (
       <List className={classes.list}>
         {loggedInMenuData.map((data, index) => (
+          <Link to={data.url} key={data.key}>
+            <ListItem className={classes.listItem} button key={data.key}>
+              <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
+              <ListItemText primary={data.title} />
+            </ListItem>
+          </Link>
+        ))}
+      </List>
+    );
+  } else {
+    menuData = (
+      <List className={classes.list}>
+        {defaultMenuData.map((data, index) => (
           <Link to={data.url} key={data.key}>
             <ListItem className={classes.listItem} button key={data.key}>
               <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
@@ -156,6 +159,7 @@ function AppLayout(props) {
   return (
     <div className={classes.root}>
       <CssBaseline />
+      <FilterModal />
       {/*
       <AppBar position="fixed" className={classes.appBar}>
       <Toolbar>
