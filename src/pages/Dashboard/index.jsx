@@ -132,13 +132,16 @@ const Dashboard = () => {
   });
   //
 
-  console.log(typeFilter);
   const handleTypeFilterChange = (event) => {
+    setSearchValue('');
     setTypeFilter(event.target.value);
   };
 
   const handleSetToggleTree = () => {
     setToggleTree(!toggleTree);
+    if (toggleTree) {
+      setTypeFilter('All');
+    }
   };
 
   const { address } = useWallet();
@@ -209,6 +212,19 @@ const Dashboard = () => {
         }, [])
       : [];
 
+  const filteredGeoDIDs =
+    allGeoDIDs.length > 0
+      ? allGeoDIDs.reduce((newGeoDID, geoDID) => {
+          if (
+            (geoDID.type === typeFilter || typeFilter === 'All') &&
+            (searchValue.length === 0 || (searchValue.length > 0 && searchValue === geoDID.id))
+          ) {
+            newGeoDID.push(geoDID);
+          }
+          return newGeoDID;
+        }, [])
+      : [];
+
   const renderTree = (nodes) => {
     const id = nodes.geoDIDid || nodes.id;
     return (
@@ -240,22 +256,6 @@ const Dashboard = () => {
   /* eslint-disable */
   const Components = useMemo(() => {
     return {
-      List: React.forwardRef(({ style, children }, listRef) => {
-        return (
-          <List style={{ padding: 0, ...style, margin: 0 }} component="div" ref={listRef}>
-            {children}
-          </List>
-        );
-      }),
-
-      Item: ({ children, ...props }) => {
-        return (
-          <ListItem component="div" {...props} style={{ margin: 0 }}>
-            {children}
-          </ListItem>
-        );
-      },
-
       Scroller: React.forwardRef(({ style, children }, ref) => (
         // an alternative option to assign the ref is
         // <div ref={(r) => ref.current = r}>
@@ -292,6 +292,7 @@ const Dashboard = () => {
             {renderTree(node)}
           </TreeView>
         )}
+        components={Components}
       />
     );
   } else if (loadingTree && toggleTree) {
@@ -302,14 +303,20 @@ const Dashboard = () => {
     );
   } else if (treeGeoDIDs.length === 0 && !loadingTree && toggleTree) {
     listArea = <div style={{ height: '90%' }}>No GeoDIDs found</div>;
-  } else if (!toggleTree && allGeoDIDs.length > 0 && !loadingAll) {
+  } else if (!toggleTree && filteredGeoDIDs.length > 0 && !loadingAll) {
     listArea = (
       <Virtuoso
-        data={allGeoDIDs}
+        data={filteredGeoDIDs}
         style={{ height: '90%' }}
         itemContent={(index) => {
-          const node = allGeoDIDs[index];
-          return <ListItemText primary={node.type} secondary={<span>{node.id}</span>} />;
+          const node = filteredGeoDIDs[index];
+          return (
+            <List>
+              <ListItem button onClick={() => setSelectedGeoDIDId(node.id)}>
+                <ListItemText primary={node.type} secondary={<span>{node.id}</span>} />;
+              </ListItem>
+            </List>
+          );
         }}
         components={Components}
       />
@@ -320,13 +327,13 @@ const Dashboard = () => {
         <CircularProgress />
       </div>
     );
-  } else if (!toggleTree && allGeoDIDs.length === 0 && !loadingAll) {
+  } else if (!toggleTree && filteredGeoDIDs.length === 0 && !loadingAll) {
     listArea = <div style={{ height: '90%' }}>No GeoDIDs found</div>;
   }
 
   let geoDIDMetadata;
 
-  if (expanded.length > 0 && selectedGeoDID) {
+  if ((expanded.length > 0 && selectedGeoDID) || (!toggleTree && selectedGeoDID)) {
     geoDIDMetadata = (
       <Grid container spacing={2} direction="row" justify="center">
         <Grid item xs={2}>
@@ -355,7 +362,7 @@ const Dashboard = () => {
     );
   } else if (expanded.length > 0 && !selectedGeoDID) {
     geoDIDMetadata = <CircularProgress />;
-  } else if (expanded.length === 0 && !selectedGeoDID) {
+  } else if ((expanded.length === 0 && !selectedGeoDID) || (!toggleTree && !selectedGeoDID)) {
     geoDIDMetadata = '';
   }
 
@@ -419,13 +426,19 @@ const Dashboard = () => {
                       onChange={handleTypeFilterChange}
                     >
                       <FormControlLabel
-                        value="collection"
+                        value="All"
+                        disabled={toggleTree}
+                        control={<AstralRadio />}
+                        label="All"
+                      />
+                      <FormControlLabel
+                        value="Collection"
                         disabled={toggleTree}
                         control={<AstralRadio />}
                         label="Collection"
                       />
                       <FormControlLabel
-                        value="item"
+                        value="Item"
                         disabled={toggleTree}
                         control={<AstralRadio />}
                         label="Item"
@@ -439,10 +452,15 @@ const Dashboard = () => {
           <Grid item xs={9} style={{ height: '10vh' }}>
             <SearchBar
               className={classes.searchBar}
-              placeholder="Search GeoDID"
+              placeholder="did:geo:"
               value={searchValue}
-              onChange={(newValue) => setSearchValue(newValue)}
-              onRequestSearch={() => console.log(searchValue)}
+              onChange={(newValue) => {
+                setTypeFilter('All');
+                setToggleTree(false);
+                setSearchValue(newValue);
+                setSelectedGeoDIDId(newValue);
+              }}
+              onCancelSearch={() => setToggleTree(true)}
             />
           </Grid>
           <Grid item xs={12} style={{ height: '86vh' }}>
