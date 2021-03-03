@@ -22,6 +22,12 @@ const routes = [
     component: loadable(() => import('pages/Dashboard')),
     exact: true,
   },
+  {
+    path: '/browse/:geoDIDID',
+    name: 'Browse',
+    component: loadable(() => import('pages/GeoDIDView')),
+    exact: true,
+  },
 ];
 
 function Router() {

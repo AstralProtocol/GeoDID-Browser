@@ -3,6 +3,8 @@ import { actions } from './actions';
 const LOCATION_CHANGE = '@@router/LOCATION_CHANGE';
 
 const initialState = {
+  geoDIDID: null,
+
   fileList: [],
   spatialAsset: null,
   spatialAssetLoaded: false,
@@ -21,6 +23,13 @@ const initialState = {
 export default function spatialAssetsReducer(state = initialState, action) {
   let reduced;
   switch (action.type) {
+    case actions.SET_SELECTED_GEODID:
+      reduced = {
+        ...state,
+        ...action.payload,
+      };
+      break;
+
     case actions.SET_FILELIST:
       reduced = {
         ...state,
@@ -59,6 +68,7 @@ export default function spatialAssetsReducer(state = initialState, action) {
     case LOCATION_CHANGE:
       reduced = {
         ...initialState,
+        geoDIDID: state.geoDIDID,
       };
       break;
 

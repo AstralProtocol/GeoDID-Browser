@@ -1,12 +1,15 @@
 import React, { useState, useRef, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import SearchBar from 'material-ui-search-bar';
 import {
   Card,
   CardContent,
-  CardActions,
+  CardHeader,
   Button,
+  ButtonBase,
   Grid,
   Typography,
   CircularProgress,
@@ -32,8 +35,8 @@ import geoDIDsQuery from 'core/graphql/geoDIDsQuery';
 import geoDIDQuery from 'core/graphql/geoDIDQuery';
 import { useWallet } from 'core/hooks/web3';
 import StyledTreeItem from 'components/StyledTreeItem';
+import Map from 'components/Map';
 import { iff } from 'utils';
-import Map from './Map';
 
 const AstralSwitch = withStyles({
   switchBase: {
@@ -94,6 +97,23 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .3)',
     borderRadius: '20px',
   },
+  areaButton: {
+    width: '100%',
+    height: '100%',
+    background: 'transparent',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: 'transparent',
+    color: theme.palette.primary.grey,
+    '&:hover': {
+      background: 'linear-gradient(45deg, #8FB8ED 30%, #62BFED 90%)',
+      color: '#fff',
+    },
+  },
+  metadataMessage: {
+    margin: 'auto',
+  },
   searchBar: {
     textAlign: 'center',
     position: 'relative',
@@ -125,12 +145,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Dashboard = () => {
+const Dashboard = (props) => {
+  const { geoDIDID, dispatchSetSelectedGeoDID } = props;
+
+  console.log(geoDIDID);
   const classes = useStyles();
   const parentRef = useRef(null);
   const [searchValue, setSearchValue] = useState('');
-  const [expanded, setExpanded] = useState([]);
-  const [geoDIDID, setSelectedGeoDIDId] = useState(null);
+  //  const [expanded, setExpanded] = useState([]);
   const [typeFilter, setTypeFilter] = useState(null);
   const [toggleTree, setToggleTree] = useState(true);
   const popupState = usePopupState({
@@ -171,7 +193,7 @@ const Dashboard = () => {
     },
   });
 
-  const { data: dataSelected } = useQuery(geoDIDQuery, {
+  const { data: dataSelected, loading: loadingSelected } = useQuery(geoDIDQuery, {
     variables: {
       geoDIDID,
     },
@@ -248,18 +270,24 @@ const Dashboard = () => {
 
   let listArea;
 
-  /*
-  const traverseTree = (rootGeoDID, treeGeoDIDs) => {
-    const sequence = treeGeoDIDs.find((newSequence, node) => {
+  const selectedSequence = geoDIDID ? [geoDIDID] : [];
 
-      if (node.id !== targetGeoDID){
-        newSequence.push(node.id);
-      }
+  const findSequence = (nodes, current) => {
+    const found = nodes.find((node) => node.id === current.parent);
 
-      return newNodes;
-    }, []);
+    if (found && !found.isRoot) {
+      selectedSequence.push(found.id);
+      findSequence(nodes, found);
+    } else if (found && found.isRoot) {
+      selectedSequence.push(found.id);
+    }
   };
-*/
+
+  if (allGeoDIDs.length > 0 && geoDIDID && selectedGeoDID) {
+    findSequence(allGeoDIDs, selectedGeoDID);
+  }
+
+  selectedSequence.reverse();
 
   const Components = useMemo(() => {
     const components = {
@@ -289,10 +317,10 @@ const Dashboard = () => {
           <TreeView
             key={index}
             defaultCollapseIcon={<ExpandMoreIcon />}
-            defaultExpanded={['root']}
-            expanded={expanded}
-            onNodeSelect={(event, nodeId) => setSelectedGeoDIDId(nodeId)}
-            onNodeToggle={(event, nodeIds) => setExpanded(nodeIds)}
+            expanded={selectedSequence}
+            selected={geoDIDID}
+            onNodeSelect={(event, nodeId) => dispatchSetSelectedGeoDID(nodeId)}
+            // onNodeToggle={(event, nodeIds) => setExpanded(nodeIds)}
             defaultExpandIcon={<ChevronRightIcon />}
           >
             {renderTree(node)}
@@ -321,7 +349,7 @@ const Dashboard = () => {
               <AstralListItem
                 selected={node.id === geoDIDID}
                 button
-                onClick={() => setSelectedGeoDIDId(node.id)}
+                onClick={() => dispatchSetSelectedGeoDID(node.id)}
               >
                 <ListItemText primary={node.type} secondary={<span>{node.id}</span>} />;
               </AstralListItem>
@@ -343,37 +371,63 @@ const Dashboard = () => {
 
   let geoDIDMetadata;
 
-  if ((expanded.length > 0 && selectedGeoDID) || (!toggleTree && selectedGeoDID)) {
+  if (selectedGeoDID) {
     geoDIDMetadata = (
-      <Grid container spacing={2} direction="row" justify="center">
-        <Grid item xs={2}>
-          <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
-            GeoDID ID
-          </Typography>
-          <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
-            Content ID
-          </Typography>
-          <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
-            Type
-          </Typography>
-        </Grid>
-        <Grid item xs={10}>
-          <Typography variant="subtitle1" gutterBottom>
-            {selectedGeoDID.id}
-          </Typography>
-          <Typography variant="subtitle1" gutterBottom>
-            {selectedGeoDID.cid}
-          </Typography>
-          <Typography variant="subtitle1" gutterBottom>
-            {selectedGeoDID.type}
-          </Typography>
-        </Grid>
-      </Grid>
+      <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '48vh' }}>
+        <CardHeader style={{ height: '10%' }} title="GeoDID Metadata" />
+        <CardContent style={{ height: '90%' }}>
+          <Grid container style={{ height: '100%' }} spacing={2} direction="row" justify="center">
+            <Grid item xs={2}>
+              <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
+                GeoDID ID
+              </Typography>
+              <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
+                Content ID
+              </Typography>
+              <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
+                Type
+              </Typography>
+            </Grid>
+            <Grid item xs={7}>
+              <Typography variant="subtitle1" gutterBottom>
+                {selectedGeoDID.id}
+              </Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                {selectedGeoDID.cid}
+              </Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                {selectedGeoDID.type}
+              </Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Link to={`/browse/${geoDIDID}`}>
+                <ButtonBase className={classes.areaButton}>View GeoDID</ButtonBase>
+              </Link>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
     );
-  } else if (expanded.length > 0 && !selectedGeoDID) {
-    geoDIDMetadata = <CircularProgress />;
-  } else if ((expanded.length === 0 && !selectedGeoDID) || (!toggleTree && !selectedGeoDID)) {
-    geoDIDMetadata = '';
+  } else if (loadingSelected) {
+    geoDIDMetadata = (
+      <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '48vh' }}>
+        <CardContent style={{ display: 'grid', height: '100%' }}>
+          <div className={classes.metadataMessage}>
+            <CircularProgress />;
+          </div>
+        </CardContent>
+      </Card>
+    );
+  } else {
+    geoDIDMetadata = (
+      <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '48vh' }}>
+        <CardContent style={{ display: 'grid', height: '100%' }}>
+          <Typography className={classes.metadataMessage} variant="h5" gutterBottom>
+            No GeoDID metadata to display
+          </Typography>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -468,7 +522,7 @@ const Dashboard = () => {
                 setTypeFilter('All');
                 setToggleTree(false);
                 setSearchValue(newValue);
-                setSelectedGeoDIDId(newValue);
+                dispatchSetSelectedGeoDID(newValue);
               }}
               onCancelSearch={() => setToggleTree(true)}
             />
@@ -498,29 +552,20 @@ const Dashboard = () => {
             </Card>
           </Grid>
           <Grid item xs={12}>
-            <Card
-              classes={{ root: classes.metadata }}
-              variant="outlined"
-              style={{ height: '48vh' }}
-            >
-              <CardContent style={{ height: '90%' }}>
-                <Typography variant="h5" component="h1" gutterBottom>
-                  GeoDID Metadata
-                </Typography>
-                {geoDIDMetadata}
-              </CardContent>
-              <CardActions>
-                <Button size="small">Learn More</Button>
-              </CardActions>
-            </Card>
+            {geoDIDMetadata}
           </Grid>
         </Grid>
       </Grid>
     </Grid>
   );
 };
-const mapStateToProps = () => ({});
 
-const mapDispatchToProps = () => ({});
+const mapStateToProps = (state) => ({
+  geoDIDID: state.spatialAssets.geoDIDID,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  dispatchSetSelectedGeoDID: (geoDIDID) => dispatch(setSelectedGeoDID(geoDIDID)),
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);

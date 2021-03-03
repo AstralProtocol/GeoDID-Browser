@@ -1,4 +1,5 @@
 export const actions = {
+  SET_SELECTED_GEODID: 'spatial-assets/SET_SELECTED_GEODID',
   SET_FILELIST: 'spatial-assets/SET_FILELIST',
   SET_SPATIAL_ASSET: 'spatial-assets/SET_SPATIAL_ASSET',
   LOAD_COGS: 'spatial-assets/LOAD_COGS',
@@ -17,6 +18,13 @@ export const actions = {
   ENABLING_STORAGE: 'spatial-assets/ENABLING_STORAGE',
   STORAGE_ENABLED: 'spatial-assets/STORAGE_ENABLED',
 };
+
+export const setSelectedGeoDID = (geoDIDID) => ({
+  type: actions.SET_SELECTED_GEODID,
+  payload: {
+    geoDIDID,
+  },
+});
 
 export const setFileList = (fileList) => ({
   type: actions.SET_FILELIST,
