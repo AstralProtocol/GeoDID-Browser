@@ -1,6 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { connect } from 'react-redux';
-// import { openFilter } from 'core/redux/modals/actions';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import SearchBar from 'material-ui-search-bar';
 import {
@@ -24,7 +23,7 @@ import {
   Switch,
 } from '@material-ui/core';
 import { usePopupState, bindTrigger, bindPopover } from 'material-ui-popup-state/hooks';
-import { TreeView, TreeItem } from '@material-ui/lab';
+import { TreeView } from '@material-ui/lab';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { Virtuoso } from 'react-virtuoso';
@@ -32,6 +31,8 @@ import { useQuery } from '@apollo/react-hooks';
 import geoDIDsQuery from 'core/graphql/geoDIDsQuery';
 import geoDIDQuery from 'core/graphql/geoDIDQuery';
 import { useWallet } from 'core/hooks/web3';
+import StyledTreeItem from 'components/StyledTreeItem';
+import { iff } from 'utils';
 import Map from './Map';
 
 const AstralSwitch = withStyles({
@@ -47,6 +48,15 @@ const AstralSwitch = withStyles({
   checked: {},
   track: {},
 })(Switch);
+
+const AstralListItem = withStyles({
+  root: {
+    '&:hover': {
+      backgroundColor: '#ffa30040!important',
+    },
+  },
+  selected: { backgroundColor: '#ffa30040!important', color: '#ffa300' },
+})(ListItem);
 
 const AstralRadio = withStyles({
   root: {
@@ -114,7 +124,6 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 }));
-const iff = (condition, then, otherwise) => (condition ? then : otherwise);
 
 const Dashboard = () => {
   const classes = useStyles();
@@ -124,13 +133,10 @@ const Dashboard = () => {
   const [geoDIDID, setSelectedGeoDIDId] = useState(null);
   const [typeFilter, setTypeFilter] = useState(null);
   const [toggleTree, setToggleTree] = useState(true);
-
-  // popper
   const popupState = usePopupState({
     variant: 'popover',
-    popupId: 'demoPopover',
+    popupId: 'filterPopup',
   });
-  //
 
   const handleTypeFilterChange = (event) => {
     setSearchValue('');
@@ -228,13 +234,15 @@ const Dashboard = () => {
   const renderTree = (nodes) => {
     const id = nodes.geoDIDid || nodes.id;
     return (
-      <TreeItem
+      <StyledTreeItem
         key={id}
         nodeId={id}
-        label={`${nodes.type} ${id.substr(0, 15)}... ${id.substr(-4)}`}
+        labelText={`${nodes.type} ${id.substr(0, 15)}... ${id.substr(-4)}`}
+        color="#ffa300"
+        bgColor="#fff"
       >
         {Array.isArray(nodes.children) ? nodes.children.map((node) => renderTree(node)) : null}
-      </TreeItem>
+      </StyledTreeItem>
     );
   };
 
@@ -253,9 +261,8 @@ const Dashboard = () => {
   };
 */
 
-  /* eslint-disable */
   const Components = useMemo(() => {
-    return {
+    const components = {
       Scroller: React.forwardRef(({ style, children }, ref) => (
         // an alternative option to assign the ref is
         // <div ref={(r) => ref.current = r}>
@@ -270,9 +277,8 @@ const Dashboard = () => {
         </div>
       )),
     };
+    return components;
   }, []);
-
-  /* eslint-enable */
 
   if (treeGeoDIDs.length > 0 && !loadingTree && toggleTree) {
     listArea = (
@@ -312,9 +318,13 @@ const Dashboard = () => {
           const node = filteredGeoDIDs[index];
           return (
             <List>
-              <ListItem button onClick={() => setSelectedGeoDIDId(node.id)}>
+              <AstralListItem
+                selected={node.id === geoDIDID}
+                button
+                onClick={() => setSelectedGeoDIDId(node.id)}
+              >
                 <ListItemText primary={node.type} secondary={<span>{node.id}</span>} />;
-              </ListItem>
+              </AstralListItem>
             </List>
           );
         }}

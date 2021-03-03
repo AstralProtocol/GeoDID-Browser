@@ -8,7 +8,7 @@ import {
   commitError,
 } from 'core/redux/contracts/actions';
 import AstralCore from 'core/services/AstralCore';
-import utils from 'utils';
+import { itemIdGenerator } from 'utils';
 import { notification } from 'antd';
 import { actions } from './actions';
 
@@ -242,7 +242,7 @@ function* REGISTER_SPATIAL_ASSET_SAGA() {
   const { spatialAsset } = yield select(getSpatialAssetsState);
 
   // generate 256 bit long id from STAC id
-  const itemId = yield call(utils.itemIdGenerator, spatialAsset.id);
+  const itemId = yield call(itemIdGenerator, spatialAsset.id);
 
   const owner = yield call(SpatialAssets.instance.methods.idToOwner(itemId).call);
 
