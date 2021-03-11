@@ -72,23 +72,35 @@
   dependencies:
     "@apollo/client" latest
 
-"@astraldao/astral-protocol-contracts@^0.0.37":
-  version "0.0.37"
-  resolved "https://registry.yarnpkg.com/@astraldao/astral-protocol-contracts/-/astral-protocol-contracts-0.0.37.tgz#74438c1f323469bd0e194a8ec04ea4516de45f2b"
-  integrity sha512-0NjJtlFVxBOZ/AaFIfwY+GLhSu/pybaULP77Jj/V0NrU+/t7nOXt5ticE/YgBJ29iRVg1bCebc74ZkPGsjSZdg==
+"@astraldao/stac-validator-js@^0.0.30":
+  version "0.0.30"
+  resolved "https://registry.yarnpkg.com/@astraldao/stac-validator-js/-/stac-validator-js-0.0.30.tgz#db3df6dfb0c4a3ddb31a7313f119e85e04581814"
+  integrity sha512-oYK8Puu8PbmqDdO0k8mJbVoukyAaOT0o2AZd3Fff0Vx2b67QKPbW8tPq0nmxIzsPFNN+8jel1D3DiG2tDBXsaQ==
   dependencies:
+    "@apidevtools/json-schema-ref-parser" "^9.0.1"
+    ajv "^6.12.2"
+    compare-versions "^3.6.0"
+
+"@astralprotocol/contracts@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@astralprotocol/contracts/-/contracts-1.0.5.tgz#03a7252a9604d6b90a92f9f266c56145c1ec0066"
+  integrity sha512-hVSUculbqPheaXydNFM7lLIkIhqt1c6AGytHt5YcvEGCH+baIIGtXmvSXIAhQrmU9MLkKRK7UfmV5rh866FBWA==
+  dependencies:
+    "@astralprotocol/core" "^0.1.10"
     "@openzeppelin/contracts" "^3.2.0"
     "@truffle/hdwallet-provider" "^1.1.1"
+    bs58 "^4.0.1"
     coveralls "^3.1.0"
+    dotenv "^8.2.0"
     solidity-coverage "^0.7.13"
     truffle "^5.1.49"
 
-"@astraldao/astral-protocol-core@^0.0.39":
-  version "0.0.39"
-  resolved "https://registry.yarnpkg.com/@astraldao/astral-protocol-core/-/astral-protocol-core-0.0.39.tgz#5d01dbe51926318c166d37f6687b0fbf6a2e2eeb"
-  integrity sha512-61uVv9K+gM/zbGKq8w4wjoMsWwr1fY2ZBxoFZLFExk5dF7bmYG8pMKMK7uvX49Gbji0CguP+yFCaUWoqeEzyOg==
+"@astralprotocol/core@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-0.1.10.tgz#b8b4c20a0982d28d1673b905b69a25adc6387016"
+  integrity sha512-DyR0tKK1xn21DdfL8gKW5fCQd347KQykF7aSmHdekcDDJlw6qFmYbJKLVG7Z/biVC0DX8UPWw307aKoXV26dbg==
   dependencies:
-    "@textile/powergate-client" "^2.0.1"
+    "@textile/powergate-client" "^4.0.0"
     ajv "^6.12.5"
     async "^3.2.0"
     axios "^0.20.0"
@@ -103,18 +115,38 @@
     events "^3.2.0"
     fetch-json "^2.2.7"
     fs "^0.0.1-security"
+    graphql "^15.5.0"
+    graphql-request "^3.4.0"
     lodash.clonedeep "^4.5.0"
     multihashing-async "^2.0.1"
     reflect-metadata "^0.1.13"
 
-"@astraldao/stac-validator-js@^0.0.30":
-  version "0.0.30"
-  resolved "https://registry.yarnpkg.com/@astraldao/stac-validator-js/-/stac-validator-js-0.0.30.tgz#db3df6dfb0c4a3ddb31a7313f119e85e04581814"
-  integrity sha512-oYK8Puu8PbmqDdO0k8mJbVoukyAaOT0o2AZd3Fff0Vx2b67QKPbW8tPq0nmxIzsPFNN+8jel1D3DiG2tDBXsaQ==
+"@astralprotocol/core@^1.0.26":
+  version "1.0.26"
+  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-1.0.26.tgz#5432bbfa31053587b075cf6fefd496ac86d91ece"
+  integrity sha512-KHv34C1RotdFg7s8XyPwt9WIgQzDHv4qC1242SQlEB+EHBI2vZIVa3KFd3i+1s6kMYHGby0HdDaP/s/ZFqUJEg==
   dependencies:
-    "@apidevtools/json-schema-ref-parser" "^9.0.1"
-    ajv "^6.12.2"
-    compare-versions "^3.6.0"
+    "@textile/powergate-client" "^4.0.0"
+    ajv "^6.12.5"
+    apollo-fetch "^0.7.0"
+    async "^3.2.0"
+    axios "^0.21.1"
+    blob "^0.1.0"
+    cids "^1.0.0"
+    class-transformer "^0.3.1"
+    cli-progress "^3.8.2"
+    cross-fetch "^3.0.6"
+    did-jwt "^4.5.1"
+    did-resolver "^2.1.1"
+    dids "^0.5.1"
+    events "^3.2.0"
+    fetch-json "^2.2.7"
+    fs "^0.0.1-security"
+    graphql "^15.5.0"
+    graphql-request "^3.4.0"
+    lodash.clonedeep "^4.5.0"
+    multihashing-async "^2.0.1"
+    reflect-metadata "^0.1.13"
 
 "@babel/code-frame@7.10.4":
   version "7.10.4"
@@ -2800,14 +2832,14 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@textile/grpc-powergate-client@0.6.8":
-  version "0.6.8"
-  resolved "https://registry.yarnpkg.com/@textile/grpc-powergate-client/-/grpc-powergate-client-0.6.8.tgz#11f23244d67e2c5d0a696cf4d5b58965625fb70e"
-  integrity sha512-cBWyLMGRilQgFq9VZI9hN6sPO7xc+m+zoxIfab2AEUGFhfDa2Q39qnUKUDYkNc4BcT+BOj66dWpD2kYzq5D2/A==
+"@textile/grpc-powergate-client@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@textile/grpc-powergate-client/-/grpc-powergate-client-2.0.0.tgz#194680056ce8c4648dcd4061a910fb6c17984166"
+  integrity sha512-iVbLzzAZiRzHzT4ieRrvr5MJGXKoieSOCU3zvMxEOCIvFaGdYnsjKHfb5H1bUBHgLuuculPeHWO+LqAS7oL3+A==
   dependencies:
     "@improbable-eng/grpc-web" "^0.13.0"
-    "@types/google-protobuf" "^3.7.3"
-    google-protobuf "^3.13.0"
+    "@types/google-protobuf" "^3.7.4"
+    google-protobuf "^3.14.0"
 
 "@textile/grpc-transport@0.0.3":
   version "0.0.3"
@@ -2820,12 +2852,12 @@
     loglevel "^1.6.6"
     ws "^7.2.1"
 
-"@textile/powergate-client@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@textile/powergate-client/-/powergate-client-2.0.1.tgz#1cb08098ea344bed8ce226cf211c6bb7fa215776"
-  integrity sha512-6U+CfXjJbZ38Mh3GS+mrWRF45tXt3y6TNSOklS/1eZLzD4qiG/6WCHV+zfz8Gl+JyGsXFDN2MQVzWKzSjSrVsQ==
+"@textile/powergate-client@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@textile/powergate-client/-/powergate-client-4.0.0.tgz#73b641cdd721bf50ed5ea252ed81ed7bbe2502b0"
+  integrity sha512-rIAfeAk/Q82E41+ijmICvLQ8TFcYrqrx7s0u8R3mDH5vPHJpLG0iMGGwh+OL2XSyupqzYzFw4D2cFOpTaljnsg==
   dependencies:
-    "@textile/grpc-powergate-client" "0.6.8"
+    "@textile/grpc-powergate-client" "2.0.0"
     "@textile/grpc-transport" "0.0.3"
     ipfs-http-client "^47.0.1"
     it-block "^2.0.0"
@@ -3019,7 +3051,7 @@
     "@types/minimatch" "*"
     "@types/node" "*"
 
-"@types/google-protobuf@^3.7.3":
+"@types/google-protobuf@^3.7.4":
   version "3.7.4"
   resolved "https://registry.yarnpkg.com/@types/google-protobuf/-/google-protobuf-3.7.4.tgz#1621c50ceaf5aefa699851da8e0ea606a2943a39"
   integrity sha512-6PjMFKl13cgB4kRdYtvyjKl8VVa0PXS2IdVxHhQ8GEKbxBkyJtSbaIeK1eZGjDKN7dvUh4vkOvU9FMwYNv4GQQ==
@@ -4006,6 +4038,13 @@ apollo-client@^2.6.10:
     tslib "^1.10.0"
     zen-observable "^0.8.0"
 
+apollo-fetch@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/apollo-fetch/-/apollo-fetch-0.7.0.tgz#63c255a0ccb1b4c473524d8f9b536d72438bd3e7"
+  integrity sha512-0oHsDW3Zxx+Of1wuqcOXruNj4Kv55WN69tkIjwkCQDEIrgCpgA2scjChFsgflSVMy/1mkTKCY1Mc0TYJhNRzmw==
+  dependencies:
+    cross-fetch "^1.0.0"
+
 apollo-link-http-common@^0.2.16:
   version "0.2.16"
   resolved "https://registry.yarnpkg.com/apollo-link-http-common/-/apollo-link-http-common-0.2.16.tgz#756749dafc732792c8ca0923f9a40564b7c59ecc"
@@ -4951,7 +4990,7 @@ browserslist@^4.0.0, browserslist@^4.12.0, browserslist@^4.14.5, browserslist@^4
     escalade "^3.1.1"
     node-releases "^1.1.69"
 
-bs58@^4.0.0:
+bs58@^4.0.0, bs58@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/bs58/-/bs58-4.0.1.tgz#be161e76c354f6f788ae4071f63f34e8c4f0a42a"
   integrity sha1-vhYedsNU9veIrkBx9j806MTwpCo=
@@ -5969,6 +6008,14 @@ create-hmac@^1.1.0, create-hmac@^1.1.4, create-hmac@^1.1.7:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
+cross-fetch@^1.0.0:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-1.1.1.tgz#dede6865ae30f37eae62ac90ebb7bdac002b05a0"
+  integrity sha512-+VJE04+UfxxmBfcnmAu/lKor53RUCx/1ilOti4p+JgrnLQ4AZZIRoe2OEd76VaHyWQmQxqKnV+TaqjHC4r0HWw==
+  dependencies:
+    node-fetch "1.7.3"
+    whatwg-fetch "2.0.3"
+
 cross-fetch@^2.1.0, cross-fetch@^2.1.1:
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-2.2.3.tgz#e8a0b3c54598136e037f8650f8e823ccdfac198e"
@@ -6795,7 +6842,7 @@ dotenv-expand@5.1.0:
   resolved "https://registry.yarnpkg.com/dotenv-expand/-/dotenv-expand-5.1.0.tgz#3fbaf020bfd794884072ea26b1e9791d45a629f0"
   integrity sha512-YXQl1DSa4/PQyRfgrv6aoNjhasp/p4qs9FjJ4q4cQk+8m4r6k4ZSiEyytKG8f8W9gi8WsQtIObNmKd+tMzNTmA==
 
-dotenv@8.2.0:
+dotenv@8.2.0, dotenv@^8.2.0:
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-8.2.0.tgz#97e619259ada750eea3e4ea3e26bceea5424b16a"
   integrity sha512-8sJ78ElpbDJBHNeBzUbUVLsqKdccaa/BXF1uPTw3GrvQTBgrQrtObr2mUrE38vzYd8cEv+m/JBfDLioYcfXoaw==
@@ -8057,6 +8104,11 @@ extglob@^2.0.4:
     snapdragon "^0.8.1"
     to-regex "^3.0.1"
 
+extract-files@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/extract-files/-/extract-files-9.0.0.tgz#8a7744f2437f81f5ed3250ed9f1550de902fe54a"
+  integrity sha512-CvdFfHkC95B4bBBk36hcEmvdR2awOdhhVUYH6S/zrVj3477zven/fJMYg7121h4T1xHZC+tetUpubpAhxwI7hQ==
+
 extsprintf@1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.3.0.tgz#96918440e3041a7a414f8c52e3c574eb3c3e1e05"
@@ -8812,10 +8864,10 @@ good-listener@^1.2.2:
   dependencies:
     delegate "^3.1.2"
 
-google-protobuf@^3.13.0:
-  version "3.14.0"
-  resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.14.0.tgz#20373d22046e63831a5110e11a84f713cc43651e"
-  integrity sha512-bwa8dBuMpOxg7COyqkW6muQuvNnWgVN8TX/epDRGW5m0jcrmq2QJyCyiV8ZE2/6LaIIqJtiv9bYokFhfpy/o6w==
+google-protobuf@^3.14.0:
+  version "3.15.5"
+  resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.15.5.tgz#d011f334231e79b472e42d4e8ec7409cd402a747"
+  integrity sha512-6bLpAI4nMIQODlegR7OevgkCoyOj5frLVDArUpeuBWad7XWUNWMGP0v5lz1/aeUI6Yf3cG9XA6acZkPxom4SEw==
 
 got@9.6.0:
   version "9.6.0"
@@ -8859,6 +8911,15 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.4.tgz#2256bde14d3632958c465ebc96dc467ca07a29fb"
   integrity sha512-WjKPNJF79dtJAVniUlGGWHYGz2jWxT6VhN/4m1NdkbZ2nOsEF+cI1Edgql5zCRhs/VsQYRvrXctxktVXZUkixw==
 
+graphql-request@^3.4.0:
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/graphql-request/-/graphql-request-3.4.0.tgz#3a400cd5511eb3c064b1873afb059196bbea9c2b"
+  integrity sha512-acrTzidSlwAj8wBNO7Q/UQHS8T+z5qRGquCQRv9J1InwR01BBWV9ObnoE+JS5nCCEj8wSGS0yrDXVDoRiKZuOg==
+  dependencies:
+    cross-fetch "^3.0.6"
+    extract-files "^9.0.0"
+    form-data "^3.0.0"
+
 graphql-tag@^2.11.0:
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/graphql-tag/-/graphql-tag-2.11.0.tgz#1deb53a01c46a7eb401d6cb59dec86fa1cccbffd"
@@ -8868,6 +8929,11 @@ graphql@^15.4.0:
   version "15.4.0"
   resolved "https://registry.yarnpkg.com/graphql/-/graphql-15.4.0.tgz#e459dea1150da5a106486ba7276518b5295a4347"
   integrity sha512-EB3zgGchcabbsU9cFe1j+yxdzKQKAbGUWRb13DsrsMN1yyfmmIq+2+L5MqVWcDCE4V89R5AyUOi7sMOGxdsYtA==
+
+graphql@^15.5.0:
+  version "15.5.0"
+  resolved "https://registry.yarnpkg.com/graphql/-/graphql-15.5.0.tgz#39d19494dbe69d1ea719915b578bf920344a69d5"
+  integrity sha512-OmaM7y0kaK31NKG31q4YbD2beNYa6jBBKtMFT6gLYJljHLJr42IqJ8KX08u3Li/0ifzTU5HjmoOOrwa5BRLeDA==
 
 grid-index@^1.1.0:
   version "1.1.0"
@@ -12427,6 +12493,14 @@ node-emoji@^1.10.0:
   dependencies:
     lodash.toarray "^4.4.0"
 
+node-fetch@1.7.3, node-fetch@~1.7.1:
+  version "1.7.3"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-1.7.3.tgz#980f6f72d85211a5347c6b2bc18c5b84c3eb47ef"
+  integrity sha512-NhZ4CsKx7cYm2vSrBAr2PvFOe6sWDf0UYLRqA6svUYg7+/TSfVAu49jYC4BvQ4Sms9SZgdqGBgroqfDhJdTyKQ==
+  dependencies:
+    encoding "^0.1.11"
+    is-stream "^1.0.1"
+
 node-fetch@2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.1.2.tgz#ab884e8e7e57e38a944753cec706f788d1768bb5"
@@ -12436,14 +12510,6 @@ node-fetch@2.6.1, node-fetch@^2.6.0, node-fetch@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
   integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
-
-node-fetch@~1.7.1:
-  version "1.7.3"
-  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-1.7.3.tgz#980f6f72d85211a5347c6b2bc18c5b84c3eb47ef"
-  integrity sha512-NhZ4CsKx7cYm2vSrBAr2PvFOe6sWDf0UYLRqA6svUYg7+/TSfVAu49jYC4BvQ4Sms9SZgdqGBgroqfDhJdTyKQ==
-  dependencies:
-    encoding "^0.1.11"
-    is-stream "^1.0.1"
 
 node-forge@^0.10.0:
   version "0.10.0"
@@ -18998,6 +19064,11 @@ whatwg-encoding@^1.0.5:
   integrity sha512-b5lim54JOPN9HtzvK9HFXvBma/rnfFeqsic0hSpjtDbVxR3dJKLc+KB4V6GgiGOvl7CY/KNh8rxSo9DKQrnUEw==
   dependencies:
     iconv-lite "0.4.24"
+
+whatwg-fetch@2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/whatwg-fetch/-/whatwg-fetch-2.0.3.tgz#9c84ec2dcf68187ff00bc64e1274b442176e1c84"
+  integrity sha1-nITsLc9oGH/wC8ZOEnS0QhduHIQ=
 
 whatwg-fetch@2.0.4:
   version "2.0.4"

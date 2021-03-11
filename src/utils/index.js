@@ -5,4 +5,7 @@ export { default as scientificToDecimal } from './scientificToDecimal';
 export { default as getShortAddress } from './getShortAddress';
 export { default as random256Uint } from './random256Uint';
 export { default as itemIdGenerator } from './itemIdGenerator';
+export { default as getBytes32FromGeoDIDid } from './getBytes32FromGeoDIDid';
+export { default as getBytes32FromCid } from './getBytes32FromCid';
+export { default as stringToBytes } from './stringToBytes';
 export { default as iff } from './iff';

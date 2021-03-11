@@ -2,6 +2,8 @@ export const actions = {
   SET_SELECTED_GEODID: 'spatial-assets/SET_SELECTED_GEODID',
   SET_FILELIST: 'spatial-assets/SET_FILELIST',
   SET_SPATIAL_ASSET: 'spatial-assets/SET_SPATIAL_ASSET',
+
+  // unused for now
   LOAD_COGS: 'spatial-assets/LOAD_COGS',
   UNLOAD_COGS: 'spatial-assets/UNLOAD_COGS',
   COGS_LOADED: 'spatial-assets/COGS-LOADED',
@@ -40,6 +42,8 @@ export const setSpatialAsset = (spatialAsset, spatialAssetLoaded) => ({
     spatialAssetLoaded,
   },
 });
+
+// Unused for now
 
 export const loadCogs = (loadedCogs) => ({
   type: actions.LOAD_COGS,

@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
-import { withRouter, Link } from 'react-router-dom';
+import { withRouter, Link, useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
-import Drawer from '@material-ui/core/Drawer';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import List from '@material-ui/core/List';
+import {
+  Drawer,
+  CssBaseline,
+  List,
+  Typography,
+  Divider,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Snackbar,
+} from '@material-ui/core';
 import MaterialLink from '@material-ui/core/Link';
-import Typography from '@material-ui/core/Typography';
-import Divider from '@material-ui/core/Divider';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
 import InboxIcon from '@material-ui/icons/MoveToInbox';
 import MailIcon from '@material-ui/icons/Mail';
 import SearchBar from 'material-ui-search-bar';
@@ -20,6 +23,7 @@ import { defaultMenuData, loggedInMenuData } from 'core/services/menu';
 import Account from 'components/Account';
 import { useWallet } from 'core/hooks/web3';
 import FilterModal from 'components/FilterModal';
+import { snackbarError, closeSnackbar } from 'core/redux/modals/actions';
 
 const drawerWidth = 240;
 
@@ -96,11 +100,21 @@ function Copyright() {
 }
 
 function AppLayout(props) {
+  const history = useHistory();
   const classes = useStyles();
   const [searchValue, setSearchValue] = useState('');
   const { address, targetNetworkChainId, selectedChainId, targetNetwork } = useWallet();
+  const { children, openError, errorMsg, dispatchSnackbarError, dispatchCloseSnackbar } = props;
 
-  const { children } = props;
+  const handleSearchRequest = (value) => {
+    console.log(value);
+    const reg = /^did:geo:([1-9a-km-zA-HJ-NP-Z]{46})$/g;
+    if (value.match(reg)) {
+      history.push(`/browse/${value}`);
+    } else {
+      dispatchSnackbarError('Wrong GeoDID format. Please try did:geo:id');
+    }
+  };
 
   let menuData;
 
@@ -195,7 +209,7 @@ function AppLayout(props) {
             placeholder="Search GeoDID"
             value={searchValue}
             onChange={(newValue) => setSearchValue(newValue)}
-            onRequestSearch={() => console.log(searchValue)}
+            onRequestSearch={(newValue) => handleSearchRequest(newValue)}
           />
           <Copyright />
         </div>
@@ -207,6 +221,12 @@ function AppLayout(props) {
         {children}
         <div>{networkError}</div>
       </main>
+      <Snackbar open={openError} autoHideDuration={6000} onClose={dispatchCloseSnackbar}>
+        <Alert onClose={dispatchCloseSnackbar} severity="warning">
+          <AlertTitle>Warning</AlertTitle>
+          {errorMsg}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
@@ -215,6 +235,13 @@ const mapStateToProps = (state) => ({
   selectedAccount: state.login.selectedAccount,
   isLoggedIn: state.login.isLoggedIn,
   signingOut: state.login.signingOut,
+  openError: state.modals.openError,
+  errorMsg: state.modals.errorMsg,
 });
 
-export default withRouter(connect(mapStateToProps, null)(AppLayout));
+const mapDispatchToProps = (dispatch) => ({
+  dispatchCloseSnackbar: () => dispatch(closeSnackbar()),
+  dispatchSnackbarError: (errorMsg) => dispatch(snackbarError(errorMsg)),
+});
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(AppLayout));

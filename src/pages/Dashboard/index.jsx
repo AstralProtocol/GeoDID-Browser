@@ -148,11 +148,9 @@ const useStyles = makeStyles((theme) => ({
 const Dashboard = (props) => {
   const { geoDIDID, dispatchSetSelectedGeoDID } = props;
 
-  console.log(geoDIDID);
   const classes = useStyles();
   const parentRef = useRef(null);
   const [searchValue, setSearchValue] = useState('');
-  //  const [expanded, setExpanded] = useState([]);
   const [typeFilter, setTypeFilter] = useState(null);
   const [toggleTree, setToggleTree] = useState(true);
   const popupState = usePopupState({

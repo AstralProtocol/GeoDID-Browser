@@ -4,10 +4,11 @@ const LOCATION_CHANGE = '@@router/LOCATION_CHANGE';
 
 const initialState = {
   geoDIDID: null,
-
   fileList: [],
   spatialAsset: null,
   spatialAssetLoaded: false,
+
+  // unused for now
   loadedCogs: null,
   loadedTiffJson: [],
   selectedCog: null,

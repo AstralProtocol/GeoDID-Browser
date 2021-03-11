@@ -1,4 +1,4 @@
-import SpatialAssets from '@astraldao/astral-protocol-contracts/build/contracts/SpatialAssets.json';
+import SpatialAssets from '@astralprotocol/contracts/build/contracts/SpatialAssets.json';
 
 const contractList = [SpatialAssets];
 

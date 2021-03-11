@@ -1,6 +1,6 @@
 // Smart-Contracts
 import generateContractsInitialState from 'core/services/contracts';
-import SpatialAssets from '@astraldao/astral-protocol-contracts/build/contracts/SpatialAssets.json';
+import SpatialAssets from '@astralprotocol/contracts/build/contracts/SpatialAssets.json';
 import { actions } from './actions';
 
 // Contracts here

@@ -1,4 +1,4 @@
-import AstralClient from '@astraldao/astral-protocol-core';
+import AstralClient from '@astralprotocol/core';
 
 const loadGeoDid = async (id) => {
   const astral = new AstralClient();
