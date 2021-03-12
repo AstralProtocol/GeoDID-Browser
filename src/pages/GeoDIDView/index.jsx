@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { connect } from 'react-redux';
 import { ethers } from 'ethers';
+import { useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import {
   Card,
@@ -15,6 +16,8 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  ListItemSecondaryAction,
+  IconButton,
 } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -24,6 +27,7 @@ import Map from 'components/Map';
 import { useWallet } from 'core/hooks/web3';
 import { snackbarError } from 'core/redux/modals/actions';
 import { getBytes32FromGeoDIDid, getBytes32FromCid } from 'utils';
+import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
 
 const useStyles = makeStyles((theme) => ({
   formContainer: {
@@ -90,15 +94,36 @@ const useStyles = makeStyles((theme) => ({
       width: '0px',
     },
   },
+  relationships: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: theme.palette.background.paper,
+  },
 }));
 
 const GeoDIDView = (props) => {
+  const history = useHistory();
   const { tx, contracts, address } = useWallet();
   const {
     match: { params },
     dispatchSnackbarError,
+    dispatchSetSelectedGeoDID,
   } = props;
   const { geoDIDID } = params;
+  const [checked, setChecked] = React.useState([0]);
+
+  const handleToggle = (value) => () => {
+    const currentIndex = checked.indexOf(value);
+    const newChecked = [...checked];
+
+    if (currentIndex === -1) {
+      newChecked.push(value);
+    } else {
+      newChecked.splice(currentIndex, 1);
+    }
+
+    setChecked(newChecked);
+  };
 
   const classes = useStyles();
   const parentRef = useRef(null);
@@ -110,6 +135,14 @@ const GeoDIDView = (props) => {
   });
 
   const selectedGeoDID = dataSelected ? dataSelected.geoDID : null;
+
+  const childrenGeoDIDs = selectedGeoDID.edges
+    ? selectedGeoDID.edges.reduce((geoDIDIds, edge) => {
+        geoDIDIds.push(edge.childGeoDID.id);
+
+        return geoDIDIds;
+      }, [])
+    : [];
 
   const createGeoDID = async () => {
     const geoDID = 'did:geo:QmahqCsAUAw7zMv6P6Ae8PjCTck7taQA6FgGQLnWdKG7U8';
@@ -132,7 +165,7 @@ const GeoDIDView = (props) => {
   };
   const handleDeletion = () => {
     if (selectedGeoDID) {
-      const childrenGeoDIDs = selectedGeoDID.edges
+      const childrenGeoDIDsAsBytes = selectedGeoDID.edges
         ? selectedGeoDID.edges.reduce((bytes32Ids, edge) => {
             bytes32Ids.push(getBytes32FromGeoDIDid(edge.childGeoDID.id));
 
@@ -143,9 +176,11 @@ const GeoDIDView = (props) => {
       tx(
         contracts.SpatialAssets.deactivateSpatialAsset(
           getBytes32FromGeoDIDid(selectedGeoDID.id),
-          childrenGeoDIDs,
+          childrenGeoDIDsAsBytes,
         ),
       );
+      history.push('/dashboard');
+      dispatchSetSelectedGeoDID(null);
     } else {
       dispatchSnackbarError('No selected GeoDID');
     }
@@ -181,7 +216,7 @@ const GeoDIDView = (props) => {
               <Grid item xs={1}>
                 <Divider orientation="vertical" flexItem className={classes.divider} />
               </Grid>
-              <Grid item xs={9}>
+              <Grid item xs={5}>
                 <Typography variant="h5" component="h1" gutterBottom>
                   GeoDID Metadata
                 </Typography>
@@ -212,6 +247,49 @@ const GeoDIDView = (props) => {
                 <CardActions>
                   <Button size="small">Learn More</Button>
                 </CardActions>
+              </Grid>
+              <Grid item xs={4}>
+                <Typography variant="h5" component="h1" gutterBottom display="block">
+                  Relationships
+                </Typography>
+                <Typography variant="body1" component="div" gutterBottom display="block">
+                  Parent
+                </Typography>
+                <List className={classes.relationships}>
+                  <ListItem key={1} role={undefined} dense button>
+                    <ListItemText id={1} primary="Line item 1" />
+                    <ListItemSecondaryAction>
+                      <IconButton edge="end" aria-label="comments">
+                        <DeleteIcon />
+                      </IconButton>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                </List>
+                <Typography variant="body1" component="div" gutterBottom display="block">
+                  Children
+                </Typography>
+                <List className={classes.relationships}>
+                  {childrenGeoDIDs.map((geoDIDId) => {
+                    const labelId = `checkbox-list-label-${geoDIDId}`;
+
+                    return (
+                      <ListItem
+                        key={geoDIDId}
+                        role={undefined}
+                        dense
+                        button
+                        onClick={handleToggle(geoDIDId)}
+                      >
+                        <ListItemText id={labelId} primary={geoDIDId} />
+                        <ListItemSecondaryAction>
+                          <IconButton edge="end" aria-label="comments">
+                            <DeleteIcon />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    );
+                  })}
+                </List>
               </Grid>
             </Grid>
           </CardContent>
@@ -260,6 +338,7 @@ const GeoDIDView = (props) => {
 
 const mapDispatchToProps = (dispatch) => ({
   dispatchSnackbarError: (errorMsg) => dispatch(snackbarError(errorMsg)),
+  dispatchSetSelectedGeoDID: (geoDIDID) => dispatch(setSelectedGeoDID(geoDIDID)),
 });
 
 export default connect(null, mapDispatchToProps)(GeoDIDView);

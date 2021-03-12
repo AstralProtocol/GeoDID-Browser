@@ -12,7 +12,9 @@ import {
   ListItemIcon,
   ListItemText,
   Snackbar,
+  IconButton,
 } from '@material-ui/core';
+import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import MaterialLink from '@material-ui/core/Link';
 import InboxIcon from '@material-ui/icons/MoveToInbox';
 import MailIcon from '@material-ui/icons/Mail';
@@ -83,6 +85,15 @@ const useStyles = makeStyles((theme) => ({
   searchBar: {
     marginBottom: '20px',
     marginRight: '10px',
+  },
+  goback: {
+    position: 'fixed',
+    bottom: '10px',
+    right: '10px',
+  },
+  largeIcon: {
+    width: 120,
+    height: 120,
   },
 }));
 
@@ -220,6 +231,9 @@ function AppLayout(props) {
           */}
         {children}
         <div>{networkError}</div>
+        <IconButton className={classes.goback}>
+          <ArrowBackIcon />
+        </IconButton>
       </main>
       <Snackbar open={openError} autoHideDuration={6000} onClose={dispatchCloseSnackbar}>
         <Alert onClose={dispatchCloseSnackbar} severity="warning">

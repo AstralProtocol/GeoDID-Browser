@@ -30,8 +30,8 @@ import { TreeView } from '@material-ui/lab';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { Virtuoso } from 'react-virtuoso';
-import { useQuery } from '@apollo/react-hooks';
-import geoDIDsQuery from 'core/graphql/geoDIDsQuery';
+import { useQuery, useSubscription } from '@apollo/react-hooks';
+import geoDIDsSubscription from 'core/graphql/geoDIDsSubscription';
 import geoDIDQuery from 'core/graphql/geoDIDQuery';
 import { useWallet } from 'core/hooks/web3';
 import StyledTreeItem from 'components/StyledTreeItem';
@@ -172,7 +172,7 @@ const Dashboard = (props) => {
 
   const { address } = useWallet();
 
-  const { data, loading: loadingTree } = useQuery(geoDIDsQuery, {
+  const { data, loading: loadingTree } = useSubscription(geoDIDsSubscription, {
     variables: {
       where: {
         ...(address ? { owner: address.toLowerCase() } : {}),
@@ -183,7 +183,7 @@ const Dashboard = (props) => {
     },
   });
 
-  const { data: dataAll, loading: loadingAll } = useQuery(geoDIDsQuery, {
+  const { data: dataAll, loading: loadingAll } = useSubscription(geoDIDsSubscription, {
     variables: {
       where: {
         ...{ active: true },
