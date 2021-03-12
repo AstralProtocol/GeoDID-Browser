@@ -21,8 +21,6 @@ import { WalletContextProvider } from 'core/hooks/web3';
 import Router from './router';
 // Web3
 
-import './global.scss';
-
 const wsLink = new WebSocketLink({
   uri: process.env.REACT_APP_GRAPHQL_WS_ENDPOINT,
   options: {

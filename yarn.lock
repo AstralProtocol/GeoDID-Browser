@@ -121,10 +121,10 @@
     multihashing-async "^2.0.1"
     reflect-metadata "^0.1.13"
 
-"@astralprotocol/core@^1.0.38":
-  version "1.0.38"
-  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-1.0.38.tgz#81400cb797ae27c27f4608ffdd3c8eced101e710"
-  integrity sha512-F/R+wB6pTrWYEN/XzqLeKLFLdkn4ejWajJM34i1bJ0lGQfr0miLYj3PQsQBk9usWQPNrQIUaQr1VVWOgqke4pQ==
+"@astralprotocol/core@^1.0.40":
+  version "1.0.40"
+  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-1.0.40.tgz#a19875330ecb325de884b27c0a3738b5ad03d104"
+  integrity sha512-ba9sN+nEJ8vVseZqMnhPkMSk3NB2UC7AkZfuTO+uX1mj/boJgRsg4YDBVpbe+hNet88I/vkzbXOrT3ixQjbzRw==
   dependencies:
     "@textile/powergate-client" "^4.0.0"
     "@types/ora" "^3.2.0"
@@ -134,6 +134,7 @@
     async "^3.2.0"
     axios "^0.21.1"
     blob "^0.1.0"
+    chalk "^4.1.0"
     cids "^1.0.0"
     class-transformer "^0.3.1"
     cli-progress "^3.8.2"

@@ -6,9 +6,7 @@ import { notification } from 'antd';
 
 import Notify from 'bnc-notify';
 
-// this should probably just be renamed to "notifier"
-// it is basically just a wrapper around BlockNative's wonderful Notify.js
-// https://docs.blocknative.com/notify
+const NOTIFY_APY_KEY = process.env.REACT_APP_BNC_NOTIFY_API_KEY;
 
 export default function Transactor(provider, gasPrice, etherscan) {
   if (typeof provider !== 'undefined') {
@@ -18,10 +16,10 @@ export default function Transactor(provider, gasPrice, etherscan) {
       const network = await provider.getNetwork();
       console.log('network', network);
       const options = {
-        dappId: '0b58206a-f3c0-4701-a62f-73c7243e8c77', // GET YOUR OWN KEY AT https://account.blocknative.com
+        dappId: NOTIFY_APY_KEY, // GET YOUR OWN KEY AT https://account.blocknative.com
         system: 'ethereum',
         networkId: network.chainId,
-        // darkMode: Boolean, // (default: false)
+        darkMode: true, // (default: false)
         transactionHandler: (txInformation) => {
           console.log('HANDLE TX', txInformation);
         },

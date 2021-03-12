@@ -89,7 +89,13 @@ const useStyles = makeStyles((theme) => ({
   goback: {
     position: 'fixed',
     bottom: '10px',
-    right: '10px',
+    right: '30px',
+    backgroundColor: theme.palette.primary.grey,
+    color: theme.palette.primary.white,
+    '&:hover': {
+      backgroundColor: theme.palette.primary.main,
+      color: theme.palette.primary.grey,
+    },
   },
   largeIcon: {
     width: 120,
@@ -117,6 +123,7 @@ function AppLayout(props) {
   const { address, targetNetworkChainId, selectedChainId, targetNetwork } = useWallet();
   const { children, openError, errorMsg, dispatchSnackbarError, dispatchCloseSnackbar } = props;
 
+  console.log(history.location.pathname);
   const handleSearchRequest = (value) => {
     console.log(value);
     const reg = /^did:geo:([1-9a-km-zA-HJ-NP-Z]{46})$/g;
@@ -231,9 +238,11 @@ function AppLayout(props) {
           */}
         {children}
         <div>{networkError}</div>
-        <IconButton className={classes.goback}>
-          <ArrowBackIcon />
-        </IconButton>
+        {history.location.pathname !== '/Landing' && (
+          <IconButton className={classes.goback} onClick={() => history.goBack()}>
+            <ArrowBackIcon />
+          </IconButton>
+        )}
       </main>
       <Snackbar open={openError} autoHideDuration={6000} onClose={dispatchCloseSnackbar}>
         <Alert onClose={dispatchCloseSnackbar} severity="warning">

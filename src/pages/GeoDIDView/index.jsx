@@ -110,19 +110,10 @@ const GeoDIDView = (props) => {
     dispatchSetSelectedGeoDID,
   } = props;
   const { geoDIDID } = params;
-  const [checked, setChecked] = React.useState([0]);
 
-  const handleToggle = (value) => () => {
-    const currentIndex = checked.indexOf(value);
-    const newChecked = [...checked];
-
-    if (currentIndex === -1) {
-      newChecked.push(value);
-    } else {
-      newChecked.splice(currentIndex, 1);
-    }
-
-    setChecked(newChecked);
+  const handleToggle = (value) => {
+    dispatchSetSelectedGeoDID(value);
+    history.push(`/browse/${value}`);
   };
 
   const classes = useStyles();
@@ -280,7 +271,10 @@ const GeoDIDView = (props) => {
                         button
                         onClick={handleToggle(geoDIDId)}
                       >
-                        <ListItemText id={labelId} primary={geoDIDId} />
+                        <ListItemText
+                          id={labelId}
+                          primary={`${geoDIDId.substr(0, 15)}... ${geoDIDId.substr(-4)}`}
+                        />
                         <ListItemSecondaryAction>
                           <IconButton edge="end" aria-label="comments">
                             <DeleteIcon />

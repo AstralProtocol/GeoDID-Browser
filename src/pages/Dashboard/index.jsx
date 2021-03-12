@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
@@ -147,7 +147,7 @@ const useStyles = makeStyles((theme) => ({
 
 const Dashboard = (props) => {
   const { geoDIDID, dispatchSetSelectedGeoDID } = props;
-
+  const history = useHistory();
   const classes = useStyles();
   const parentRef = useRef(null);
   const [searchValue, setSearchValue] = useState('');
@@ -398,9 +398,14 @@ const Dashboard = (props) => {
               </Typography>
             </Grid>
             <Grid item xs={3}>
-              <Link to={`/browse/${geoDIDID}`}>
-                <ButtonBase className={classes.areaButton}>View GeoDID</ButtonBase>
-              </Link>
+              <ButtonBase
+                className={classes.areaButton}
+                onClick={() => history.push(`/browse/${geoDIDID}`)}
+              >
+                <Typography variant="body2" gutterBottom>
+                  View or Edit GeoDID
+                </Typography>{' '}
+              </ButtonBase>
             </Grid>
           </Grid>
         </CardContent>
