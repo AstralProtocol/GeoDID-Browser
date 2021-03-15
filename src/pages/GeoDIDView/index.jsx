@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { connect } from 'react-redux';
 import { ethers } from 'ethers';
 import { useHistory } from 'react-router-dom';
@@ -6,8 +6,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import {
   Card,
   CardContent,
-  CardActions,
-  Button,
   Divider,
   Grid,
   Typography,
@@ -18,16 +16,44 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   IconButton,
+  Backdrop,
+  Modal,
 } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
-import { useQuery } from '@apollo/react-hooks';
-import geoDIDQuery from 'core/graphql/geoDIDQuery';
+import { useSubscription } from '@apollo/react-hooks';
+import geoDIDSubscription from 'core/graphql/geoDIDSubscription';
 import Map from 'components/Map';
 import { useWallet } from 'core/hooks/web3';
 import { snackbarError } from 'core/redux/modals/actions';
 import { getBytes32FromGeoDIDid, getBytes32FromCid } from 'utils';
 import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
+import { useSpring, animated } from 'react-spring/web.cjs'; // web.cjs is required for IE 11 support
+import ChildrenGeoDIDsToAdd from 'components/ChildrenGeoDIDsToAdd';
+
+const Fade = React.forwardRef((props, ref) => {
+  const { in: open, children, onEnter, onExited, ...other } = props;
+  const style = useSpring({
+    from: { opacity: 0 },
+    to: { opacity: open ? 1 : 0 },
+    onStart: () => {
+      if (open && onEnter) {
+        onEnter();
+      }
+    },
+    onRest: () => {
+      if (!open && onExited) {
+        onExited();
+      }
+    },
+  });
+
+  return (
+    <animated.div ref={ref} style={style} {...other}>
+      {children}
+    </animated.div>
+  );
+});
 
 const useStyles = makeStyles((theme) => ({
   formContainer: {
@@ -72,6 +98,17 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: '20px',
     height: '100%',
   },
+  modal: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalPaper: {
+    backgroundColor: theme.palette.background.paper,
+    outline: 0, // Disable browser on-focus borders
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(2, 4, 3),
+  },
   paper: {
     padding: theme.spacing(2),
     textAlign: 'center',
@@ -110,16 +147,20 @@ const GeoDIDView = (props) => {
     dispatchSetSelectedGeoDID,
   } = props;
   const { geoDIDID } = params;
+  const [openModal, setOpenModal] = useState(false);
 
-  const handleToggle = (value) => {
-    dispatchSetSelectedGeoDID(value);
-    history.push(`/browse/${value}`);
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
   };
 
   const classes = useStyles();
   const parentRef = useRef(null);
   // const [geoDIDID, setSelectedGeoDIDId] = useState(null);
-  const { data: dataSelected, loading: loadingSelected } = useQuery(geoDIDQuery, {
+  const { data: dataSelected, loading: loadingSelected } = useSubscription(geoDIDSubscription, {
     variables: {
       geoDIDID,
     },
@@ -127,13 +168,14 @@ const GeoDIDView = (props) => {
 
   const selectedGeoDID = dataSelected ? dataSelected.geoDID : null;
 
-  const childrenGeoDIDs = selectedGeoDID.edges
-    ? selectedGeoDID.edges.reduce((geoDIDIds, edge) => {
-        geoDIDIds.push(edge.childGeoDID.id);
+  const childrenGeoDIDs =
+    selectedGeoDID && selectedGeoDID.edges
+      ? selectedGeoDID.edges.reduce((geoDIDIds, edge) => {
+          geoDIDIds.push(edge.childGeoDID.id);
 
-        return geoDIDIds;
-      }, [])
-    : [];
+          return geoDIDIds;
+        }, [])
+      : [];
 
   const createGeoDID = async () => {
     const geoDID = 'did:geo:QmahqCsAUAw7zMv6P6Ae8PjCTck7taQA6FgGQLnWdKG7U8';
@@ -154,6 +196,20 @@ const GeoDIDView = (props) => {
       console.log(err);
     }
   };
+
+  const handleGeoDIDSelection = (value) => {
+    dispatchSetSelectedGeoDID(value);
+    history.push(`/browse/${value}`);
+  };
+
+  const handleRemoveChild = (childToRemove) => {
+    tx(
+      contracts.SpatialAssets.removeChildrenGeoDIDs(getBytes32FromGeoDIDid(geoDIDID), [
+        getBytes32FromGeoDIDid(childToRemove),
+      ]),
+    );
+  };
+
   const handleDeletion = () => {
     if (selectedGeoDID) {
       const childrenGeoDIDsAsBytes = selectedGeoDID.edges
@@ -235,9 +291,6 @@ const GeoDIDView = (props) => {
                     </Typography>
                   </Grid>
                 </Grid>
-                <CardActions>
-                  <Button size="small">Learn More</Button>
-                </CardActions>
               </Grid>
               <Grid item xs={4}>
                 <Typography variant="h5" component="h1" gutterBottom display="block">
@@ -247,43 +300,72 @@ const GeoDIDView = (props) => {
                   Parent
                 </Typography>
                 <List className={classes.relationships}>
-                  <ListItem key={1} role={undefined} dense button>
-                    <ListItemText id={1} primary="Line item 1" />
-                    <ListItemSecondaryAction>
-                      <IconButton edge="end" aria-label="comments">
-                        <DeleteIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
+                  {selectedGeoDID.parent ? (
+                    <ListItem
+                      role={undefined}
+                      dense
+                      button
+                      onClick={() => handleGeoDIDSelection(selectedGeoDID.parent)}
+                    >
+                      <ListItemText
+                        primary={`${selectedGeoDID.parent.substr(
+                          0,
+                          15,
+                        )}... ${selectedGeoDID.parent.substr(-4)}`}
+                      />
+                      <ListItemSecondaryAction>
+                        <IconButton edge="end" aria-label="comments">
+                          <DeleteIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ) : (
+                    <ListItem role={undefined} dense>
+                      <ListItemText primary="GeoDID has no parent" />
+                    </ListItem>
+                  )}
                 </List>
-                <Typography variant="body1" component="div" gutterBottom display="block">
-                  Children
-                </Typography>
-                <List className={classes.relationships}>
-                  {childrenGeoDIDs.map((geoDIDId) => {
-                    const labelId = `checkbox-list-label-${geoDIDId}`;
-
-                    return (
-                      <ListItem
-                        key={geoDIDId}
-                        role={undefined}
-                        dense
-                        button
-                        onClick={handleToggle(geoDIDId)}
-                      >
-                        <ListItemText
-                          id={labelId}
-                          primary={`${geoDIDId.substr(0, 15)}... ${geoDIDId.substr(-4)}`}
-                        />
-                        <ListItemSecondaryAction>
-                          <IconButton edge="end" aria-label="comments">
-                            <DeleteIcon />
-                          </IconButton>
-                        </ListItemSecondaryAction>
-                      </ListItem>
-                    );
-                  })}
-                </List>
+                {selectedGeoDID.type === 'Collection' && (
+                  <>
+                    <Typography variant="body1" component="div" gutterBottom display="block">
+                      Children
+                    </Typography>
+                    <List className={classes.relationships}>
+                      {childrenGeoDIDs.length > 0 ? (
+                        childrenGeoDIDs.map((geoDIDId) => {
+                          const labelId = `checkbox-list-label-${geoDIDId}`;
+                          return (
+                            <ListItem
+                              key={geoDIDId}
+                              role={undefined}
+                              dense
+                              button
+                              onClick={() => handleGeoDIDSelection(geoDIDId)}
+                            >
+                              <ListItemText
+                                id={labelId}
+                                primary={`${geoDIDId.substr(0, 15)}... ${geoDIDId.substr(-4)}`}
+                              />
+                              <ListItemSecondaryAction>
+                                <IconButton
+                                  edge="end"
+                                  aria-label="delete"
+                                  onClick={() => handleRemoveChild(geoDIDId)}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </ListItemSecondaryAction>
+                            </ListItem>
+                          );
+                        })
+                      ) : (
+                        <ListItem role={undefined} dense button onClick={() => handleOpenModal()}>
+                          <ListItemText primary="GeoDID Collection has no children - Click to add" />
+                        </ListItem>
+                      )}
+                    </List>
+                  </>
+                )}
               </Grid>
             </Grid>
           </CardContent>
@@ -305,28 +387,47 @@ const GeoDIDView = (props) => {
   }
 
   return (
-    <Grid
-      container
-      spacing={2}
-      direction="row"
-      justify="center"
-      alignItems="stretch"
-      className={classes.root}
-    >
-      <Grid container spacing={0} className={classes.container}>
-        <Grid item xs={12}>
-          <Card
-            classes={{ root: classes.map }}
-            variant="outlined"
-            style={{ height: '48vh' }}
-            ref={parentRef}
-          >
-            <Map parentRef={parentRef} />
-          </Card>
+    <>
+      <Grid
+        container
+        spacing={2}
+        direction="row"
+        justify="center"
+        alignItems="stretch"
+        className={classes.root}
+      >
+        <Grid container spacing={0} className={classes.container}>
+          <Grid item xs={12}>
+            <Card
+              classes={{ root: classes.map }}
+              variant="outlined"
+              style={{ height: '48vh' }}
+              ref={parentRef}
+            >
+              <Map parentRef={parentRef} />
+            </Card>
+          </Grid>
+          {geoDIDMetadata}
         </Grid>
-        {geoDIDMetadata}
       </Grid>
-    </Grid>
+      <Modal
+        aria-labelledby="spring-modal-title"
+        aria-describedby="spring-modal-description"
+        className={classes.modal}
+        open={openModal}
+        onClose={handleCloseModal}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+        }}
+        disableAutoFocus
+      >
+        <Fade in={openModal} className={classes.modalPaper}>
+          <ChildrenGeoDIDsToAdd />
+        </Fade>
+      </Modal>
+    </>
   );
 };
 

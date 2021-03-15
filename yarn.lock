@@ -121,10 +121,10 @@
     multihashing-async "^2.0.1"
     reflect-metadata "^0.1.13"
 
-"@astralprotocol/core@^1.0.40":
-  version "1.0.40"
-  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-1.0.40.tgz#a19875330ecb325de884b27c0a3738b5ad03d104"
-  integrity sha512-ba9sN+nEJ8vVseZqMnhPkMSk3NB2UC7AkZfuTO+uX1mj/boJgRsg4YDBVpbe+hNet88I/vkzbXOrT3ixQjbzRw==
+"@astralprotocol/core@^1.0.46":
+  version "1.0.47"
+  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-1.0.47.tgz#3a88a52f74db50fcb3f4fcf9facf696a827a8bc2"
+  integrity sha512-wfzsoYvVkhm4YA55wNU9MIfqHdOuFQ4TIdQWLUfv0+RbcwawhEso719rzs5zq5lWxepLa7Y/Q4jeN/G3dzp/8w==
   dependencies:
     "@textile/powergate-client" "^4.0.0"
     "@types/ora" "^3.2.0"
@@ -4859,11 +4859,6 @@ boolbase@^1.0.0, boolbase@~1.0.0:
   resolved "https://registry.yarnpkg.com/boolbase/-/boolbase-1.0.0.tgz#68dff5fbe60c51eb37725ea9e3ed310dcc1e776e"
   integrity sha1-aN/1++YMUes3cl6p4+0xDcwed24=
 
-bootstrap-css-only@^4.4.1:
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/bootstrap-css-only/-/bootstrap-css-only-4.4.1.tgz#08012477b1baab52fa1ca304eaba2e40f6ef0d2e"
-  integrity sha512-iBgNli7RnedBFwn6sMTQoAZ8WgIwmX4kF1rckfj+pgro5q/Q0DbLtcpfH60XoFnCXzbEJU/khC/B2EQap89mCg==
-
 borc@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/borc/-/borc-2.1.2.tgz#6ce75e7da5ce711b963755117dd1b187f6f8cf19"
@@ -5621,7 +5616,7 @@ clone@^2.0.0, clone@^2.1.1:
   resolved "https://registry.yarnpkg.com/clone/-/clone-2.1.2.tgz#1b7f4b9f591f1e8f83670401600345a02887435f"
   integrity sha1-G39Ln1kfHo+DZwQBYANFoCiHQ18=
 
-clsx@^1.0.4:
+clsx@^1.0.4, clsx@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/clsx/-/clsx-1.1.1.tgz#98b3134f9abbdf23b2663491ace13c5c03a73188"
   integrity sha512-6/bPho624p3S2pMyvP5kKBPXnI3ufHLObBFCfgx+LkeR5lg2XYy2hqZqUf45ypD8COn2bhgGJSUE+l5dhNBieA==
@@ -15327,6 +15322,14 @@ react-shallow-renderer@^16.13.1:
   dependencies:
     object-assign "^4.1.1"
     react-is "^16.12.0 || ^17.0.0"
+
+react-spring@^8.0.27:
+  version "8.0.27"
+  resolved "https://registry.yarnpkg.com/react-spring/-/react-spring-8.0.27.tgz#97d4dee677f41e0b2adcb696f3839680a3aa356a"
+  integrity sha512-nDpWBe3ZVezukNRandTeLSPcwwTMjNVu1IDq9qA/AMiUqHuRN4BeSWvKr3eIxxg1vtiYiOLy4FqdfCP5IoP77g==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    prop-types "^15.5.8"
 
 react-syntax-highlighter@^12.2.1:
   version "12.2.1"

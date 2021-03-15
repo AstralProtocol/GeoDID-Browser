@@ -268,7 +268,7 @@ const Dashboard = (props) => {
 
   let listArea;
 
-  const selectedSequence = geoDIDID ? [geoDIDID] : [];
+  const selectedSequence = [];
 
   const findSequence = (nodes, current) => {
     const found = nodes.find((node) => node.id === current.parent);
@@ -283,9 +283,9 @@ const Dashboard = (props) => {
 
   if (allGeoDIDs.length > 0 && geoDIDID && selectedGeoDID) {
     findSequence(allGeoDIDs, selectedGeoDID);
+    selectedSequence.reverse();
+    selectedSequence.push(geoDIDID);
   }
-
-  selectedSequence.reverse();
 
   const Components = useMemo(() => {
     const components = {
@@ -404,7 +404,7 @@ const Dashboard = (props) => {
               >
                 <Typography variant="body2" gutterBottom>
                   View or Edit GeoDID
-                </Typography>{' '}
+                </Typography>
               </ButtonBase>
             </Grid>
           </Grid>
@@ -416,7 +416,7 @@ const Dashboard = (props) => {
       <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '48vh' }}>
         <CardContent style={{ display: 'grid', height: '100%' }}>
           <div className={classes.metadataMessage}>
-            <CircularProgress />;
+            <CircularProgress />
           </div>
         </CardContent>
       </Card>

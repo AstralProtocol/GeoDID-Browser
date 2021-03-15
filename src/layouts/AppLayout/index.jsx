@@ -123,7 +123,6 @@ function AppLayout(props) {
   const { address, targetNetworkChainId, selectedChainId, targetNetwork } = useWallet();
   const { children, openError, errorMsg, dispatchSnackbarError, dispatchCloseSnackbar } = props;
 
-  console.log(history.location.pathname);
   const handleSearchRequest = (value) => {
     console.log(value);
     const reg = /^did:geo:([1-9a-km-zA-HJ-NP-Z]{46})$/g;
