@@ -4,12 +4,20 @@ const initialState = {
   openFilter: false,
   errorMsg: '',
   openError: false,
+  addChildrenModal: false,
 };
 
 export default function modalsReducer(state = initialState, action) {
   let reduced;
   switch (action.type) {
     case actions.OPEN_FILTER:
+      reduced = {
+        ...state,
+        ...action.payload,
+      };
+      break;
+
+    case actions.OPEN_ADD_CHILDREN_MODAL:
       reduced = {
         ...state,
         ...action.payload,

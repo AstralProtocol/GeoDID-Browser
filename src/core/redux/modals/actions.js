@@ -3,6 +3,7 @@ export const actions = {
   CLOSE_FILTER: 'modals/close-filter',
   ERROR: 'snackbar/ERROR',
   CLOSE_ERROR: 'snackbar/CLOSE_ERROR',
+  OPEN_ADD_CHILDREN_MODAL: 'modals/OPEN_ADD_CHILDREN:MODAL',
 };
 
 export const openFilter = () => ({
@@ -32,5 +33,12 @@ export const closeSnackbar = () => ({
   payload: {
     errorMsg: '',
     openError: false,
+  },
+});
+
+export const toggleAddGeoDIDAsChildrenModal = (open) => ({
+  type: actions.OPEN_ADD_CHILDREN_MODAL,
+  payload: {
+    addChildrenModal: open,
   },
 });
