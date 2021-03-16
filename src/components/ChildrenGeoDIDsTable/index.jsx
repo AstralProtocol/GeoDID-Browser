@@ -2,6 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 import { connect } from 'react-redux';
 import { lighten, makeStyles } from '@material-ui/core/styles';
+import { useHistory } from 'react-router-dom';
 import {
   CircularProgress,
   Table,
@@ -18,11 +19,14 @@ import {
   Checkbox,
   IconButton,
   Tooltip,
+  Button,
 } from '@material-ui/core';
 import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
-import { getBytes32FromGeoDIDid } from 'utils';
+import { getBytes32FromGeoDIDid, getShortGeoDID, getShortAddress } from 'utils';
 import { useWallet } from 'core/hooks/web3';
 import { toggleAddGeoDIDAsChildrenModal } from 'core/redux/modals/actions';
+import { useSnackbar } from 'notistack';
+import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -132,7 +136,9 @@ const EnhancedTableToolbar = (props) => {
     type,
     isModal,
     dispatchToggleAddGeoDIDAsChildrenModal,
+    setSelected,
   } = props;
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleAddSelectedGeoDIDsAsChildren = () => {
     const childrenGeoDIDsAsBytes = selected
@@ -148,7 +154,9 @@ const EnhancedTableToolbar = (props) => {
         getBytes32FromGeoDIDid(geoDIDID),
         childrenGeoDIDsAsBytes,
       ),
+      enqueueSnackbar,
     );
+    setSelected([]);
     if (isModal) {
       dispatchToggleAddGeoDIDAsChildrenModal(false);
     }
@@ -168,7 +176,10 @@ const EnhancedTableToolbar = (props) => {
         getBytes32FromGeoDIDid(geoDIDID),
         childrenGeoDIDsAsBytes,
       ),
+      enqueueSnackbar,
     );
+
+    setSelected([]);
   };
 
   let toolbarContent;
@@ -208,7 +219,7 @@ const EnhancedTableToolbar = (props) => {
   } else if (type === 'Remove' && numSelected === 0) {
     toolbarContent = (
       <Typography className={classes.title} variant="h6" id="tableTitle" component="div">
-        Select GeoDIDs to remove as Children
+        Select GeoDIDs to make alterations
       </Typography>
     );
   } else if (type === 'Add' && numSelected === 0) {
@@ -260,12 +271,14 @@ function ChildrenGeoDIDsTable(props) {
   const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const history = useHistory();
 
   const {
     geoDIDID,
     type,
     isModal,
     dispatchToggleAddGeoDIDAsChildrenModal,
+    dispatchSetSelectedGeoDID,
     allAvailableChildren,
     loading,
     maxNumberOfRows,
@@ -286,12 +299,12 @@ function ChildrenGeoDIDsTable(props) {
     setSelected([]);
   };
 
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
+  const handleClick = (event, id) => {
+    const selectedIndex = selected.indexOf(id);
     let newSelected = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
+      newSelected = newSelected.concat(selected, id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -315,10 +328,72 @@ function ChildrenGeoDIDsTable(props) {
     setPage(0);
   };
 
-  const isSelected = (name) => selected.indexOf(name) !== -1;
+  const isSelected = (id) => selected.indexOf(id) !== -1;
+
+  const handleGeoDIDSelection = (value) => {
+    dispatchSetSelectedGeoDID(value);
+    history.push(`/browse/${value}`);
+  };
 
   const emptyRows =
     rowsPerPage - Math.min(rowsPerPage, allAvailableChildren.length - page * rowsPerPage);
+
+  let tableBody;
+
+  if (allAvailableChildren.length > 0 && !loading) {
+    tableBody = (
+      <TableBody>
+        {stableSort(allAvailableChildren, getComparator(order, orderBy))
+          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+          .map((row) => {
+            const isItemSelected = isSelected(row.id);
+            const labelId = `enhanced-table-checkbox-${row.id}`;
+            return (
+              <TableRow
+                hover
+                role="checkbox"
+                aria-checked={isItemSelected}
+                tabIndex={-1}
+                key={row.id}
+                selected={isItemSelected}
+              >
+                <TableCell padding="checkbox" onClick={(event) => handleClick(event, row.id)}>
+                  <Checkbox checked={isItemSelected} inputProps={{ 'aria-labelledby': labelId }} />
+                </TableCell>
+                <TableCell component="th" id={labelId} scope="row" padding="none">
+                  <Button onClick={() => !isModal && handleGeoDIDSelection(row.id)}>
+                    {getShortGeoDID(row.id)}
+                  </Button>
+                </TableCell>
+                <TableCell align="left">{row.type}</TableCell>
+                <TableCell align="left">{getShortAddress(row.cid)}</TableCell>
+              </TableRow>
+            );
+          })}
+        <TableRow key="empty-1" style={{ height: 33 * emptyRows }}>
+          <TableCell colSpan={6} />
+        </TableRow>
+      </TableBody>
+    );
+  } else if (emptyRows > 0 && !loading) {
+    tableBody = (
+      <TableBody>
+        <TableRow key="empty-2" style={{ height: 33 * emptyRows }}>
+          <TableCell colSpan={6} />
+        </TableRow>
+      </TableBody>
+    );
+  } else if (loading) {
+    tableBody = (
+      <TableBody>
+        <TableRow key="loading" style={{ height: 33 * rowsPerPage }}>
+          <TableCell colSpan={6} style={{ alignItems: 'center', textAlign: 'center' }}>
+            <CircularProgress />
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    );
+  }
 
   return (
     <div className={classes.root}>
@@ -330,6 +405,7 @@ function ChildrenGeoDIDsTable(props) {
           type={type}
           isModal={isModal}
           dispatchToggleAddGeoDIDAsChildrenModal={dispatchToggleAddGeoDIDAsChildrenModal}
+          setSelected={setSelected}
         />
         <TableContainer>
           <Table
@@ -347,51 +423,7 @@ function ChildrenGeoDIDsTable(props) {
               onRequestSort={handleRequestSort}
               rowCount={allAvailableChildren.length}
             />
-            <TableBody>
-              {allAvailableChildren.length > 0 && !loading ? (
-                stableSort(allAvailableChildren, getComparator(order, orderBy))
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row) => {
-                    const isItemSelected = isSelected(row.id);
-                    const labelId = `enhanced-table-checkbox-${row.id}`;
-
-                    return (
-                      <TableRow
-                        hover
-                        onClick={(event) => handleClick(event, row.id)}
-                        role="checkbox"
-                        aria-checked={isItemSelected}
-                        tabIndex={-1}
-                        key={row.id}
-                        selected={isItemSelected}
-                      >
-                        <TableCell padding="checkbox">
-                          <Checkbox
-                            checked={isItemSelected}
-                            inputProps={{ 'aria-labelledby': labelId }}
-                          />
-                        </TableCell>
-                        <TableCell component="th" id={labelId} scope="row" padding="none">
-                          {row.id}
-                        </TableCell>
-                        <TableCell align="right">{row.type}</TableCell>
-                        <TableCell align="right">{row.cid}</TableCell>
-                      </TableRow>
-                    );
-                  })
-              ) : (
-                <TableRow style={{ height: 33 * rowsPerPage }}>
-                  <TableCell colSpan={6} style={{ alignItems: 'center', textAlign: 'center' }}>
-                    <CircularProgress />
-                  </TableCell>
-                </TableRow>
-              )}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 33 * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
-            </TableBody>
+            {tableBody}
           </Table>
         </TableContainer>
         <TablePagination
@@ -414,6 +446,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   dispatchToggleAddGeoDIDAsChildrenModal: (open) => dispatch(toggleAddGeoDIDAsChildrenModal(open)),
+  dispatchSetSelectedGeoDID: (geoDIDID) => dispatch(setSelectedGeoDID(geoDIDID)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ChildrenGeoDIDsTable);

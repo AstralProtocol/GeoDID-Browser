@@ -27,10 +27,11 @@ import geoDIDsSubscription from 'core/graphql/geoDIDsSubscription';
 import Map from 'components/Map';
 import { useWallet } from 'core/hooks/web3';
 import { snackbarError, toggleAddGeoDIDAsChildrenModal } from 'core/redux/modals/actions';
-import { getBytes32FromGeoDIDid, getBytes32FromCid, getShortGeoDID, getShortAddress } from 'utils';
+import { getBytes32FromGeoDIDid, getBytes32FromCid } from 'utils';
 import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
 import { useSpring, animated } from 'react-spring/web.cjs'; // web.cjs is required for IE 11 support
 import ChildrenGeoDIDsTable from 'components/ChildrenGeoDIDsTable';
+import { useSnackbar } from 'notistack';
 
 const Fade = React.forwardRef((props, ref) => {
   const { in: open, children, onEnter, onExited, ...other } = props;
@@ -124,6 +125,10 @@ const useStyles = makeStyles((theme) => ({
   metadataLoading: {
     textAlign: 'center',
   },
+  metadataList: {
+    width: '100%',
+    backgroundColor: theme.palette.background.paper,
+  },
   scrollbar: {
     msOverflowStyle: 'none',
     scrollbarWidth: 'none',
@@ -131,11 +136,6 @@ const useStyles = makeStyles((theme) => ({
     '&::-webkit-scrollbar': {
       width: '0px',
     },
-  },
-  relationships: {
-    width: '100%',
-    maxWidth: 360,
-    backgroundColor: theme.palette.background.paper,
   },
 }));
 
@@ -150,6 +150,7 @@ const GeoDIDView = (props) => {
     addChildrenModal,
   } = props;
   const { geoDIDID } = params;
+  const { enqueueSnackbar } = useSnackbar();
 
   const classes = useStyles();
   const parentRef = useRef(null);
@@ -170,18 +171,23 @@ const GeoDIDView = (props) => {
     },
   });
 
-  const allAvailableChildrenToAdd = dataChildren
-    ? dataChildren.geoDIDs.reduce((geoDIDIds, geoDID) => {
-        if (geoDID.parent === null) {
-          geoDIDIds.push(geoDID);
-        }
-        return geoDIDIds;
-      }, [])
-    : [];
+  const allAvailableChildrenToAdd =
+    dataChildren && selectedGeoDID
+      ? dataChildren.geoDIDs.reduce((geoDIDIds, geoDID) => {
+          if (
+            geoDID.id !== geoDIDID &&
+            geoDID.id !== selectedGeoDID.parent &&
+            (!geoDID.parent || geoDID.parent.length === 0)
+          ) {
+            geoDIDIds.push(geoDID);
+          }
+          return geoDIDIds;
+        }, [])
+      : [];
 
   const allAvailableChildrenToRemove = dataChildren
     ? dataChildren.geoDIDs.reduce((geoDIDIds, geoDID) => {
-        if (geoDID.parent === geoDIDID) {
+        if (geoDID.id !== geoDIDID && geoDID.parent === geoDIDID) {
           geoDIDIds.push(geoDID);
         }
         return geoDIDIds;
@@ -200,32 +206,15 @@ const GeoDIDView = (props) => {
           [],
           getBytes32FromCid(cid),
           ethers.utils.formatBytes32String('FILECOIN'),
-          0,
+          1,
         ),
+        enqueueSnackbar,
       );
     } catch (err) {
       console.log(err);
     }
   };
 
-  const handleGeoDIDSelection = (value) => {
-    dispatchSetSelectedGeoDID(value);
-    history.push(`/browse/${value}`);
-  };
-  /*
-  const handleRemoveChild = (childToRemove) => {
-    tx(
-      contracts.SpatialAssets.removeChildrenGeoDIDs(getBytes32FromGeoDIDid(geoDIDID), [
-        getBytes32FromGeoDIDid(childToRemove),
-      ]),
-    );
-  };
-
-
-  const handleRemoveAllChildren = () => {
-    console.log(1);
-  };
-*/
   const handleDeletion = () => {
     if (selectedGeoDID) {
       const childrenGeoDIDsAsBytes = selectedGeoDID.edges
@@ -241,12 +230,18 @@ const GeoDIDView = (props) => {
           getBytes32FromGeoDIDid(selectedGeoDID.id),
           childrenGeoDIDsAsBytes,
         ),
+        enqueueSnackbar,
       );
       history.push('/dashboard');
       dispatchSetSelectedGeoDID(null);
     } else {
       dispatchSnackbarError('No selected GeoDID');
     }
+  };
+
+  const handleGeoDIDSelection = (value) => {
+    dispatchSetSelectedGeoDID(value);
+    history.push(`/browse/${value}`);
   };
 
   let geoDIDMetadata;
@@ -280,79 +275,65 @@ const GeoDIDView = (props) => {
                 <Typography variant="h5" component="h1" gutterBottom>
                   GeoDID Metadata
                 </Typography>
-                <List className={classes.relationships}>
+                <List className={classes.metadataList}>
                   <ListItem key="geoDIDid" role={undefined} dense>
-                    <ListItemText id="geoDIDid" primary="GeoDID" />
-                    <ListItemSecondaryAction>
-                      <Tooltip title={selectedGeoDID.id}>
-                        <Typography variant="subtitle1" gutterBottom>
-                          {getShortGeoDID(selectedGeoDID.id)}
-                        </Typography>
-                      </Tooltip>
-                    </ListItemSecondaryAction>
+                    <ListItemText id="geoDIDid" primary="GeoDID" secondary={selectedGeoDID.id} />
                   </ListItem>
                   <ListItem key="cid" role={undefined} dense>
-                    <ListItemText id="cid" primary="ContentID" />
-                    <ListItemSecondaryAction>
-                      <Tooltip title={selectedGeoDID.cid}>
-                        <Typography variant="subtitle1" gutterBottom>
-                          {getShortAddress(selectedGeoDID.cid)}
-                        </Typography>
-                      </Tooltip>
-                    </ListItemSecondaryAction>
+                    <ListItemText id="cid" primary="ContentID" secondary={selectedGeoDID.cid} />
                   </ListItem>
                   <ListItem key="type" role={undefined} dense>
-                    <ListItemText id="type" primary="Type" />
-                    <ListItemSecondaryAction>
-                      <Typography variant="subtitle1" gutterBottom>
-                        {selectedGeoDID.type}
-                      </Typography>
-                    </ListItemSecondaryAction>
+                    <ListItemText id="type" primary="Type" secondary={selectedGeoDID.type} />
                   </ListItem>
-                  {selectedGeoDID.parent ? (
+                  {selectedGeoDID.parent && selectedGeoDID.parent.length > 0 ? (
                     <ListItem
+                      key="parent"
                       role={undefined}
                       dense
-                      button
                       onClick={() => handleGeoDIDSelection(selectedGeoDID.parent)}
+                      button
                     >
-                      <ListItemText primary={getShortGeoDID(selectedGeoDID.parent)} />
+                      <ListItemText id="type" primary="Parent" secondary={selectedGeoDID.parent} />
                       <ListItemSecondaryAction>
-                        <IconButton edge="end" aria-label="comments">
-                          <DeleteIcon />
-                        </IconButton>
+                        <Tooltip title="Remove parent" aria-label="add">
+                          <IconButton edge="end" aria-label="comments">
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
                       </ListItemSecondaryAction>
                     </ListItem>
                   ) : (
-                    <ListItem role={undefined} dense>
-                      <ListItemText primary="GeoDID has no parent" />
+                    <ListItem key="parent" role={undefined} dense onClick={() => null} button>
+                      <ListItemText
+                        id="type"
+                        primary="Parent"
+                        secondary="No Parent - click to add one"
+                      />
                     </ListItem>
                   )}
                 </List>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="h5" component="h1" gutterBottom display="block">
-                  Children Relationships
-                </Typography>
                 {selectedGeoDID.type === 'Collection' && (
                   <>
+                    <Typography variant="h5" component="h1" gutterBottom display="block">
+                      Children Relationships
+                    </Typography>
                     <ChildrenGeoDIDsTable
                       type="Remove"
                       allAvailableChildren={allAvailableChildrenToRemove}
                       loading={loadingChildren}
                       maxNumberOfRows={3}
                     />
-
-                    <List className={classes.relationships}>
-                      <ListItem
-                        role={undefined}
-                        dense
-                        button
-                        onClick={() => dispatchToggleAddGeoDIDAsChildrenModal(true)}
-                      >
-                        <ListItemText primary="GeoDID Collection has no children - Click to add" />
-                      </ListItem>
-                    </List>
+                    <Typography
+                      variant="body2"
+                      component="button"
+                      gutterBottom
+                      display="block"
+                      onClick={() => dispatchToggleAddGeoDIDAsChildrenModal(true)}
+                    >
+                      Click to add more
+                    </Typography>
                   </>
                 )}
               </Grid>
@@ -372,7 +353,13 @@ const GeoDIDView = (props) => {
       </Grid>
     );
   } else {
-    geoDIDMetadata = '';
+    geoDIDMetadata = (
+      <Grid item xs={12}>
+        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '48vh' }}>
+          <CardContent style={{ height: '100%', alignItems: 'center', textAlign: 'center' }} />
+        </Card>
+      </Grid>
+    );
   }
 
   return (

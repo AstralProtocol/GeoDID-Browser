@@ -2,7 +2,6 @@
 
 import { hexlify } from '@ethersproject/bytes';
 import { parseUnits } from '@ethersproject/units';
-import { notification } from 'antd';
 
 import Notify from 'bnc-notify';
 
@@ -11,7 +10,7 @@ const NOTIFY_APY_KEY = process.env.REACT_APP_BNC_NOTIFY_API_KEY;
 export default function Transactor(provider, gasPrice, etherscan) {
   if (typeof provider !== 'undefined') {
     // eslint-disable-next-line consistent-return
-    return async (tx) => {
+    return async (tx, enqueueSnackbar) => {
       const signer = provider.getSigner();
       const network = await provider.getNetwork();
       console.log('network', network);
@@ -61,10 +60,8 @@ export default function Transactor(provider, gasPrice, etherscan) {
             onclick: () => window.open((etherscan || etherscanTxUrl) + transaction.hash),
           }));
         } else {
-          notification.info({
-            message: 'Local Transaction Sent',
-            description: result.hash,
-            placement: 'bottomRight',
+          enqueueSnackbar(`Local transaction sent: ${result.hash}`, {
+            variant: 'info',
           });
         }
 
@@ -72,9 +69,9 @@ export default function Transactor(provider, gasPrice, etherscan) {
       } catch (e) {
         console.log(e);
         console.log('Transaction Error:', e.message);
-        notification.error({
-          message: 'Transaction Error',
-          description: e.message,
+
+        enqueueSnackbar(`Transaction Error`, {
+          variant: 'warning',
         });
       }
     };

@@ -1,5 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-import React, { useContext, useState, useCallback, useMemo } from 'react';
+import React, { useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers';
 import Web3Modal from 'web3modal';
 import WalletConnectProvider from '@walletconnect/web3-provider';
@@ -50,6 +50,7 @@ const { blockExplorer } = targetNetwork;
 */
 const web3Modal = new Web3Modal({
   // network: "mainnet", // optional
+  cacheProvider: true, // optional
   providerOptions: {
     walletconnect: {
       package: WalletConnectProvider, // required
@@ -65,6 +66,7 @@ const logoutOfWeb3Modal = async () => {
   setTimeout(() => {
     window.location.reload();
   }, 1);
+  history.push('/Landing');
 };
 
 /* eslint-disable no-unused-expressions */
@@ -144,8 +146,13 @@ export function WalletContextProvider({ children }) {
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
     setInjectedProvider(new Web3Provider(provider));
-    history.push('/dashboard');
   }, [setInjectedProvider]);
+
+  useEffect(() => {
+    if (web3Modal.cachedProvider) {
+      loadWeb3Modal();
+    }
+  }, [loadWeb3Modal]);
 
   const wallet = useMemo(
     () => ({
