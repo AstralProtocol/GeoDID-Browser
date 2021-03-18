@@ -31,7 +31,7 @@
     "@ant-design/icons": "^4.4.0",
     "@apollo/react-hooks": "^4.0.0",
     "@astraldao/stac-validator-js": "^0.0.30",
-    "@astralprotocol/contracts": "^1.0.8",
+    "@astralprotocol/contracts": "^1.0.9",
     "@astralprotocol/core": "^1.0.47",
     "@ethersproject/address": "^5.0.9",
     "@ethersproject/bytes": "^5.0.9",

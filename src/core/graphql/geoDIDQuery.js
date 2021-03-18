@@ -35,6 +35,9 @@ export default gql`
       }
       active
       type
+      errors
+      bytes32hash
+      bytes32hashWithQM
     }
   }
 `;

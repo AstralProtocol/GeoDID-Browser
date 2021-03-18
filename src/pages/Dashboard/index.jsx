@@ -9,7 +9,6 @@ import {
   CardContent,
   CardHeader,
   Button,
-  ButtonBase,
   Grid,
   Typography,
   CircularProgress,
@@ -25,6 +24,7 @@ import {
   RadioGroup,
   Switch,
 } from '@material-ui/core';
+import AstralButton from 'components/AstralButton';
 import { usePopupState, bindTrigger, bindPopover } from 'material-ui-popup-state/hooks';
 import { TreeView } from '@material-ui/lab';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
@@ -98,18 +98,9 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: '20px',
   },
   areaButton: {
-    width: '100%',
-    height: '100%',
-    background: 'transparent',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    borderColor: 'transparent',
-    color: theme.palette.primary.grey,
-    '&:hover': {
-      background: 'linear-gradient(45deg, #8FB8ED 30%, #62BFED 90%)',
-      color: '#fff',
-    },
   },
   metadataMessage: {
     margin: 'auto',
@@ -177,7 +168,6 @@ const Dashboard = (props) => {
       where: {
         ...(address ? { owner: address.toLowerCase() } : {}),
         ...{ active: true },
-        ...{ type: 'Collection' },
         ...{ isRoot: true },
       },
     },
@@ -397,15 +387,12 @@ const Dashboard = (props) => {
                 {selectedGeoDID.type}
               </Typography>
             </Grid>
-            <Grid item xs={3}>
-              <ButtonBase
-                className={classes.areaButton}
-                onClick={() => history.push(`/browse/${geoDIDID}`)}
-              >
-                <Typography variant="body2" gutterBottom>
-                  View or Edit GeoDID
-                </Typography>
-              </ButtonBase>
+            <Grid item xs={3} className={classes.areaButton}>
+              <AstralButton
+                key="view"
+                click={() => history.push(`/browse/${geoDIDID}`)}
+                title="View or Edit GeoDID"
+              />
             </Grid>
           </Grid>
         </CardContent>

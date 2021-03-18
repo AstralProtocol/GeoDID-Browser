@@ -17,16 +17,9 @@ import {
   Typography,
   Paper,
   Checkbox,
-  IconButton,
-  Tooltip,
   Button,
 } from '@material-ui/core';
-import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
-import { getBytes32FromGeoDIDid, getShortGeoDID, getShortAddress } from 'utils';
-import { useWallet } from 'core/hooks/web3';
-import { toggleAddGeoDIDAsChildrenModal } from 'core/redux/modals/actions';
-import { useSnackbar } from 'notistack';
-import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
+import { setSelectedGeoDID, setSelectedChildrenCreation } from 'core/redux/spatial-assets/actions';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -127,101 +120,15 @@ const useToolbarStyles = makeStyles((theme) => ({
 }));
 
 const EnhancedTableToolbar = (props) => {
-  const { tx, contracts } = useWallet();
   const classes = useToolbarStyles();
-  const {
-    numSelected,
-    selected,
-    geoDIDID,
-    type,
-    isModal,
-    dispatchToggleAddGeoDIDAsChildrenModal,
-    setSelected,
-  } = props;
-  const { enqueueSnackbar } = useSnackbar();
-
-  const handleAddSelectedGeoDIDsAsChildren = () => {
-    const childrenGeoDIDsAsBytes = selected
-      ? selected.reduce((bytes32Ids, selectedGeoDID) => {
-          bytes32Ids.push(getBytes32FromGeoDIDid(selectedGeoDID));
-
-          return bytes32Ids;
-        }, [])
-      : [];
-
-    tx(
-      contracts.SpatialAssets.addChildrenGeoDIDs(
-        getBytes32FromGeoDIDid(geoDIDID),
-        childrenGeoDIDsAsBytes,
-      ),
-      enqueueSnackbar,
-    );
-    setSelected([]);
-    if (isModal) {
-      dispatchToggleAddGeoDIDAsChildrenModal(false);
-    }
-  };
-
-  const handleRemoveSelectedGeoDIDsAsChildren = () => {
-    const childrenGeoDIDsAsBytes = selected
-      ? selected.reduce((bytes32Ids, selectedGeoDID) => {
-          bytes32Ids.push(getBytes32FromGeoDIDid(selectedGeoDID));
-
-          return bytes32Ids;
-        }, [])
-      : [];
-
-    console.log('geodid', getBytes32FromGeoDIDid(geoDIDID));
-    console.log(childrenGeoDIDsAsBytes);
-    tx(
-      contracts.SpatialAssets.removeChildrenGeoDIDs(
-        getBytes32FromGeoDIDid(geoDIDID),
-        childrenGeoDIDsAsBytes,
-      ),
-      enqueueSnackbar,
-    );
-
-    setSelected([]);
-  };
+  const { numSelected, type } = props;
 
   let toolbarContent;
 
   if (type === 'Add' && numSelected > 0) {
     toolbarContent = (
-      <>
-        <Typography className={classes.title} color="inherit" variant="subtitle1" component="div">
-          {numSelected} selected
-        </Typography>
-        <Tooltip title="Add Selected">
-          <IconButton aria-label="add" onClick={handleAddSelectedGeoDIDsAsChildren}>
-            <Typography className={classes.selected} variant="h6" component="div" display="block">
-              Add selected
-            </Typography>
-            <LibraryAddIcon />
-          </IconButton>
-        </Tooltip>
-      </>
-    );
-  } else if (type === 'Remove' && numSelected > 0) {
-    toolbarContent = (
-      <>
-        <Typography className={classes.title} color="inherit" variant="subtitle1" component="div">
-          {numSelected} selected
-        </Typography>
-        <Tooltip title="Remove Selected">
-          <IconButton aria-label="add" onClick={handleRemoveSelectedGeoDIDsAsChildren}>
-            <Typography className={classes.selected} variant="h6" component="div" display="block">
-              Remove selected
-            </Typography>
-            <LibraryAddIcon />
-          </IconButton>
-        </Tooltip>
-      </>
-    );
-  } else if (type === 'Remove' && numSelected === 0) {
-    toolbarContent = (
-      <Typography className={classes.title} variant="h6" id="tableTitle" component="div">
-        Select GeoDIDs to make alterations
+      <Typography className={classes.title} color="inherit" variant="subtitle1" component="div">
+        {numSelected} selected
       </Typography>
     );
   } else if (type === 'Add' && numSelected === 0) {
@@ -270,20 +177,18 @@ function ChildrenGeoDIDsTable(props) {
   const classes = useStyles();
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('calories');
-  const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const history = useHistory();
 
   const {
-    geoDIDID,
     type,
-    isModal,
-    dispatchToggleAddGeoDIDAsChildrenModal,
     dispatchSetSelectedGeoDID,
+    dispatchSetSelectedChildrenCreation,
     allAvailableChildren,
     loading,
     maxNumberOfRows,
+    selected,
   } = props;
 
   const handleRequestSort = (event, property) => {
@@ -295,10 +200,10 @@ function ChildrenGeoDIDsTable(props) {
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
       const newSelecteds = allAvailableChildren.map((n) => n.id);
-      setSelected(newSelecteds);
+      dispatchSetSelectedChildrenCreation(newSelecteds);
       return;
     }
-    setSelected([]);
+    dispatchSetSelectedChildrenCreation([]);
   };
 
   const handleClick = (event, id) => {
@@ -318,9 +223,7 @@ function ChildrenGeoDIDsTable(props) {
       );
     }
 
-    console.log(newSelected);
-
-    setSelected(newSelected);
+    dispatchSetSelectedChildrenCreation(newSelected);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -365,12 +268,10 @@ function ChildrenGeoDIDsTable(props) {
                   <Checkbox checked={isItemSelected} inputProps={{ 'aria-labelledby': labelId }} />
                 </TableCell>
                 <TableCell component="th" id={labelId} scope="row" padding="none">
-                  <Button onClick={() => !isModal && handleGeoDIDSelection(row.id)}>
-                    {getShortGeoDID(row.id)}
-                  </Button>
+                  <Button onClick={() => handleGeoDIDSelection(row.id)}>{row.id}</Button>
                 </TableCell>
                 <TableCell align="left">{row.type}</TableCell>
-                <TableCell align="left">{getShortAddress(row.cid)}</TableCell>
+                <TableCell align="left">{row.cid}</TableCell>
               </TableRow>
             );
           })}
@@ -402,15 +303,7 @@ function ChildrenGeoDIDsTable(props) {
   return (
     <div className={classes.root}>
       <Paper className={classes.paper}>
-        <EnhancedTableToolbar
-          numSelected={selected.length}
-          selected={selected}
-          geoDIDID={geoDIDID}
-          type={type}
-          isModal={isModal}
-          dispatchToggleAddGeoDIDAsChildrenModal={dispatchToggleAddGeoDIDAsChildrenModal}
-          setSelected={setSelected}
-        />
+        <EnhancedTableToolbar numSelected={selected.length} type={type} />
         <TableContainer>
           <Table
             className={classes.table}
@@ -446,10 +339,12 @@ function ChildrenGeoDIDsTable(props) {
 
 const mapStateToProps = (state) => ({
   geoDIDID: state.spatialAssets.geoDIDID,
+  selected: state.spatialAssets.children,
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  dispatchToggleAddGeoDIDAsChildrenModal: (open) => dispatch(toggleAddGeoDIDAsChildrenModal(open)),
+  dispatchSetSelectedChildrenCreation: (children) =>
+    dispatch(setSelectedChildrenCreation(children)),
   dispatchSetSelectedGeoDID: (geoDIDID) => dispatch(setSelectedGeoDID(geoDIDID)),
 });
 

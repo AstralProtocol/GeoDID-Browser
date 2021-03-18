@@ -18,6 +18,8 @@ import { createLogger } from 'redux-logger';
 // Router
 import { routerMiddleware, ConnectedRouter } from 'connected-react-router';
 import { WalletContextProvider } from 'core/hooks/web3';
+import { AstralContextProvider } from 'core/hooks/astral';
+
 import Router from './router';
 // Web3
 
@@ -67,9 +69,11 @@ function App() {
     <Provider store={store}>
       <ApolloProvider client={client}>
         <WalletContextProvider>
-          <ConnectedRouter history={history}>
-            <Router />
-          </ConnectedRouter>
+          <AstralContextProvider>
+            <ConnectedRouter history={history}>
+              <Router />
+            </ConnectedRouter>
+          </AstralContextProvider>
         </WalletContextProvider>
       </ApolloProvider>
     </Provider>

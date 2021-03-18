@@ -25,6 +25,7 @@ import { useSubscription } from '@apollo/react-hooks';
 import geoDIDSubscription from 'core/graphql/geoDIDSubscription';
 import geoDIDsSubscription from 'core/graphql/geoDIDsSubscription';
 import Map from 'components/Map';
+import { useAstral } from 'core/hooks/astral';
 import { useWallet } from 'core/hooks/web3';
 import { snackbarError, toggleAddGeoDIDAsChildrenModal } from 'core/redux/modals/actions';
 import { getBytes32FromGeoDIDid, getBytes32FromCid } from 'utils';
@@ -142,6 +143,7 @@ const useStyles = makeStyles((theme) => ({
 const GeoDIDView = (props) => {
   const history = useHistory();
   const { tx, contracts, address } = useWallet();
+  const { astralInstance } = useAstral();
   const {
     match: { params },
     dispatchSnackbarError,
@@ -195,16 +197,33 @@ const GeoDIDView = (props) => {
     : [];
 
   const createGeoDID = async () => {
-    const geoDID = 'did:geo:QmahqCsAUAw7zMv6P6Ae8PjCTck7taQA6FgGQLnWdKG7U8';
-    const cid = 'QmahqCsAUAw7zMv6P6Ae8PjCTck7taQA6FgGQLnWdKG7U8';
+    const genDocRes = await astralInstance.createGenesisGeoDID('item');
+    console.log(genDocRes);
+
+    // With the returned IDocumentInfo from the last function, we can pin it.
+    // Since no token was specified the client will assign a new auth Token to the user.
+
+    const results = await astralInstance.pinDocument(genDocRes);
+    console.log(results);
+
+    // const token = results.token;
+
+    // register the geodid id and cid obtained. Type 0 because it is a collection
+
+    console.log(results.geodidid);
+    console.log(results.cid);
+
+    const bytes32GeoDID = getBytes32FromGeoDIDid(results.geodidid);
+    const bytes32Cid = getBytes32FromCid(results.cid);
+
     try {
       tx(
         contracts.SpatialAssets.registerSpatialAsset(
           address,
-          getBytes32FromGeoDIDid(geoDID),
+          bytes32GeoDID,
           ethers.utils.formatBytes32String(''),
           [],
-          getBytes32FromCid(cid),
+          bytes32Cid,
           ethers.utils.formatBytes32String('FILECOIN'),
           1,
         ),

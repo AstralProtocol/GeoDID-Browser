@@ -6,6 +6,7 @@ export { default as getShortAddress } from './getShortAddress';
 export { default as getShortGeoDID } from './getShortGeoDID';
 export { default as random256Uint } from './random256Uint';
 export { default as itemIdGenerator } from './itemIdGenerator';
+export { default as getGeoDIDfromBytes32 } from './getGeoDIDfromBytes32';
 export { default as getBytes32FromGeoDIDid } from './getBytes32FromGeoDIDid';
 export { default as getBytes32FromCid } from './getBytes32FromCid';
 export { default as stringToBytes } from './stringToBytes';

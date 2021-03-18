@@ -7,7 +7,7 @@ const initialState = {
   fileList: [],
   spatialAsset: null,
   spatialAssetLoaded: false,
-
+  children: [],
   // unused for now
   loadedCogs: null,
   loadedTiffJson: [],
@@ -25,6 +25,13 @@ export default function spatialAssetsReducer(state = initialState, action) {
   let reduced;
   switch (action.type) {
     case actions.SET_SELECTED_GEODID:
+      reduced = {
+        ...state,
+        ...action.payload,
+      };
+      break;
+
+    case actions.SET_SELECTED_CHILDREN_CREATION:
       reduced = {
         ...state,
         ...action.payload,
