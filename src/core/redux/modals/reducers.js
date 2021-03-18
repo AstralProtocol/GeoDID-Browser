@@ -5,6 +5,7 @@ const initialState = {
   errorMsg: '',
   openError: false,
   addChildrenModal: false,
+  addParentModal: false,
 };
 
 export default function modalsReducer(state = initialState, action) {
@@ -18,6 +19,13 @@ export default function modalsReducer(state = initialState, action) {
       break;
 
     case actions.OPEN_ADD_CHILDREN_MODAL:
+      reduced = {
+        ...state,
+        ...action.payload,
+      };
+      break;
+
+    case actions.OPEN_ADD_PARENT_MODAL:
       reduced = {
         ...state,
         ...action.payload,

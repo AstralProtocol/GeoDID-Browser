@@ -14,6 +14,7 @@ import {
 import { useSubscription } from '@apollo/react-hooks';
 import geoDIDsSubscription from 'core/graphql/geoDIDsSubscription';
 import ChildrenGeoDIDsTable from './ChildrenGeoDIDsTable';
+import ParentGeoDIDsTable from './ParentGeoDIDsTable';
 
 /*
 import { useAstral } from 'core/hooks/astral';
@@ -34,7 +35,6 @@ const AstralCheckbox = withStyles({
 const useStyles = makeStyles(() => ({
   title: {
     paddingTop: '3em',
-    paddingBottom: '4em',
   },
   root: {
     height: '100%',
@@ -64,7 +64,7 @@ const Collection = () => {
     setSelectedRoot(!selectedRoot);
   };
 
-  const { data: dataChildren, loading: loadingChildren } = useSubscription(geoDIDsSubscription, {
+  const { data, loading } = useSubscription(geoDIDsSubscription, {
     variables: {
       where: {
         ...{},
@@ -72,8 +72,17 @@ const Collection = () => {
     },
   });
 
-  const allAvailableChildrenToAdd = dataChildren
-    ? dataChildren.geoDIDs.reduce((geoDIDIds, geoDID) => {
+  const allAvailableParentsToAdd = data
+    ? data.geoDIDs.reduce((geoDIDIds, geoDID) => {
+        if (geoDID.type === 'Collection' && (!geoDID.parent || geoDID.parent.length === 0)) {
+          geoDIDIds.push(geoDID);
+        }
+        return geoDIDIds;
+      }, [])
+    : [];
+
+  const allAvailableChildrenToAdd = data
+    ? data.geoDIDs.reduce((geoDIDIds, geoDID) => {
         if (!geoDID.parent || geoDID.parent.length === 0) {
           geoDIDIds.push(geoDID);
         }
@@ -147,16 +156,20 @@ const Collection = () => {
                   />
                 </FormGroup>
                 <FormGroup aria-label="position" row>
-                  <Typography variant="h5" component="h1">
-                    Link to the parent
-                  </Typography>
+                  <ParentGeoDIDsTable
+                    type="Add"
+                    allAvailableParents={allAvailableParentsToAdd}
+                    loading={loading}
+                    maxNumberOfRows={5}
+                    isDisabled={selectedRoot}
+                  />
                 </FormGroup>
                 <FormGroup aria-label="position" row>
                   <ChildrenGeoDIDsTable
                     type="Add"
                     allAvailableChildren={allAvailableChildrenToAdd}
-                    loading={loadingChildren}
-                    maxNumberOfRows={10}
+                    loading={loading}
+                    maxNumberOfRows={5}
                   />
                 </FormGroup>
               </FormControl>

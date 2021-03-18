@@ -3,6 +3,7 @@ export const actions = {
   SET_FILELIST: 'spatial-assets/SET_FILELIST',
   SET_SPATIAL_ASSET: 'spatial-assets/SET_SPATIAL_ASSET',
   SET_SELECTED_CHILDREN_CREATION: 'spatial-assets/SET_SELECTED_CHILDREN_CREATION',
+  SET_SELECTED_PARENT_CREATION: 'spatial-assets/SET_SELECTED_PARENT_CREATION',
 
   // unused for now
   LOAD_COGS: 'spatial-assets/LOAD_COGS',
@@ -26,6 +27,13 @@ export const setSelectedGeoDID = (geoDIDID) => ({
   type: actions.SET_SELECTED_GEODID,
   payload: {
     geoDIDID,
+  },
+});
+
+export const setSelectedParentCreation = (parent) => ({
+  type: actions.SET_SELECTED_PARENT_CREATION,
+  payload: {
+    parent,
   },
 });
 

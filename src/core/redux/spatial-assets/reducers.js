@@ -8,6 +8,8 @@ const initialState = {
   spatialAsset: null,
   spatialAssetLoaded: false,
   children: [],
+  parent: null,
+
   // unused for now
   loadedCogs: null,
   loadedTiffJson: [],
@@ -32,6 +34,13 @@ export default function spatialAssetsReducer(state = initialState, action) {
       break;
 
     case actions.SET_SELECTED_CHILDREN_CREATION:
+      reduced = {
+        ...state,
+        ...action.payload,
+      };
+      break;
+
+    case actions.SET_SELECTED_PARENT_CREATION:
       reduced = {
         ...state,
         ...action.payload,

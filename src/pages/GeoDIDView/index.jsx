@@ -21,17 +21,23 @@ import {
 } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
+import AddIcon from '@material-ui/icons/Add';
 import { useSubscription } from '@apollo/react-hooks';
 import geoDIDSubscription from 'core/graphql/geoDIDSubscription';
 import geoDIDsSubscription from 'core/graphql/geoDIDsSubscription';
 import Map from 'components/Map';
 import { useAstral } from 'core/hooks/astral';
 import { useWallet } from 'core/hooks/web3';
-import { snackbarError, toggleAddGeoDIDAsChildrenModal } from 'core/redux/modals/actions';
+import {
+  snackbarError,
+  toggleAddGeoDIDAsChildrenModal,
+  toggleAddGeoDIDAsParentModal,
+} from 'core/redux/modals/actions';
 import { getBytes32FromGeoDIDid, getBytes32FromCid } from 'utils';
 import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
 import { useSpring, animated } from 'react-spring/web.cjs'; // web.cjs is required for IE 11 support
 import ChildrenGeoDIDsTable from 'components/ChildrenGeoDIDsTable';
+import ParentGeoDIDsTable from 'components/ParentGeoDIDsTable';
 import { useSnackbar } from 'notistack';
 
 const Fade = React.forwardRef((props, ref) => {
@@ -149,7 +155,9 @@ const GeoDIDView = (props) => {
     dispatchSnackbarError,
     dispatchSetSelectedGeoDID,
     dispatchToggleAddGeoDIDAsChildrenModal,
+    dispatchToggleAddGeoDIDAsParentModal,
     addChildrenModal,
+    addParentModal,
   } = props;
   const { geoDIDID } = params;
   const { enqueueSnackbar } = useSnackbar();
@@ -165,7 +173,7 @@ const GeoDIDView = (props) => {
 
   const selectedGeoDID = dataSelected ? dataSelected.geoDID : null;
 
-  const { data: dataChildren, loading: loadingChildren } = useSubscription(geoDIDsSubscription, {
+  const { data, loading } = useSubscription(geoDIDsSubscription, {
     variables: {
       where: {
         ...{},
@@ -173,9 +181,23 @@ const GeoDIDView = (props) => {
     },
   });
 
+  const allAvailableParentsToAdd = data
+    ? data.geoDIDs.reduce((geoDIDIds, geoDID) => {
+        if (
+          geoDID.type === 'Collection' &&
+          geoDID.id !== geoDIDID &&
+          geoDID.parent !== geoDIDID &&
+          (!geoDID.parent || geoDID.parent.length === 0)
+        ) {
+          geoDIDIds.push(geoDID);
+        }
+        return geoDIDIds;
+      }, [])
+    : [];
+
   const allAvailableChildrenToAdd =
-    dataChildren && selectedGeoDID
-      ? dataChildren.geoDIDs.reduce((geoDIDIds, geoDID) => {
+    data && selectedGeoDID
+      ? data.geoDIDs.reduce((geoDIDIds, geoDID) => {
           if (
             geoDID.id !== geoDIDID &&
             geoDID.id !== selectedGeoDID.parent &&
@@ -187,8 +209,8 @@ const GeoDIDView = (props) => {
         }, [])
       : [];
 
-  const allAvailableChildrenToRemove = dataChildren
-    ? dataChildren.geoDIDs.reduce((geoDIDIds, geoDID) => {
+  const allAvailableChildrenToRemove = data
+    ? data.geoDIDs.reduce((geoDIDIds, geoDID) => {
         if (geoDID.id !== geoDIDID && geoDID.parent === geoDIDID) {
           geoDIDIds.push(geoDID);
         }
@@ -231,6 +253,20 @@ const GeoDIDView = (props) => {
       );
     } catch (err) {
       console.log(err);
+    }
+  };
+
+  const handleParentDelete = (parentGeoDID) => {
+    if (selectedGeoDID) {
+      tx(
+        contracts.SpatialAssets.removeParentGeoDID(
+          getBytes32FromGeoDIDid(selectedGeoDID.id),
+          getBytes32FromGeoDIDid(parentGeoDID),
+        ),
+        enqueueSnackbar,
+      );
+    } else {
+      dispatchSnackbarError('No selected GeoDID');
     }
   };
 
@@ -315,7 +351,11 @@ const GeoDIDView = (props) => {
                       <ListItemText id="type" primary="Parent" secondary={selectedGeoDID.parent} />
                       <ListItemSecondaryAction>
                         <Tooltip title="Remove parent" aria-label="add">
-                          <IconButton edge="end" aria-label="comments">
+                          <IconButton
+                            edge="end"
+                            aria-label="comments"
+                            onClick={() => handleParentDelete(selectedGeoDID.parent)}
+                          >
                             <DeleteIcon />
                           </IconButton>
                         </Tooltip>
@@ -328,6 +368,17 @@ const GeoDIDView = (props) => {
                         primary="Parent"
                         secondary="No Parent - click to add one"
                       />
+                      <ListItemSecondaryAction>
+                        <Tooltip title="Add parent" aria-label="add">
+                          <IconButton
+                            edge="end"
+                            aria-label="comments"
+                            onClick={() => dispatchToggleAddGeoDIDAsParentModal(true)}
+                          >
+                            <AddIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </ListItemSecondaryAction>
                     </ListItem>
                   )}
                 </List>
@@ -341,7 +392,7 @@ const GeoDIDView = (props) => {
                     <ChildrenGeoDIDsTable
                       type="Remove"
                       allAvailableChildren={allAvailableChildrenToRemove}
-                      loading={loadingChildren}
+                      loading={loading}
                       maxNumberOfRows={3}
                     />
                     <Typography
@@ -423,7 +474,30 @@ const GeoDIDView = (props) => {
             type="Add"
             isModal
             allAvailableChildren={allAvailableChildrenToAdd}
-            loading={loadingChildren}
+            loading={loading}
+            maxNumberOfRows={10}
+          />
+        </Fade>
+      </Modal>
+      <Modal
+        aria-labelledby="spring-modal-title"
+        aria-describedby="spring-modal-description"
+        className={classes.modal}
+        open={addParentModal}
+        onClose={() => dispatchToggleAddGeoDIDAsParentModal(false)}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+        }}
+        disableAutoFocus
+      >
+        <Fade in={addParentModal} className={classes.modalPaper}>
+          <ParentGeoDIDsTable
+            type="Add"
+            isModal
+            allAvailableParents={allAvailableParentsToAdd}
+            loading={loading}
             maxNumberOfRows={10}
           />
         </Fade>
@@ -434,12 +508,14 @@ const GeoDIDView = (props) => {
 
 const mapStateToProps = (state) => ({
   addChildrenModal: state.modals.addChildrenModal,
+  addParentModal: state.modals.addParentModal,
 });
 
 const mapDispatchToProps = (dispatch) => ({
   dispatchSnackbarError: (errorMsg) => dispatch(snackbarError(errorMsg)),
   dispatchSetSelectedGeoDID: (geoDIDID) => dispatch(setSelectedGeoDID(geoDIDID)),
   dispatchToggleAddGeoDIDAsChildrenModal: (open) => dispatch(toggleAddGeoDIDAsChildrenModal(open)),
+  dispatchToggleAddGeoDIDAsParentModal: (open) => dispatch(toggleAddGeoDIDAsParentModal(open)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(GeoDIDView);

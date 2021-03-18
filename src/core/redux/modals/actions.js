@@ -4,6 +4,7 @@ export const actions = {
   ERROR: 'snackbar/ERROR',
   CLOSE_ERROR: 'snackbar/CLOSE_ERROR',
   OPEN_ADD_CHILDREN_MODAL: 'modals/OPEN_ADD_CHILDREN:MODAL',
+  OPEN_ADD_PARENT_MODAL: 'modals/OPEN_ADD_PARENT_MODAL',
 };
 
 export const openFilter = () => ({
@@ -40,5 +41,12 @@ export const toggleAddGeoDIDAsChildrenModal = (open) => ({
   type: actions.OPEN_ADD_CHILDREN_MODAL,
   payload: {
     addChildrenModal: open,
+  },
+});
+
+export const toggleAddGeoDIDAsParentModal = (open) => ({
+  type: actions.OPEN_ADD_PARENT_MODAL,
+  payload: {
+    addParentModal: open,
   },
 });
