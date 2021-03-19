@@ -67,7 +67,7 @@ function EnhancedTableHead(props) {
             indeterminate={numSelected > 0 && numSelected < rowCount}
             checked={rowCount > 0 && numSelected === rowCount}
             onChange={onSelectAllClick}
-            inputProps={{ 'aria-label': 'select all desserts' }}
+            inputProps={{ 'aria-label': 'select all' }}
           />
         </TableCell>
         {headCells.map((headCell) => (
@@ -134,7 +134,7 @@ const EnhancedTableToolbar = (props) => {
   } else if (type === 'Add' && numSelected === 0) {
     toolbarContent = (
       <Typography className={classes.title} variant="h6" id="tableTitle" component="div">
-        Select GeoDIDs to add as Children
+        Add GeoDIDs as children?
       </Typography>
     );
   }

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
-// import { ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import {
+  ButtonBase,
   Card,
+  CardContent,
   Grid,
   Typography,
   Checkbox,
@@ -13,14 +15,16 @@ import {
 } from '@material-ui/core';
 import { useSubscription } from '@apollo/react-hooks';
 import geoDIDsSubscription from 'core/graphql/geoDIDsSubscription';
-import ChildrenGeoDIDsTable from './ChildrenGeoDIDsTable';
-import ParentGeoDIDsTable from './ParentGeoDIDsTable';
-
-/*
+import {
+  setSelectedParentCreation,
+  setSelectedChildrenCreation,
+} from 'core/redux/spatial-assets/actions';
 import { useAstral } from 'core/hooks/astral';
 import { useWallet } from 'core/hooks/web3';
 import { useSnackbar } from 'notistack';
-*/
+import { getBytes32FromGeoDIDid, getBytes32FromCid } from 'utils';
+import ChildrenGeoDIDsTable from './ChildrenGeoDIDsTable';
+import ParentGeoDIDsTable from './ParentGeoDIDsTable';
 
 const AstralCheckbox = withStyles({
   root: {
@@ -32,36 +36,59 @@ const AstralCheckbox = withStyles({
   checked: {},
 })((props) => <Checkbox color="default" {...props} />);
 
-const useStyles = makeStyles(() => ({
-  title: {
-    paddingTop: '3em',
-  },
+const useStyles = makeStyles((theme) => ({
   root: {
     height: '100%',
     paddingTop: '10px',
-    paddingLeft: '10px',
+
     paddingBottom: '10px',
     width: '100%',
   },
   container: {
-    borderRadius: '20px',
+    paddingTop: '10px',
+    paddingLeft: '10px',
+    width: '100%',
   },
-  innerCard: {
-    marginLeft: '5em',
+
+  tables: {
+    width: '100%',
+  },
+  createButton: {
+    width: '100%',
+    height: '100%',
+    background: '#fff',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: 'transparent',
+    color: theme.palette.primary.grey,
+    '&:hover': {
+      background: 'linear-gradient(45deg, #ffa300 30%, #f97b3d 90%)',
+      color: '#fff',
+    },
   },
 }));
 
-const Collection = () => {
-  /*
+const Collection = (props) => {
   const { tx, contracts, address } = useWallet();
   const { astralInstance } = useAstral();
   const { enqueueSnackbar } = useSnackbar();
-*/
+
   const classes = useStyles();
   const [selectedRoot, setSelectedRoot] = useState(false);
 
+  const {
+    dispatchSetSelectedParentCreation,
+    parent,
+    children,
+    dispatchSetSelectedChildrenCreation,
+  } = props;
+
   const handleChangeRoot = () => {
     setSelectedRoot(!selectedRoot);
+    if (!selectedRoot) {
+      dispatchSetSelectedParentCreation(null);
+    }
   };
 
   const { data, loading } = useSubscription(geoDIDsSubscription, {
@@ -90,9 +117,46 @@ const Collection = () => {
       }, [])
     : [];
 
-  /*
   const createGeoDID = async () => {
-    const genDocRes = await astralInstance.createGenesisGeoDID('item');
+    /* eslint-disable */
+    if (!parent && !selectedRoot) {
+      enqueueSnackbar(`Root must be selected if no parents are added`, {
+        variant: 'warning',
+      });
+      return;
+    } else if (parent) {
+      const foundParent = children.find((child) => child === parent);
+
+      if (foundParent) {
+        enqueueSnackbar(`The same GeoDID cannot be added as parent and children`, {
+          variant: 'error',
+        });
+        return;
+      }
+    }
+    /* eslint-enable */
+
+    let bytes32Parent;
+
+    if (parent) {
+      bytes32Parent = getBytes32FromGeoDIDid(parent);
+    } else {
+      bytes32Parent = ethers.utils.formatBytes32String('');
+    }
+
+    let bytes32Children;
+
+    if (children.length > 0) {
+      bytes32Children = children.reduce((bytes32Ids, child) => {
+        bytes32Ids.push(getBytes32FromGeoDIDid(child));
+
+        return bytes32Ids;
+      }, []);
+    } else {
+      bytes32Children = [];
+    }
+
+    const genDocRes = await astralInstance.createGenesisGeoDID('collection');
 
     const results = await astralInstance.pinDocument(genDocRes);
 
@@ -105,84 +169,86 @@ const Collection = () => {
         contracts.SpatialAssets.registerSpatialAsset(
           address,
           bytes32GeoDID,
-          ethers.utils.formatBytes32String(''),
-          [],
+          bytes32Parent,
+          bytes32Children,
           bytes32Cid,
           ethers.utils.formatBytes32String('FILECOIN'),
-          1,
+          0,
         ),
         enqueueSnackbar,
       );
+      dispatchSetSelectedParentCreation(null);
+      dispatchSetSelectedChildrenCreation([]);
     } catch (err) {
       console.log(err);
     }
   };
-  */
   return (
-    <Grid
-      container
-      spacing={2}
-      direction="row"
-      justify="center"
-      alignItems="stretch"
-      className={classes.root}
-    >
-      <Grid container spacing={0}>
-        <Grid item xs={12}>
-          <Card classes={{ root: classes.container }} variant="outlined" style={{ height: '96vh' }}>
-            <div className={classes.innerCard}>
-              <div className={classes.title}>
-                <Typography variant="h3" component="h1" gutterBottom>
-                  {'Create GeoDID > GeoDID Collection'}
-                </Typography>
-              </div>
-              <FormControl component="fieldset">
-                <FormGroup aria-label="position" row>
-                  <FormControlLabel
-                    value="start"
-                    control={
-                      <AstralCheckbox
-                        checked={selectedRoot}
-                        onChange={handleChangeRoot}
-                        name="root"
-                      />
-                    }
-                    label={
-                      <Typography variant="h5" component="h1">
-                        Root GeoDID?
-                      </Typography>
-                    }
-                    labelPlacement="start"
-                  />
-                </FormGroup>
-                <FormGroup aria-label="position" row>
-                  <ParentGeoDIDsTable
-                    type="Add"
-                    allAvailableParents={allAvailableParentsToAdd}
-                    loading={loading}
-                    maxNumberOfRows={5}
-                    isDisabled={selectedRoot}
-                  />
-                </FormGroup>
-                <FormGroup aria-label="position" row>
-                  <ChildrenGeoDIDsTable
-                    type="Add"
-                    allAvailableChildren={allAvailableChildrenToAdd}
-                    loading={loading}
-                    maxNumberOfRows={5}
-                  />
-                </FormGroup>
-              </FormControl>
+    <Card classes={{ root: classes.container }} variant="outlined" style={{ height: '96vh' }}>
+      <CardContent>
+        <Grid container style={{ height: '100%' }} spacing={2} direction="row" justify="center">
+          <Grid item xs={10}>
+            <Typography variant="h3" component="h1" gutterBottom>
+              {'Create GeoDID > GeoDID Collection'}
+            </Typography>
+            <FormControl component="fieldset">
+              <FormGroup aria-label="position" row>
+                <FormControlLabel
+                  value="start"
+                  control={
+                    <AstralCheckbox
+                      checked={selectedRoot}
+                      onChange={handleChangeRoot}
+                      name="root"
+                    />
+                  }
+                  label={
+                    <Typography variant="h5" component="h1">
+                      Root GeoDID?
+                    </Typography>
+                  }
+                  labelPlacement="start"
+                />
+              </FormGroup>
+            </FormControl>
+            <div className={classes.tables}>
+              <ParentGeoDIDsTable
+                type="Add"
+                allAvailableParents={allAvailableParentsToAdd}
+                loading={loading}
+                maxNumberOfRows={5}
+                isDisabled={selectedRoot}
+              />
+              <ChildrenGeoDIDsTable
+                type="Add"
+                allAvailableChildren={allAvailableChildrenToAdd}
+                loading={loading}
+                maxNumberOfRows={5}
+              />
             </div>
-          </Card>
+          </Grid>
+          <Grid item xs={2}>
+            <ButtonBase className={classes.createButton} onClick={() => createGeoDID()}>
+              <Typography variant="h4" gutterBottom>
+                Create
+              </Typography>
+            </ButtonBase>
+          </Grid>
         </Grid>
-      </Grid>
-    </Grid>
+      </CardContent>
+    </Card>
   );
 };
 
 const mapStateToProps = (state) => ({
-  addChildrenModal: state.modals.addChildrenModal,
+  parent: state.spatialAssets.parent,
+  children: state.spatialAssets.children,
 });
 
-export default connect(mapStateToProps, null)(Collection);
+const mapDispatchToProps = (dispatch) => ({
+  dispatchSetSelectedChildrenCreation: (children) =>
+    dispatch(setSelectedChildrenCreation(children)),
+  dispatchSetSelectedParentCreation: (parent) => dispatch(setSelectedParentCreation(parent)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Collection);

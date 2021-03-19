@@ -1,8 +1,10 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import { useHistory } from 'react-router-dom';
 import Container from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
-import TextField from '@material-ui/core/TextField';
+import { useSnackbar } from 'notistack';
+import SearchBar from 'material-ui-search-bar';
 import AstralButton from 'components/AstralButton';
 import { useWallet } from 'core/hooks/web3';
 
@@ -28,6 +30,11 @@ const useStyles = makeStyles(() => ({
 
 export default function Landing() {
   const classes = useStyles();
+  const history = useHistory();
+  const { enqueueSnackbar } = useSnackbar();
+
+  const [searchValue, setSearchValue] = useState('');
+
   const { logoutOfWeb3Modal, loadWeb3Modal, selectedChainId } = useWallet();
 
   const connectButton = [];
@@ -46,6 +53,18 @@ export default function Landing() {
     );
   }
 
+  const handleSearchRequest = (value) => {
+    console.log(value);
+    const reg = /^did:geo:([1-9a-km-zA-HJ-NP-Z]{46})$/g;
+    if (value.match(reg)) {
+      history.push(`/browse/${value}`);
+    } else {
+      enqueueSnackbar(`Wrong GeoDID format. Please try did:geo:id`, {
+        variant: 'warning',
+      });
+    }
+  };
+
   return (
     <>
       <div className={classes.header}>
@@ -60,7 +79,12 @@ export default function Landing() {
           <Typography variant="h3" component="h1" gutterBottom>
             Read a GeoDID
           </Typography>
-          <TextField fullWidth id="filled-basic" label="GeoDid" variant="filled" />
+          <SearchBar
+            placeholder="did:geo"
+            value={searchValue}
+            onChange={(newValue) => setSearchValue(newValue)}
+            onRequestSearch={(newValue) => handleSearchRequest(newValue)}
+          />
         </div>
         <div className={classes.element2}>
           <Typography variant="h3" component="h1" gutterBottom>

@@ -19,7 +19,7 @@ import {
   Button,
   Radio,
 } from '@material-ui/core';
-import { getShortGeoDID, getShortAddress } from 'utils';
+import { getShortGeoDID } from 'utils';
 import { setSelectedGeoDID, setSelectedParentCreation } from 'core/redux/spatial-assets/actions';
 
 function descendingComparator(a, b, orderBy) {
@@ -63,6 +63,7 @@ function EnhancedTableHead(props) {
   return (
     <TableHead>
       <TableRow>
+        <TableCell padding="checkbox" />
         {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
@@ -127,7 +128,7 @@ const EnhancedTableToolbar = (props) => {
   } else if (numSelected === 0) {
     toolbarContent = (
       <Typography className={classes.title} variant="h6" id="tableTitle" component="div">
-        Select GeoDID to add as Parent
+        Add a Collection as Parent?
       </Typography>
     );
   }
@@ -176,6 +177,7 @@ function ParentGeoDIDsTable(props) {
 
   const {
     geoDIDID,
+    dispatchSetSelectedParentCreation,
     dispatchSetSelectedGeoDID,
     allAvailableParents,
     loading,
@@ -191,7 +193,13 @@ function ParentGeoDIDsTable(props) {
   };
 
   const handleClick = (event, id) => {
-    setSelectedParentCreation(id);
+    if (!isDisabled) {
+      if (selected !== id) {
+        dispatchSetSelectedParentCreation(id);
+      } else {
+        dispatchSetSelectedParentCreation(null);
+      }
+    }
   };
 
   const handleChangePage = (event, newPage) => {
@@ -240,12 +248,10 @@ function ParentGeoDIDsTable(props) {
                   />
                 </TableCell>
                 <TableCell component="th" id={labelId} scope="row" padding="none">
-                  <Button onClick={() => handleGeoDIDSelection(row.id)}>
-                    {getShortGeoDID(row.id)}
-                  </Button>
+                  <Button onClick={() => handleGeoDIDSelection(row.id)}>{row.id}</Button>
                 </TableCell>
                 <TableCell align="left">{row.type}</TableCell>
-                <TableCell align="left">{getShortAddress(row.cid)}</TableCell>
+                <TableCell align="left">{row.cid}</TableCell>
               </TableRow>
             );
           })}
