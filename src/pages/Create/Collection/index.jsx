@@ -189,7 +189,7 @@ const Collection = (props) => {
         <Grid container style={{ height: '100%' }} spacing={2} direction="row" justify="center">
           <Grid item xs={10}>
             <Typography variant="h3" component="h1" gutterBottom>
-              {'Create GeoDID > GeoDID Collection'}
+              {'Create GeoDID > Collection'}
             </Typography>
             <FormControl component="fieldset">
               <FormGroup aria-label="position" row>

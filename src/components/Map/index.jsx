@@ -1,23 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { connect } from 'react-redux';
-import { loadCogs, setSelectedCog } from 'core/redux/spatial-assets/actions';
-import ReactMapGL, { Source, Layer, FlyToInterpolator, WebMercatorViewport } from 'react-map-gl';
-import { easeCubic } from 'd3-ease';
+import ReactMapGL, {
+  Source,
+  Layer,
+  // FlyToInterpolator,
+  // WebMercatorViewport
+} from 'react-map-gl';
+// import { easeCubic } from 'd3-ease';
 
-const regex = /(?:\.([^.]+))?$/;
-
-const Dashboard = (props) => {
-  const {
-    initialMapLoad,
-    spatialAsset,
-    spatialAssetLoaded,
-    dispatchLoadCogs,
-    loadedTiffJson,
-    selectedCog,
-    dispatchSetSelectedCog,
-    parentRef,
-  } = props;
+const Map = (props) => {
+  const { asset, parentRef } = props;
 
   const [viewport, setViewport] = useState({
     latitude: 30,
@@ -26,10 +18,9 @@ const Dashboard = (props) => {
     width: '100%',
     height: '100%',
   });
-  const [rasterSources, setRasterSources] = useState(null);
-  const [selectedRasterSource, setSelectedRasterSource] = useState(null);
 
-  const onStacDataLoad = (sAsset = null) => {
+  /*
+  const onAssetLoad = (sAsset = null) => {
     if (sAsset) {
       const { longitude, latitude, zoom } = new WebMercatorViewport(viewport).fitBounds(
         [
@@ -63,7 +54,7 @@ const Dashboard = (props) => {
       });
     }
   };
-
+*/
   useEffect(() => {
     if (parentRef.current) {
       setViewport({
@@ -87,6 +78,15 @@ const Dashboard = (props) => {
       window.removeEventListener('resize', handleResize);
     };
   });
+
+  useEffect(() => {
+    if (asset) {
+      console.log(asset);
+      // onStacDataLoad(spatialAsset);
+    }
+  }, [asset]);
+
+  /*
   useEffect(() => {
     if (spatialAssetLoaded && spatialAsset) {
       const cogs =
@@ -111,6 +111,7 @@ const Dashboard = (props) => {
     }
   }, [spatialAssetLoaded, spatialAsset, initialMapLoad, dispatchLoadCogs]);
 
+
   useEffect(() => {
     if (loadedTiffJson) {
       const newRasterSources = [];
@@ -134,13 +135,29 @@ const Dashboard = (props) => {
       );
     }
   }, [rasterSources, selectedCog]);
-
-  const dataLayer = {
+*/
+  const geoJsonDataLayer = {
     id: 'dataLayer',
     source: 'geojson',
     type: 'fill',
     paint: { 'fill-color': '#228b22', 'fill-opacity': 0.4 },
   };
+
+  let mapSource;
+  if (asset) {
+    if (asset.type === 'application/json') {
+      mapSource = (
+        <>
+          <Source id="geojson" type="geojson" data={asset.geometry}>
+            <Layer
+              // eslint-disable-next-line
+              {...geoJsonDataLayer}
+            />
+          </Source>
+        </>
+      );
+    }
+  }
 
   return (
     <ReactMapGL
@@ -150,34 +167,9 @@ const Dashboard = (props) => {
       {...viewport}
       onViewportChange={(vp) => setViewport(vp)}
     >
-      {spatialAssetLoaded && (
-        <>
-          <Source id="geojson" type="geojson" data={spatialAsset.geometry}>
-            <Layer
-              // eslint-disable-next-line
-              {...dataLayer}
-            />
-          </Source>
-          {selectedRasterSource}
-        </>
-      )}
+      {mapSource}
     </ReactMapGL>
   );
 };
 
-const mapStateToProps = (state) => ({
-  collapsed: state.settings.collapsed,
-  initialMapLoad: state.settings.initialMapLoad,
-  siderWidth: state.settings.siderWidth,
-  spatialAsset: state.spatialAssets.spatialAsset,
-  spatialAssetLoaded: state.spatialAssets.spatialAssetLoaded,
-  loadedTiffJson: state.spatialAssets.loadedTiffJson,
-  selectedCog: state.spatialAssets.selectedCog,
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  dispatchLoadCogs: (loadedCogs) => dispatch(loadCogs(loadedCogs)),
-  dispatchSetSelectedCog: (selectedCog) => dispatch(setSelectedCog(selectedCog)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);
+export default Map;

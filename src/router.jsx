@@ -35,6 +35,12 @@ const routes = [
     exact: true,
   },
   {
+    path: '/create/item',
+    name: 'CreateItem',
+    component: loadable(() => import('pages/Create/Item')),
+    exact: true,
+  },
+  {
     path: '/browse/:geoDIDID',
     name: 'Browse',
     component: loadable(() => import('pages/GeoDIDView')),
