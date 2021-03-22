@@ -1,13 +1,11 @@
 import * as React from 'react';
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import createParser from 'core/parsers/parserFactory';
-import { ImageOverlay, GeoJSON } from 'react-leaflet';
+import { ImageOverlay, GeoJSON, MapContainer, TileLayer } from 'react-leaflet';
 import { IMAGE_OVERLAY, GEO_JSON_MARKER_OPTIONS, GEOJSON_OVERLAY } from 'utils/constants';
 import { uuidv4 } from 'utils';
-
-import Map from './Map';
 
 /* eslint-disable */
 
@@ -21,7 +19,8 @@ L.Icon.Default.mergeOptions({
 /* eslint-enable */
 
 const LeafletMap = () => {
-  const mapRef = useRef(null);
+  const [map, setMap] = useState(null);
+
   const [zoomPosition, setZoomPosition] = useState({
     zoom: 5,
     position: L.latLng(20, 0),
@@ -50,7 +49,7 @@ const LeafletMap = () => {
     setShowLoader(true);
     try {
       const files = e.dataTransfer.files;
-      const parser = createParser(files, mapRef);
+      const parser = createParser(files, map);
       const layerData = await parser.createLayer();
 
       console.log(layerData);
@@ -84,12 +83,20 @@ const LeafletMap = () => {
   console.log(zoomPosition);
   return (
     <div onDragOver={onDragOver} onDrop={onDrop}>
-      <Map
-        onMoveEnd={onMoveEnd}
-        position={zoomPosition.position}
+      <MapContainer
+        style={{ height: 'calc(100vh - 50px)', width: 'calc(100vw - 250px)' }}
+        center={zoomPosition.position}
         zoom={zoomPosition.zoom}
-        ref={mapRef}
+        onMoveEnd={onMoveEnd}
+        maxZoom={30}
+        preferCanvas
+        zoomControl
+        whenCreated={setMap}
       >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        />
         {overlays.map((overlay) => {
           if (overlay.data.type === IMAGE_OVERLAY && overlay.show) {
             return (
@@ -112,7 +119,7 @@ const LeafletMap = () => {
           }
           return null;
         })}
-      </Map>
+      </MapContainer>
     </div>
   );
 };

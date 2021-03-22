@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Map, TileLayer } from 'react-leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
 
 const AppMap = (props) => (
-  <Map
+  <MapContainer
     style={{ height: 'calc(100vh - 50px)', width: 'calc(100vw - 250px)' }}
     center={props.position}
     zoom={props.zoom}
@@ -17,7 +17,7 @@ const AppMap = (props) => (
       attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     />
     {props.children}
-  </Map>
+  </MapContainer>
 );
 
 export default React.forwardRef((props, ref) => <AppMap {...props} forwardedRef={ref} />);

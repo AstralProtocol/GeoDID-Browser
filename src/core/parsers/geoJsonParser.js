@@ -9,7 +9,7 @@ export default class GeoJsonParser extends Parser {
     const geoJsonData = JSON.parse(data);
     const geoJosnOverlay = new L.GeoJSON(geoJsonData);
     const geoJsonBounds = geoJosnOverlay.getBounds();
-    const zoom = this.mapRef.current.leafletElement.getBoundsZoom(geoJsonBounds);
+    const zoom = this.map.getBoundsZoom(geoJsonBounds);
     const center = geoJsonBounds.getCenter();
     return new GeoJsonData(geoJsonData, zoom, center);
   }

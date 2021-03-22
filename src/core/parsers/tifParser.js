@@ -23,7 +23,7 @@ export default class TifParser extends Parser {
     };
 
     // eslint-disable-next-line
-    L.leafletGeotiff(this.files[0], options).addTo(this.mapRef.current.leafletElement);
+    L.leafletGeotiff(this.files[0], options).addTo(this.map);
 
     return null;
   }

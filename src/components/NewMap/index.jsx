@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import * as L from 'leaflet';
 import { fromBlob } from 'geotiff';
 import 'leaflet-geotiff-2';
+import 'leaflet/dist/leaflet.css';
 
 const App = () => {
   const [map, setMap] = useState(null);

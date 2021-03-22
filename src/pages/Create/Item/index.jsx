@@ -67,7 +67,7 @@ const Dashboard = () => {
               style={{ height: '48vh' }}
               ref={parentRef}
             >
-              <Map selectedAsset={selectedAsset} parentRef={parentRef} />
+              <Map />
             </Card>
           </Grid>
         </Grid>

@@ -1,6 +1,6 @@
 export default class Parser {
-  constructor(files, mapRef) {
+  constructor(files, map) {
     this.files = files;
-    this.mapRef = mapRef;
+    this.map = map;
   }
 }
