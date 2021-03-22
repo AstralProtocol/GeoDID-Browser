@@ -6,7 +6,6 @@ import { Card, CardContent, Grid, Typography } from '@material-ui/core';
 // import { useQuery } from '@apollo/react-hooks';
 // import geoDIDQuery from 'core/graphql/geoDIDQuery';
 import Map from 'components/Map';
-// import { fromBlob } from 'geotiff';
 import { DropzoneAreaBase } from 'material-ui-dropzone';
 import AssetsTable from './AssetsTable';
 
@@ -25,12 +24,12 @@ const Dashboard = () => {
   const classes = useStyles();
   const parentRef = useRef(null);
   const [files, setFiles] = useState([]);
-
   const [selectedAsset, setSelectedAsset] = useState(null);
 
+  console.log(selectedAsset);
   const handleAdd = (newFiles) => {
     newFiles.forEach((newFile) => {
-      const foundAsset = files.find((file) => file.name === newFile.name);
+      const foundAsset = files.find((file) => file.file.name === newFile.file.name);
       if (!foundAsset) {
         const updatedFiles = [...files, newFile];
         setFiles(updatedFiles);
@@ -38,17 +37,6 @@ const Dashboard = () => {
     });
   };
 
-  /*
-  const handleDrop = async (droppedFiles) => {
-    const tiff = await fromBlob(droppedFiles[0]);
-    const image = await tiff.getImage(); // by default, the first image is read.
-
-    console.log(image);
-    if (image) {
-      console.log(image.getBoundingBox());
-    }
-  };
-*/
   return (
     <Card classes={{ root: classes.container }} variant="outlined" style={{ height: '96vh' }}>
       <CardContent>

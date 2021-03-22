@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import ReactMapGL, {
-  Source,
-  Layer,
-  // FlyToInterpolator,
-  // WebMercatorViewport
-} from 'react-map-gl';
-// import { easeCubic } from 'd3-ease';
+import ReactMapGL, { Source, Layer, FlyToInterpolator, WebMercatorViewport } from 'react-map-gl';
+import { easeCubic } from 'd3-ease';
+import { fromBlob } from 'geotiff';
+import turf from 'turf';
 
 const Map = (props) => {
-  const { asset, parentRef } = props;
+  const { selectedAsset, parentRef } = props;
+  const [tiffAsset, setTiffAsset] = useState(null);
+  const [geojsonAsset, setGeojsonAsset] = useState(null);
 
   const [viewport, setViewport] = useState({
     latitude: 30,
@@ -19,13 +18,14 @@ const Map = (props) => {
     height: '100%',
   });
 
-  /*
-  const onAssetLoad = (sAsset = null) => {
-    if (sAsset) {
+  useEffect(() => {
+    if (geojsonAsset) {
+      const bbox = turf.bbox(geojsonAsset);
+
       const { longitude, latitude, zoom } = new WebMercatorViewport(viewport).fitBounds(
         [
-          [sAsset.bbox[0], sAsset.bbox[1]],
-          [sAsset.bbox[2], sAsset.bbox[3]],
+          [bbox[0], bbox[1]],
+          [bbox[2], bbox[3]],
         ],
         {
           padding: 20,
@@ -38,7 +38,31 @@ const Map = (props) => {
         longitude,
         latitude,
         zoom,
-        transitionDuration: 2000,
+        transitionDuration: 1000,
+        transitionInterpolator: new FlyToInterpolator(),
+        transitionEasing: easeCubic,
+      });
+    } else if (tiffAsset) {
+      const bbox = tiffAsset.getBoundingBox();
+
+      console.log(bbox);
+      const { longitude, latitude, zoom } = new WebMercatorViewport(viewport).fitBounds(
+        [
+          [bbox[0], bbox[1]],
+          [bbox[2], bbox[3]],
+        ],
+        {
+          padding: 20,
+          offset: [0, -100],
+        },
+      );
+
+      setViewport({
+        ...viewport,
+        longitude,
+        latitude,
+        zoom,
+        transitionDuration: 1000,
         transitionInterpolator: new FlyToInterpolator(),
         transitionEasing: easeCubic,
       });
@@ -48,13 +72,13 @@ const Map = (props) => {
         latitude: 30,
         longitude: 0,
         zoom: 2,
-        transitionDuration: 2000,
+        transitionDuration: 1000,
         transitionInterpolator: new FlyToInterpolator(),
         transitionEasing: easeCubic,
       });
     }
-  };
-*/
+  }, [geojsonAsset, tiffAsset]);
+
   useEffect(() => {
     if (parentRef.current) {
       setViewport({
@@ -80,11 +104,28 @@ const Map = (props) => {
   });
 
   useEffect(() => {
-    if (asset) {
-      console.log(asset);
-      // onStacDataLoad(spatialAsset);
-    }
-  }, [asset]);
+    const fetchAsset = async () => {
+      if (selectedAsset) {
+        if (selectedAsset.file.type === 'image/tiff') {
+          setGeojsonAsset(null);
+          const tiff = await fromBlob(selectedAsset.file);
+          const image = await tiff.getImage(); // by default, the first image is read.
+          setTiffAsset(image);
+        } else if (selectedAsset.file.type === 'application/json') {
+          setTiffAsset(null);
+          // 29 = length of "data:application/json;base64,"
+          const json = atob(selectedAsset.data.substring(29));
+          const result = JSON.parse(json);
+          setGeojsonAsset(result);
+        }
+      } else {
+        setGeojsonAsset(null);
+        setTiffAsset(null);
+      }
+    };
+
+    fetchAsset();
+  }, [selectedAsset]);
 
   /*
   useEffect(() => {
@@ -144,11 +185,15 @@ const Map = (props) => {
   };
 
   let mapSource;
-  if (asset) {
-    if (asset.type === 'application/json') {
+  if (selectedAsset) {
+    if (
+      selectedAsset.file.type === 'application/json' &&
+      geojsonAsset &&
+      geojsonAsset.features.length > 0
+    ) {
       mapSource = (
         <>
-          <Source id="geojson" type="geojson" data={asset.geometry}>
+          <Source id="geojson" type="geojson" data={geojsonAsset.features[0].geometry}>
             <Layer
               // eslint-disable-next-line
               {...geoJsonDataLayer}
