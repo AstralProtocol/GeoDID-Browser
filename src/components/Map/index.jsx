@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import ReactMapGL, { Source, Layer, FlyToInterpolator, WebMercatorViewport } from 'react-map-gl';
-import { easeCubic } from 'd3-ease';
+import React, { useEffect, useState } from 'react';
+// import 'mapbox-gl/dist/mapbox-gl.css';
+// import ReactMapGL, { Source, Layer, FlyToInterpolator, WebMercatorViewport } from 'react-map-gl';
+// import { easeCubic } from 'd3-ease';
 import { fromBlob } from 'geotiff';
-import turf from 'turf';
+// import turf from 'turf';
+import LeafletMap from './LeafletMap';
 
-const Map = (props) => {
-  const { selectedAsset, parentRef } = props;
+const MapLoader = (props) => {
+  const { selectedAsset } = props;
   const [tiffAsset, setTiffAsset] = useState(null);
   const [geojsonAsset, setGeojsonAsset] = useState(null);
 
+  console.log(tiffAsset);
+  console.log(geojsonAsset);
+  /*
   const [viewport, setViewport] = useState({
     latitude: 30,
     longitude: 0,
@@ -18,14 +22,43 @@ const Map = (props) => {
     height: '100%',
   });
 
+  */
+  /*
   useEffect(() => {
-    if (geojsonAsset) {
-      const bbox = turf.bbox(geojsonAsset);
+    const updateViewport = async () => {
+      if (geojsonAsset) {
+        const bbox = turf.bbox(geojsonAsset);
 
+        console.log(bbox);
+        const { longitude, latitude, zoom } = new WebMercatorViewport(viewport).fitBounds(
+          [
+            [bbox[0], bbox[1]],
+            [bbox[2], bbox[3]],
+          ],
+          {
+            padding: 20,
+            offset: [0, -100],
+          },
+        );
+
+        setViewport({
+          ...viewport,
+          longitude,
+          latitude,
+          zoom,
+          transitionDuration: 1000,
+          transitionInterpolator: new FlyToInterpolator(),
+          transitionEasing: easeCubic,
+        });
+      } else if (tiffAsset) {
+        const bbox = tiffAsset.getBoundingBox();
+
+        console.log(bbox);
+        /*
       const { longitude, latitude, zoom } = new WebMercatorViewport(viewport).fitBounds(
         [
-          [bbox[0], bbox[1]],
-          [bbox[2], bbox[3]],
+          [boundingCorrect[0], boundingCorrect[1]],
+          [boundingCorrect[2], boundingCorrect[3]],
         ],
         {
           padding: 20,
@@ -42,41 +75,21 @@ const Map = (props) => {
         transitionInterpolator: new FlyToInterpolator(),
         transitionEasing: easeCubic,
       });
-    } else if (tiffAsset) {
-      const bbox = tiffAsset.getBoundingBox();
+     
+      } else {
+        setViewport({
+          ...viewport,
+          latitude: 30,
+          longitude: 0,
+          zoom: 2,
+          transitionDuration: 1000,
+          transitionInterpolator: new FlyToInterpolator(),
+          transitionEasing: easeCubic,
+        });
+      }
+    };
 
-      console.log(bbox);
-      const { longitude, latitude, zoom } = new WebMercatorViewport(viewport).fitBounds(
-        [
-          [bbox[0], bbox[1]],
-          [bbox[2], bbox[3]],
-        ],
-        {
-          padding: 20,
-          offset: [0, -100],
-        },
-      );
-
-      setViewport({
-        ...viewport,
-        longitude,
-        latitude,
-        zoom,
-        transitionDuration: 1000,
-        transitionInterpolator: new FlyToInterpolator(),
-        transitionEasing: easeCubic,
-      });
-    } else {
-      setViewport({
-        ...viewport,
-        latitude: 30,
-        longitude: 0,
-        zoom: 2,
-        transitionDuration: 1000,
-        transitionInterpolator: new FlyToInterpolator(),
-        transitionEasing: easeCubic,
-      });
-    }
+    updateViewport();
   }, [geojsonAsset, tiffAsset]);
 
   useEffect(() => {
@@ -102,7 +115,7 @@ const Map = (props) => {
       window.removeEventListener('resize', handleResize);
     };
   });
-
+ */
   useEffect(() => {
     const fetchAsset = async () => {
       if (selectedAsset) {
@@ -176,7 +189,7 @@ const Map = (props) => {
       );
     }
   }, [rasterSources, selectedCog]);
-*/
+
   const geoJsonDataLayer = {
     id: 'dataLayer',
     source: 'geojson',
@@ -201,20 +214,21 @@ const Map = (props) => {
           </Source>
         </>
       );
+    } else if (selectedAsset.file.type === 'image/json' && tiffAsset) {
+      mapSource = (
+        <>
+          <Source id="geojson" type="raster" data={geojsonAsset.features[0].geometry}>
+            <Layer
+              // eslint-disable-next-line
+              {...geoJsonDataLayer}
+            />
+          </Source>
+        </>
+      );
     }
   }
-
-  return (
-    <ReactMapGL
-      mapStyle="mapbox://styles/mapbox/streets-v11"
-      mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
-      // eslint-disable-next-line
-      {...viewport}
-      onViewportChange={(vp) => setViewport(vp)}
-    >
-      {mapSource}
-    </ReactMapGL>
-  );
+*/
+  return <LeafletMap />;
 };
 
-export default Map;
+export default MapLoader;

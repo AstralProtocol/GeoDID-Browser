@@ -11,3 +11,5 @@ export { default as getBytes32FromGeoDIDid } from './getBytes32FromGeoDIDid';
 export { default as getBytes32FromCid } from './getBytes32FromCid';
 export { default as stringToBytes } from './stringToBytes';
 export { default as iff } from './iff';
+export { default as readFileAsync } from './readFileAsync';
+export { default as uuidv4 } from './uuidv4';
