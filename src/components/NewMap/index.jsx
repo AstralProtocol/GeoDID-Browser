@@ -1,37 +1,52 @@
-/* eslint-disable*/
-import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import React, { useEffect, useState } from 'react';
+import * as L from 'leaflet';
+import { fromBlob } from 'geotiff';
+import 'leaflet-geotiff-2';
 
-const styles = {
-  width: '100%',
-  height: '100%',
-};
-
-const MapboxGLMap = () => {
+const App = () => {
   const [map, setMap] = useState(null);
-  const mapContainer = useRef(null);
 
   useEffect(() => {
-    mapboxgl.accessToken = process.env.REACT_APP_MapboxAccessToken;
-    const initializeMap = ({ setMap, mapContainer }) => {
-      const map = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
-        center: [0, 0],
-        zoom: 5,
-      });
+    const map1 = L.map('map').setView([27.664198, 85.361624], 5);
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map1);
 
-      map.on('load', () => {
-        setMap(map);
-        map.resize();
-      });
-    };
+    setMap(map1);
+  }, []);
 
-    if (!map) initializeMap({ setMap, mapContainer });
-  }, [map]);
+  async function onDrop(e) {
+    e.preventDefault();
+    try {
+      const files = e.dataTransfer.files;
 
-  return <div ref={(el) => (mapContainer.current = el)} style={styles} />;
+      L.leafletGeotiff(files[0], {
+        renderer: null,
+        bounds: [],
+        band: 0,
+        image: 0,
+        clip: undefined,
+        pane: 'overlayPane',
+        onError: null,
+        sourceFunction: fromBlob,
+        arrayBuffer: null,
+        noDataValue: undefined,
+        noDataKey: undefined,
+        blockSize: 65536,
+        opacity: 1,
+      }).addTo(map);
+    } catch (ex) {
+      console.log(ex);
+    }
+  }
+
+  return (
+    <div
+      onDrop={onDrop}
+      style={{ height: 'calc(100vh - 50px)', width: 'calc(100vw - 250px)' }}
+      id="map"
+    />
+  );
 };
 
-export default MapboxGLMap;
+export default App;

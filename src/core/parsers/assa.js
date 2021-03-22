@@ -1,15 +1,14 @@
-// @ts-ignore
 import loam from 'loam';
+import * as L from 'leaflet';
 import Parser from './base';
 import TifData from './constructors/tifData';
-import * as L from 'leaflet';
 
 export default class TifParser extends Parser {
-  constructor(files: FileList, mapRef: any) {
-    super(files, mapRef);
-  }
   async createLayer() {
+    console.log(loam);
     const dataset = await loam.open(this.files[0]);
+
+    console.log(dataset);
     const wktDest =
       'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]';
     const smallDataset = await dataset.convert([
@@ -35,9 +34,9 @@ export default class TifParser extends Parser {
       'near',
     ]);
     smallDataset.close();
-    const width: number = await newDataset.width();
-    const height: number = await newDataset.height();
-    const geoTransform: number[] = await newDataset.transform();
+    const width = await newDataset.width();
+    const height = await newDataset.height();
+    const geoTransform = await newDataset.transform();
     const wktSource = await newDataset.wkt();
     const corners = [
       [0, 0],
@@ -45,23 +44,16 @@ export default class TifParser extends Parser {
       [width, height],
       [0, height],
     ];
-    const geoCorners = corners.map(function (coords) {
-      var x = coords[0];
-      var y = coords[1];
+    const geoCorners = corners.map((coords) => {
+      const x = coords[0];
+      const y = coords[1];
       return [
         geoTransform[0] + geoTransform[1] * x + geoTransform[2] * y,
         geoTransform[3] + geoTransform[4] * x + geoTransform[5] * y,
       ];
     });
-    const wgs84GeoCornersGdal: [number, number][] = await loam.reproject(
-      wktSource,
-      wktDest,
-      geoCorners,
-    );
-    const wgs84GeoCorners = wgs84GeoCornersGdal.map((coords) => [coords[1], coords[0]]) as [
-      number,
-      number,
-    ][];
+    const wgs84GeoCornersGdal = await loam.reproject(wktSource, wktDest, geoCorners);
+    const wgs84GeoCorners = wgs84GeoCornersGdal.map((coords) => [coords[1], coords[0]]);
     const pngDataset = await newDataset.convert(['-of', 'PNG']);
     const imageBytes = await pngDataset.closeAndReadBytes();
     const outputBlob = new Blob([imageBytes], { type: 'image/png' });
