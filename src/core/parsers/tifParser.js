@@ -7,14 +7,11 @@ export default class TifParser extends Parser {
   async createLayer() {
     const loam = await loadLoam();
 
-    console.log(loam);
-    const dataset = await loam.open(this.files[0]);
-    console.log(dataset);
-
     const wktDest =
       'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]';
 
-    const smallDataset = await dataset.convert([
+    console.log(this);
+    const smallDataset = await this.selectedFile.data.convert([
       '-of',
       'GTiff',
       '-outsize',
@@ -23,7 +20,7 @@ export default class TifParser extends Parser {
       '-r',
       'nearest',
     ]);
-    dataset.close();
+    this.selectedFile.data.close();
     const newDataset = await smallDataset.warp([
       '-co',
       'PREDICTOR=2',
@@ -58,12 +55,12 @@ export default class TifParser extends Parser {
     const wgs84GeoCornersGdal = await loam.reproject(wktSource, wktDest, geoCorners);
     const wgs84GeoCorners = wgs84GeoCornersGdal.map((coords) => [coords[1], coords[0]]);
     const pngDataset = await newDataset.convert(['-of', 'PNG']);
-    const imageBytes = await pngDataset.closeAndReadBytes();
+    const imageBytes = await pngDataset.bytes();
     const outputBlob = new Blob([imageBytes], { type: 'image/png' });
     const imageURL = window.URL.createObjectURL(outputBlob);
     const imageOverlay = L.imageOverlay(imageURL, wgs84GeoCorners);
     const imageBounds = imageOverlay.getBounds();
-    const zoom = this.mapRef.current.leafletElement.getBoundsZoom(imageBounds);
+    const zoom = this.map.current.leafletElement.getBoundsZoom(imageBounds);
     const center = imageBounds.getCenter();
     return new TifData(imageURL, wgs84GeoCorners, zoom, center);
   }

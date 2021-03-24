@@ -179,7 +179,7 @@ export default function AssetsTable(props) {
 
   const handleClick = (event, name) => {
     if (!selectedAsset) {
-      const foundAsset = files.find((file) => file.file.name === name);
+      const foundAsset = files.find((file) => file.name === name);
       setSelectedAsset(foundAsset);
     } else {
       setSelectedAsset(null);
@@ -195,7 +195,7 @@ export default function AssetsTable(props) {
     setPage(0);
   };
 
-  const isSelected = (name) => selectedAsset && selectedAsset.file.name === name;
+  const isSelected = (name) => selectedAsset && selectedAsset.name === name;
 
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, files.length - page * rowsPerPage);
 
@@ -207,28 +207,25 @@ export default function AssetsTable(props) {
         {stableSort(files, getComparator(order, orderBy))
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row) => {
-            const isItemSelected = isSelected(row.file.name);
-            const labelId = `enhanced-table-checkbox-${row.file.name}`;
+            const isItemSelected = isSelected(row.name);
+            const labelId = `enhanced-table-checkbox-${row.name}`;
             return (
               <TableRow
                 hover
                 role="checkbox"
                 aria-checked={isItemSelected}
                 tabIndex={-1}
-                key={row.file.name}
+                key={row.name}
                 selected={isItemSelected}
               >
-                <TableCell
-                  padding="checkbox"
-                  onClick={(event) => handleClick(event, row.file.name)}
-                >
+                <TableCell padding="checkbox" onClick={(event) => handleClick(event, row.name)}>
                   <Radio checked={isItemSelected} inputProps={{ 'aria-labelledby': labelId }} />
                 </TableCell>
                 <TableCell component="th" id={labelId} scope="row" padding="none">
-                  <Button>{row.file.name}</Button>
+                  <Button>{row.name}</Button>
                 </TableCell>
-                <TableCell align="left">{row.file.type}</TableCell>
-                <TableCell align="left">{row.file.size}</TableCell>
+                <TableCell align="left">{row.type}</TableCell>
+                <TableCell align="left">{row.size}</TableCell>
               </TableRow>
             );
           })}

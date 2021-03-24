@@ -1,4 +1,4 @@
-const loam = require('loam-worker.js');
+import loam from 'loam';
 
 const PREFETCH = Array.from(document.querySelectorAll('link[rel=prefetch]')).map(
   (link) => link.href,
@@ -14,7 +14,6 @@ const prefetchedJS = `
 
 export default function InitLoam() {
   return new Promise((resolve) => {
-    console.log(prefetched('loam-worker.js'));
     fetch(prefetched('loam-worker.js'))
       .then((res) => res.blob())
       .then((blob) => blob.text())
