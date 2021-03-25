@@ -171,7 +171,15 @@ export default function AssetsTable(props) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-  const { setSelectedAsset, selectedAsset, files, setFiles, maxNumberOfRows } = props;
+  const {
+    setSelectedAsset,
+    selectedAsset,
+    fileObjects,
+    setFileObjs,
+    files,
+    setFiles,
+    maxNumberOfRows,
+  } = props;
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -194,7 +202,9 @@ export default function AssetsTable(props) {
     }
     const newFiles = files.filter((file) => file.name !== name);
 
+    const newFileObjs = fileObjects.filter((file) => file.file.name !== name);
     setFiles(newFiles);
+    setFileObjs(newFileObjs);
   };
 
   const handleChangePage = (event, newPage) => {
