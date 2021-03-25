@@ -1,12 +1,12 @@
 import React, { useRef, useState } from 'react';
-import { connect } from 'react-redux';
-import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
 import { makeStyles } from '@material-ui/core/styles';
 import { Card, CardContent, Grid, Typography } from '@material-ui/core';
 // import { useQuery } from '@apollo/react-hooks';
 // import geoDIDQuery from 'core/graphql/geoDIDQuery';
+import { DropzoneAreaBase } from 'material-ui-dropzone';
 import Map from 'components/Map';
 import { readFileAsync, loadLoam } from 'utils';
+import { useSnackbar } from 'notistack';
 
 import AssetsTable from './AssetsTable';
 
@@ -21,85 +21,116 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Dashboard = () => {
+const Item = () => {
   const classes = useStyles();
   const parentRef = useRef(null);
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const { enqueueSnackbar } = useSnackbar();
 
-  function onDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  }
+  const handleAdd = async (newFiles) => {
+    console.log(newFiles);
 
-  async function onDrop(e) {
-    e.preventDefault();
+    console.log(files);
+    const currentFiles = [...files];
 
-    const fNew = e.dataTransfer.files;
+    console.log(currentFiles);
+    newFiles.forEach(async (f) => {
+      const fNew = f.file;
+      if (
+        fNew.type === 'application/json' ||
+        fNew.type === 'image/tiff' ||
+        fNew.type === 'image/tif'
+      ) {
+        if (files.length > 0) {
+          const foundFile = files.find((file) => file.name === fNew.name);
+          if (!foundFile) {
+            let newFile = {};
+            if (fNew.type === 'application/json') {
+              try {
+                const data = await readFileAsync(fNew, true);
+                const geoJsonData = JSON.parse(data);
 
-    if (
-      fNew[0].type === 'application/json' ||
-      fNew[0].type === 'image/tiff' ||
-      fNew[0].type === 'image/tif'
-    ) {
-      if (files.length > 0) {
-        const foundFile = files.find((file) => file.name === fNew[0].name);
-        if (!foundFile) {
+                newFile = {
+                  name: fNew.name,
+                  type: 'geojson',
+                  size: fNew.size,
+                  data: geoJsonData,
+                };
+                enqueueSnackbar(`${newFile.name} added`, {
+                  variant: 'success',
+                });
+
+                setFiles([...files, newFile]);
+              } catch {
+                enqueueSnackbar(`Couldn't parse GeoJson`, {
+                  variant: 'warning',
+                });
+              }
+            } else {
+              try {
+                const loam = await loadLoam();
+
+                newFile = {
+                  name: fNew.name,
+                  type: 'geotiff',
+                  size: fNew.size,
+                  data: await loam.open(fNew),
+                };
+                enqueueSnackbar(`${newFile.name} added`, {
+                  variant: 'success',
+                });
+
+                setFiles([...files, newFile]);
+              } catch {
+                enqueueSnackbar(`Couldn't parse GeoTiff`, {
+                  variant: 'warning',
+                });
+              }
+            }
+          } else {
+            enqueueSnackbar(`File already exists`, {
+              variant: 'warning',
+            });
+          }
+        } else {
           let newFile = {};
-          if (fNew[0].type === 'application/json') {
-            const data = await readFileAsync(fNew[0], true);
+          if (fNew.type === 'application/json') {
+            const data = await readFileAsync(fNew, true);
             const geoJsonData = JSON.parse(data);
 
             newFile = {
-              name: fNew[0].name,
+              name: fNew.name,
               type: 'geojson',
-              size: fNew[0].size,
+              size: fNew.size,
               data: geoJsonData,
             };
+            setFiles([...files, newFile]);
+            enqueueSnackbar(`${newFile.name} added`, {
+              variant: 'success',
+            });
           } else {
             const loam = await loadLoam();
 
             newFile = {
-              name: fNew[0].name,
+              name: fNew.name,
               type: 'geotiff',
-              size: fNew[0].size,
-              data: await loam.open(fNew[0]),
+              size: fNew.size,
+              data: await loam.open(fNew),
             };
+            setFiles([...files, newFile]);
+            enqueueSnackbar(`${newFile.name} added`, {
+              variant: 'success',
+            });
           }
-
-          const updatedFiles = [...files, newFile];
-          setFiles(updatedFiles);
         }
       } else {
-        let newFile = {};
-        if (fNew[0].type === 'application/json') {
-          const data = await readFileAsync(fNew[0], true);
-          const geoJsonData = JSON.parse(data);
-
-          newFile = {
-            name: fNew[0].name,
-            type: 'geojson',
-            size: fNew[0].size,
-            data: geoJsonData,
-          };
-        } else {
-          const loam = await loadLoam();
-
-          newFile = {
-            name: fNew[0].name,
-            type: 'geotiff',
-            size: fNew[0].size,
-            data: await loam.open(fNew[0]),
-          };
-        }
-        const updatedFiles = [...files, newFile];
-
-        setFiles(updatedFiles);
+        enqueueSnackbar(`Wrong file type. Only geotiff and geojsons are accepted`, {
+          variant: 'warning',
+        });
       }
-    }
-  }
-
-  console.log(selectedFile);
+    });
+  };
 
   return (
     <Card classes={{ root: classes.container }} variant="outlined" style={{ height: '96vh' }}>
@@ -109,18 +140,20 @@ const Dashboard = () => {
         </Typography>
         <Grid container style={{ height: '100%' }} spacing={2} direction="row" justify="center">
           <Grid item xs={6}>
-            <div
-              onDragOver={onDragOver}
-              onDrop={onDrop}
-              style={{ width: '200px', height: '200px', outline: '2px dashed' }}
-            >
-              Drop here
-            </div>
+            <DropzoneAreaBase
+              onAdd={(added) => handleAdd(added)}
+              dropzoneText="Drag and drop GeoJSON or GeoTIFF files"
+              acceptedFiles={['image/tiff', 'application/json']}
+              clearOnUnmount
+              showAlerts={false}
+            />
+
             <AssetsTable
               selectedAsset={selectedFile}
               setSelectedAsset={setSelectedFile}
               files={files}
               maxNumberOfRows={5}
+              setFiles={setFiles}
             />
           </Grid>
           <Grid item xs={6}>
@@ -139,12 +172,4 @@ const Dashboard = () => {
   );
 };
 
-const mapStateToProps = (state) => ({
-  geoDIDID: state.spatialAssets.geoDIDID,
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  dispatchSetSelectedGeoDID: (geoDIDID) => dispatch(setSelectedGeoDID(geoDIDID)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);
+export default Item;

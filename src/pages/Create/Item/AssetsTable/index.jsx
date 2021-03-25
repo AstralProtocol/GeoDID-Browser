@@ -13,9 +13,10 @@ import {
   Toolbar,
   Typography,
   Paper,
-  Button,
   Radio,
+  IconButton,
 } from '@material-ui/core';
+import DeleteIcon from '@material-ui/icons/Delete';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -80,6 +81,7 @@ function EnhancedTableHead(props) {
             </TableSortLabel>
           </TableCell>
         ))}
+        <TableCell padding="checkbox" />
       </TableRow>
     </TableHead>
   );
@@ -169,7 +171,7 @@ export default function AssetsTable(props) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-  const { setSelectedAsset, selectedAsset, files, maxNumberOfRows } = props;
+  const { setSelectedAsset, selectedAsset, files, setFiles, maxNumberOfRows } = props;
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -178,12 +180,21 @@ export default function AssetsTable(props) {
   };
 
   const handleClick = (event, name) => {
-    if (!selectedAsset) {
+    if (selectedAsset && selectedAsset.name === name) {
+      setSelectedAsset(null);
+    } else {
       const foundAsset = files.find((file) => file.name === name);
       setSelectedAsset(foundAsset);
-    } else {
+    }
+  };
+
+  const handleRemove = (event, name) => {
+    if (selectedAsset && selectedAsset.name === name) {
       setSelectedAsset(null);
     }
+    const newFiles = files.filter((file) => file.name !== name);
+
+    setFiles(newFiles);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -222,10 +233,15 @@ export default function AssetsTable(props) {
                   <Radio checked={isItemSelected} inputProps={{ 'aria-labelledby': labelId }} />
                 </TableCell>
                 <TableCell component="th" id={labelId} scope="row" padding="none">
-                  <Button>{row.name}</Button>
+                  {row.name}
                 </TableCell>
                 <TableCell align="left">{row.type}</TableCell>
                 <TableCell align="left">{row.size}</TableCell>
+                <TableCell padding="checkbox" onClick={(event) => handleRemove(event, row.name)}>
+                  <IconButton>
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             );
           })}
