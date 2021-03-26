@@ -1,220 +1,137 @@
-import React, { useState, useEffect } from 'react';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import ReactMapGL, { Source, Layer, FlyToInterpolator, WebMercatorViewport } from 'react-map-gl';
-import { easeCubic } from 'd3-ease';
-import { fromBlob } from 'geotiff';
-import turf from 'turf';
+import * as React from 'react';
+import { useState, useRef, useEffect } from 'react';
+import * as L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import createParser from 'core/parsers/parserFactory';
+import { ImageOverlay, GeoJSON, Map, TileLayer } from 'react-leaflet';
+import { IMAGE_OVERLAY, GEO_JSON_MARKER_OPTIONS, GEOJSON_OVERLAY } from 'utils/constants';
+import { uuidv4 } from 'utils';
 
-const Map = (props) => {
-  const { selectedAsset, parentRef } = props;
-  const [tiffAsset, setTiffAsset] = useState(null);
-  const [geojsonAsset, setGeojsonAsset] = useState(null);
+/* This code and underlying dependencies have been based on https://github.com/aviklai/react-leaflet-load-geodata
+   with adaptations to load loam dependencies from unpkg
 
-  const [viewport, setViewport] = useState({
-    latitude: 30,
-    longitude: 0,
+    <link rel="prefetch" href="https://unpkg.com/gdal-js@2.0.0/gdal.js" />
+    <link rel="prefetch" href="https://unpkg.com/gdal-js@2.0.0/gdal.data" />
+    <link rel="prefetch" href="https://unpkg.com/gdal-js@2.0.0/gdal.wasm" />
+    <link rel="prefetch" href="https://unpkg.com/loam@1.0.0-rc.2/lib/loam-worker.js" />
+Have been added to public/index.html to prefetch
+*/
+
+/* eslint-disable */
+/* This code is needed to properly load the images in the Leaflet CSS */
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
+/* eslint-enable */
+
+const LeafletMap = (props) => {
+  const { selectedFile } = props;
+  const map = useRef(null);
+  const [zoomPosition, setZoomPosition] = useState({
     zoom: 2,
-    width: '100%',
-    height: '100%',
+    center: L.latLng(42, -16),
   });
 
-  useEffect(() => {
-    if (geojsonAsset) {
-      const bbox = turf.bbox(geojsonAsset);
+  const [showLoader, setShowLoader] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [overlays, setOverlays] = useState([]);
 
-      const { longitude, latitude, zoom } = new WebMercatorViewport(viewport).fitBounds(
-        [
-          [bbox[0], bbox[1]],
-          [bbox[2], bbox[3]],
-        ],
-        {
-          padding: 20,
-          offset: [0, -100],
-        },
-      );
+  console.log(showLoader);
+  console.log(showError);
 
-      setViewport({
-        ...viewport,
-        longitude,
-        latitude,
-        zoom,
-        transitionDuration: 1000,
-        transitionInterpolator: new FlyToInterpolator(),
-        transitionEasing: easeCubic,
-      });
-    } else if (tiffAsset) {
-      const bbox = tiffAsset.getBoundingBox();
-
-      console.log(bbox);
-      const { longitude, latitude, zoom } = new WebMercatorViewport(viewport).fitBounds(
-        [
-          [bbox[0], bbox[1]],
-          [bbox[2], bbox[3]],
-        ],
-        {
-          padding: 20,
-          offset: [0, -100],
-        },
-      );
-
-      setViewport({
-        ...viewport,
-        longitude,
-        latitude,
-        zoom,
-        transitionDuration: 1000,
-        transitionInterpolator: new FlyToInterpolator(),
-        transitionEasing: easeCubic,
-      });
-    } else {
-      setViewport({
-        ...viewport,
-        latitude: 30,
-        longitude: 0,
-        zoom: 2,
-        transitionDuration: 1000,
-        transitionInterpolator: new FlyToInterpolator(),
-        transitionEasing: easeCubic,
-      });
-    }
-  }, [geojsonAsset, tiffAsset]);
+  function onMoveEnd(e) {
+    const center = e.target.getCenter();
+    const zoom = e.target.getZoom();
+    setZoomPosition({ zoom, position: center });
+  }
 
   useEffect(() => {
-    if (parentRef.current) {
-      setViewport({
-        ...viewport,
-        width: parentRef.current.offsetWidth,
-        height: parentRef.current.offsetHeight,
-      });
-    }
-  }, [parentRef]);
+    const loadAsset = async () => {
+      if (selectedFile) {
+        console.log(selectedFile);
+        setShowError(false);
+        setShowLoader(true);
+        try {
+          const parser = createParser(selectedFile, map);
+          const layerData = await parser.createLayer();
 
-  useEffect(() => {
-    const handleResize = () => {
-      setViewport({
-        ...viewport,
-        width: parentRef.current.offsetWidth,
-        height: parentRef.current.offsetHeight,
-      });
-    };
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  });
-
-  useEffect(() => {
-    const fetchAsset = async () => {
-      if (selectedAsset) {
-        if (selectedAsset.file.type === 'image/tiff') {
-          setGeojsonAsset(null);
-          const tiff = await fromBlob(selectedAsset.file);
-          const image = await tiff.getImage(); // by default, the first image is read.
-          setTiffAsset(image);
-        } else if (selectedAsset.file.type === 'application/json') {
-          setTiffAsset(null);
-          // 29 = length of "data:application/json;base64,"
-          const json = atob(selectedAsset.data.substring(29));
-          const result = JSON.parse(json);
-          setGeojsonAsset(result);
+          setZoomPosition({ zoom: layerData.zoom, center: layerData.center });
+          setOverlays((ov) => [...ov, { show: true, data: layerData, id: uuidv4() }]);
+        } catch (ex) {
+          console.log(ex);
+          setShowError(true);
+        } finally {
+          setShowLoader(false);
         }
       } else {
-        setGeojsonAsset(null);
-        setTiffAsset(null);
+        setZoomPosition({
+          zoom: 5,
+          center: L.latLng(20, 0),
+        });
+        setOverlays([]);
       }
     };
 
-    fetchAsset();
-  }, [selectedAsset]);
+    loadAsset();
+  }, [selectedFile]);
 
-  /*
-  useEffect(() => {
-    if (spatialAssetLoaded && spatialAsset) {
-      const cogs =
-        spatialAsset.assets &&
-        Object.values(spatialAsset.assets).reduce((newData, asset) => {
-          if (regex.exec(asset.href)[1] === 'tif') {
-            newData.push(asset.href);
-          }
-          return newData;
-        }, []);
+  function pointToLayer(feature, latlng) {
+    return L.circleMarker(latlng, GEO_JSON_MARKER_OPTIONS);
+  }
 
-      onStacDataLoad(spatialAsset);
-
-      if (cogs) {
-        dispatchLoadCogs(cogs);
-        dispatchSetSelectedCog(cogs[0]);
+  function popUp(f, l) {
+    const out = [];
+    if (f.properties) {
+      // eslint-disable-next-line
+      for (const key in f.properties) {
+        out.push(key + ': ' + f.properties[key]);
       }
-    } else if (!initialMapLoad) {
-      onStacDataLoad(null);
-      setRasterSources(null);
-      setSelectedRasterSource(null);
-    }
-  }, [spatialAssetLoaded, spatialAsset, initialMapLoad, dispatchLoadCogs]);
-
-
-  useEffect(() => {
-    if (loadedTiffJson) {
-      const newRasterSources = [];
-
-      loadedTiffJson.forEach((tiffJson) => {
-        newRasterSources.push(
-          <Source id={tiffJson.cog} key={tiffJson.cog} type="raster" tiles={tiffJson.tiles}>
-            <Layer id={tiffJson.cog} type="raster" />
-          </Source>,
-        );
-      });
-
-      setRasterSources(newRasterSources);
-    }
-  }, [loadedTiffJson]);
-
-  useEffect(() => {
-    if (rasterSources && selectedCog) {
-      setSelectedRasterSource(
-        rasterSources.find((rasterSource) => rasterSource.key === selectedCog),
-      );
-    }
-  }, [rasterSources, selectedCog]);
-*/
-  const geoJsonDataLayer = {
-    id: 'dataLayer',
-    source: 'geojson',
-    type: 'fill',
-    paint: { 'fill-color': '#228b22', 'fill-opacity': 0.4 },
-  };
-
-  let mapSource;
-  if (selectedAsset) {
-    if (
-      selectedAsset.file.type === 'application/json' &&
-      geojsonAsset &&
-      geojsonAsset.features.length > 0
-    ) {
-      mapSource = (
-        <>
-          <Source id="geojson" type="geojson" data={geojsonAsset.features[0].geometry}>
-            <Layer
-              // eslint-disable-next-line
-              {...geoJsonDataLayer}
-            />
-          </Source>
-        </>
-      );
+      l.bindPopup(out.join('<br />'));
     }
   }
 
+  console.log(zoomPosition);
+  console.log(overlays);
   return (
-    <ReactMapGL
-      mapStyle="mapbox://styles/mapbox/streets-v11"
-      mapboxApiAccessToken={process.env.REACT_APP_MapboxAccessToken}
-      // eslint-disable-next-line
-      {...viewport}
-      onViewportChange={(vp) => setViewport(vp)}
+    <Map
+      style={{ height: '100%', width: '100%' }}
+      center={zoomPosition.center}
+      zoom={zoomPosition.zoom}
+      onMoveEnd={onMoveEnd}
+      maxZoom={30}
+      ref={map}
     >
-      {mapSource}
-    </ReactMapGL>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      />
+      {overlays.map((overlay) => {
+        if (overlay.data.type === IMAGE_OVERLAY && overlay.show) {
+          return (
+            <ImageOverlay
+              key={overlay.id}
+              url={overlay.data.imageUrl}
+              bounds={overlay.data.bounds}
+            />
+          );
+        }
+        if (overlay.data.type === GEOJSON_OVERLAY && overlay.show) {
+          return (
+            <GeoJSON
+              key={overlay.id}
+              data={overlay.data.data}
+              pointToLayer={pointToLayer}
+              onEachFeature={popUp}
+            />
+          );
+        }
+        return null;
+      })}
+    </Map>
   );
 };
 
-export default Map;
+export default LeafletMap;

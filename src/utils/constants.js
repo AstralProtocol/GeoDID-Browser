@@ -1,6 +1,16 @@
 export const INFURA_ID = process.env.REACT_APP_INFURA_ID;
 export const SUBGRAPH_ENDPOINT = process.env.REACT_APP_GRAPHQL_HTTP_ENDPOINT;
 export const ETHERSCAN_KEY = process.env.REACT_APP_ETHERSCAN_KEY;
+export const IMAGE_OVERLAY = 'GeoTIFF';
+export const GEOJSON_OVERLAY = 'GeoJSON';
+export const GEO_JSON_MARKER_OPTIONS = {
+  radius: 8,
+  fillColor: '#ff7800',
+  color: '#000',
+  weight: 1,
+  opacity: 1,
+  fillOpacity: 0.8,
+};
 
 // EXTERNAL CONTRACTS
 
