@@ -1,16 +1,25 @@
 import React, { useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Card, CardContent, Grid, Typography } from '@material-ui/core';
+import { connect } from 'react-redux';
+import { Card, CardContent, Grid, Typography, ButtonBase } from '@material-ui/core';
 // import { useQuery } from '@apollo/react-hooks';
 // import geoDIDQuery from 'core/graphql/geoDIDQuery';
 import { DropzoneAreaBase } from 'material-ui-dropzone';
 import Map from 'components/Map';
-import { readFileAsync, loadLoam } from 'utils';
+import { readFileAsync, loadLoam, getBytes32FromGeoDIDid, getBytes32FromCid } from 'utils';
 import { useSnackbar } from 'notistack';
+import { useSubscription } from '@apollo/react-hooks';
+
+import { useAstral } from 'core/hooks/astral';
+import { useWallet } from 'core/hooks/web3';
+import { ethers } from 'ethers';
+import { setSelectedParentCreation } from 'core/redux/spatial-assets/actions';
+import geoDIDsSubscription from 'core/graphql/geoDIDsSubscription';
+import ParentGeoDIDsTable from './ParentGeoDIDsTable';
 
 import AssetsTable from './AssetsTable';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   container: {
     paddingTop: '10px',
     paddingLeft: '10px',
@@ -19,15 +28,60 @@ const useStyles = makeStyles(() => ({
   map: {
     borderRadius: '20px',
   },
+  assetsTable: {
+    height: '30vh',
+  },
+  tableParent: {
+    marginTop: '2vh',
+  },
+  dropzone: {
+    minHeight: '10vh',
+  },
+  createButton: {
+    borderRadius: '20px',
+    marginTop: '3vh',
+    width: '100%',
+    height: '30vh',
+    background: '#fff',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: 'transparent',
+    color: theme.palette.primary.grey,
+    '&:hover': {
+      background: 'linear-gradient(45deg, #ffa300 30%, #f97b3d 90%)',
+      color: '#fff',
+    },
+  },
 }));
 
-const Item = () => {
+const Item = (props) => {
+  const { tx, contracts, address } = useWallet();
+  const { astralInstance } = useAstral();
   const classes = useStyles();
   const parentRef = useRef(null);
   const [fileObjects, setFileObjs] = useState([]);
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const { enqueueSnackbar } = useSnackbar();
+  const { parent, dispatchSetSelectedParentCreation } = props;
+
+  const { data, loading } = useSubscription(geoDIDsSubscription, {
+    variables: {
+      where: {
+        ...{},
+      },
+    },
+  });
+
+  const allAvailableParentsToAdd = data
+    ? data.geoDIDs.reduce((geoDIDIds, geoDID) => {
+        if (geoDID.type === 'Collection' && (!geoDID.parent || geoDID.parent.length === 0)) {
+          geoDIDIds.push(geoDID);
+        }
+        return geoDIDIds;
+      }, [])
+    : [];
 
   const handleAdd = async (newFiles) => {
     let currentFiles = [...files];
@@ -43,22 +97,23 @@ const Item = () => {
             fNew.type === 'image/tif'
           ) {
             if (currentFiles.length > 0) {
-              const foundFile = currentFiles.find((file) => file.name === fNew.name);
+              const foundFile = currentFiles.find((file) => file.tag === fNew.name);
               console.log(foundFile);
               if (!foundFile) {
                 let newFile = {};
                 if (fNew.type === 'application/json') {
                   try {
-                    const data = await readFileAsync(fNew, true);
-                    const geoJsonData = JSON.parse(data);
+                    const readFile = await readFileAsync(fNew, true);
+                    const geoJsonData = JSON.parse(readFile);
 
                     newFile = {
-                      name: fNew.name,
-                      type: 'geojson',
+                      tag: fNew.name,
+                      type: 'GeoJSON',
                       size: fNew.size,
                       data: geoJsonData,
+                      bytes: new Uint8Array(geoJsonData).buffer,
                     };
-                    enqueueSnackbar(`${newFile.name} added`, {
+                    enqueueSnackbar(`${newFile.tag} added`, {
                       variant: 'success',
                     });
 
@@ -72,14 +127,15 @@ const Item = () => {
                 } else {
                   try {
                     const loam = await loadLoam();
-
+                    const loadedData = await loam.open(fNew);
                     newFile = {
-                      name: fNew.name,
-                      type: 'geotiff',
+                      tag: fNew.name,
+                      type: 'GeoTIFF',
                       size: fNew.size,
-                      data: await loam.open(fNew),
+                      data: loadedData,
+                      bytes: loadedData,
                     };
-                    enqueueSnackbar(`${newFile.name} added`, {
+                    enqueueSnackbar(`${newFile.tag} added`, {
                       variant: 'success',
                     });
 
@@ -99,25 +155,28 @@ const Item = () => {
             } else {
               let newFile = {};
               if (fNew.type === 'application/json') {
-                const data = await readFileAsync(fNew, true);
-                const geoJsonData = JSON.parse(data);
+                const readFile = await readFileAsync(fNew, true);
+                const geoJsonData = JSON.parse(readFile);
 
                 newFile = {
-                  name: fNew.name,
-                  type: 'geojson',
+                  tag: fNew.name,
+                  type: 'GeoJSON',
                   size: fNew.size,
                   data: geoJsonData,
+                  bytes: new Uint8Array(geoJsonData).buffer,
                 };
                 currentFiles = [...currentFiles, newFile];
                 currentFileObjects = [...currentFileObjects, f];
               } else {
                 const loam = await loadLoam();
+                const loadedData = await loam.open(fNew);
 
                 newFile = {
-                  name: fNew.name,
-                  type: 'geotiff',
+                  tag: fNew.name,
+                  type: 'GeoTIFF',
                   size: fNew.size,
-                  data: await loam.open(fNew),
+                  data: loadedData,
+                  bytes: loadedData,
                 };
                 currentFiles = [...currentFiles, newFile];
                 currentFileObjects = [...currentFileObjects, f];
@@ -133,6 +192,59 @@ const Item = () => {
     } finally {
       setFiles(currentFiles);
       setFileObjs(currentFileObjects);
+    }
+  };
+
+  console.log(files);
+  console.log(parent);
+  const createGeoDID = async () => {
+    let bytes32Parent;
+
+    if (parent) {
+      bytes32Parent = getBytes32FromGeoDIDid(parent);
+    } else {
+      bytes32Parent = ethers.utils.formatBytes32String('');
+    }
+
+    const genDocRes = await astralInstance.createGenesisGeoDID('item');
+
+    const results = await astralInstance.pinDocument(genDocRes);
+
+    const bytes32GeoDID = getBytes32FromGeoDIDid(results.geodidid);
+
+    const bytes32Cid = getBytes32FromCid(results.cid);
+
+    try {
+      await Promise.all(
+        await tx(
+          contracts.SpatialAssets.registerSpatialAsset(
+            address,
+            bytes32GeoDID,
+            bytes32Parent,
+            [],
+            bytes32Cid,
+            ethers.utils.formatBytes32String('FILECOIN'),
+            1,
+          ),
+          enqueueSnackbar,
+        ),
+      );
+      dispatchSetSelectedParentCreation(null);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      if (files && files.length > 0) {
+        const dataArray = files.reduce((newDataArray, file) => {
+          newDataArray.push({
+            type: file.type,
+            tag: file.tag,
+            bytes: file.bytes,
+          });
+          return newDataArray;
+        }, []);
+
+        await astralInstance.addAssetsToItem(results.geodidid, dataArray, results.token);
+      }
     }
   };
 
@@ -152,19 +264,31 @@ const Item = () => {
               clearOnUnmount
               showAlerts={false}
               showPreviewsInDropzone={false}
+              dropzoneClass={classes.dropzone}
             />
-
-            <AssetsTable
-              selectedAsset={selectedFile}
-              setSelectedAsset={setSelectedFile}
-              files={files}
-              fileObjects={fileObjects}
-              maxNumberOfRows={5}
-              setFiles={setFiles}
-              setFileObjs={setFileObjs}
-            />
+            <div className={classes.assetsTable}>
+              <AssetsTable
+                selectedAsset={selectedFile}
+                setSelectedAsset={setSelectedFile}
+                files={files}
+                fileObjects={fileObjects}
+                maxNumberOfRows={5}
+                setFiles={setFiles}
+                setFileObjs={setFileObjs}
+                maxFileSize={10000000}
+              />
+            </div>
+            <div className={classes.tableParent}>
+              <ParentGeoDIDsTable
+                type="Add"
+                allAvailableParents={allAvailableParentsToAdd}
+                loading={loading}
+                maxNumberOfRows={5}
+                isDisabled={false}
+              />
+            </div>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={6} style={{ height: '100%' }}>
             <Card
               classes={{ root: classes.map }}
               variant="outlined"
@@ -173,6 +297,11 @@ const Item = () => {
             >
               <Map selectedFile={selectedFile} />
             </Card>
+            <ButtonBase className={classes.createButton} onClick={() => createGeoDID()}>
+              <Typography variant="h4" gutterBottom>
+                Create GeoDID
+              </Typography>
+            </ButtonBase>
           </Grid>
         </Grid>
       </CardContent>
@@ -180,4 +309,12 @@ const Item = () => {
   );
 };
 
-export default Item;
+const mapStateToProps = (state) => ({
+  parent: state.spatialAssets.parent,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  dispatchSetSelectedParentCreation: (parent) => dispatch(setSelectedParentCreation(parent)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Item);

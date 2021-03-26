@@ -47,6 +47,7 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
     backgroundColor: theme.palette.content.background,
     height: `100vh`,
+    width: `calc(100vw - ${drawerWidth}px)`,
   },
   divider: {
     background: '#444444',

@@ -3,10 +3,10 @@ import GeoJsonParser from './geoJsonParser';
 
 export default function createParser(selectedFile, map) {
   console.log(selectedFile);
-  if (selectedFile.type === 'geotiff') {
+  if (selectedFile.type === 'GeoTIFF') {
     return new TifParser(selectedFile, map);
   }
-  if (selectedFile.type === 'geojson') {
+  if (selectedFile.type === 'GeoJSON') {
     return new GeoJsonParser(selectedFile, map);
   }
 

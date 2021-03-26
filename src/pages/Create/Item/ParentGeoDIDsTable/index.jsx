@@ -1,7 +1,10 @@
 import React from 'react';
 import clsx from 'clsx';
+import { connect } from 'react-redux';
 import { lighten, makeStyles } from '@material-ui/core/styles';
+import { useHistory } from 'react-router-dom';
 import {
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -13,10 +16,11 @@ import {
   Toolbar,
   Typography,
   Paper,
+  Button,
   Radio,
-  IconButton,
 } from '@material-ui/core';
-import DeleteIcon from '@material-ui/icons/Delete';
+import { getShortGeoDID } from 'utils';
+import { setSelectedGeoDID, setSelectedParentCreation } from 'core/redux/spatial-assets/actions';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -45,9 +49,9 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
-  { id: 'tag', numeric: false, disablePadding: true, label: 'Tag' },
+  { id: 'id', numeric: false, disablePadding: true, label: 'GeoDID ID' },
   { id: 'type', numeric: false, disablePadding: false, label: 'Type' },
-  { id: 'size', numeric: false, disablePadding: false, label: 'size' },
+  { id: 'cid', numeric: false, disablePadding: false, label: 'CID' },
 ];
 
 function EnhancedTableHead(props) {
@@ -81,7 +85,6 @@ function EnhancedTableHead(props) {
             </TableSortLabel>
           </TableCell>
         ))}
-        <TableCell padding="checkbox" />
       </TableRow>
     </TableHead>
   );
@@ -112,20 +115,20 @@ const useToolbarStyles = makeStyles((theme) => ({
 
 const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
-  const { numSelected } = props;
+  const { numSelected, selected } = props;
 
   let toolbarContent;
 
   if (numSelected > 0) {
     toolbarContent = (
       <Typography className={classes.title} color="inherit" variant="subtitle1" component="div">
-        Asset selected
+        {getShortGeoDID(selected)} selected
       </Typography>
     );
   } else if (numSelected === 0) {
     toolbarContent = (
       <Typography className={classes.title} variant="h6" id="tableTitle" component="div">
-        Select dropped asset to preview
+        Add a Collection as Parent?
       </Typography>
     );
   }
@@ -164,21 +167,23 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function AssetsTable(props) {
+function ParentGeoDIDsTable(props) {
   const classes = useStyles();
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('calories');
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const history = useHistory();
 
   const {
-    setSelectedAsset,
-    selectedAsset,
-    fileObjects,
-    setFileObjs,
-    files,
-    setFiles,
+    geoDIDID,
+    dispatchSetSelectedParentCreation,
+    dispatchSetSelectedGeoDID,
+    allAvailableParents,
+    loading,
     maxNumberOfRows,
+    selected,
+    isDisabled,
   } = props;
 
   const handleRequestSort = (event, property) => {
@@ -187,24 +192,14 @@ export default function AssetsTable(props) {
     setOrderBy(property);
   };
 
-  const handleClick = (event, tag) => {
-    if (selectedAsset && selectedAsset.tag === tag) {
-      setSelectedAsset(null);
-    } else {
-      const foundAsset = files.find((file) => file.tag === tag);
-      setSelectedAsset(foundAsset);
+  const handleClick = (event, id) => {
+    if (!isDisabled) {
+      if (selected !== id) {
+        dispatchSetSelectedParentCreation(id);
+      } else {
+        dispatchSetSelectedParentCreation(null);
+      }
     }
-  };
-
-  const handleRemove = (event, tag) => {
-    if (selectedAsset && selectedAsset.tag === tag) {
-      setSelectedAsset(null);
-    }
-    const newFiles = files.filter((file) => file.tag !== tag);
-
-    const newFileObjs = fileObjects.filter((file) => file.file.name !== tag);
-    setFiles(newFiles);
-    setFileObjs(newFileObjs);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -216,42 +211,47 @@ export default function AssetsTable(props) {
     setPage(0);
   };
 
-  const isSelected = (tag) => selectedAsset && selectedAsset.tag === tag;
+  const isSelected = (id) => selected === id;
 
-  const emptyRows = rowsPerPage - Math.min(rowsPerPage, files.length - page * rowsPerPage);
+  const handleGeoDIDSelection = (value) => {
+    dispatchSetSelectedGeoDID(value);
+    history.push(`/browse/${value}`);
+  };
+
+  const emptyRows =
+    rowsPerPage - Math.min(rowsPerPage, allAvailableParents.length - page * rowsPerPage);
 
   let tableBody;
 
-  if (files.length > 0) {
+  if (allAvailableParents.length > 0 && !loading) {
     tableBody = (
       <TableBody>
-        {stableSort(files, getComparator(order, orderBy))
+        {stableSort(allAvailableParents, getComparator(order, orderBy))
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row) => {
-            const isItemSelected = isSelected(row.tag);
-            const labelId = `enhanced-table-checkbox-${row.tag}`;
+            const isItemSelected = isSelected(row.id);
+            const labelId = `enhanced-table-checkbox-${row.id}`;
             return (
               <TableRow
                 hover
                 role="checkbox"
                 aria-checked={isItemSelected}
                 tabIndex={-1}
-                key={row.tag}
+                key={row.id}
                 selected={isItemSelected}
               >
-                <TableCell padding="checkbox" onClick={(event) => handleClick(event, row.tag)}>
-                  <Radio checked={isItemSelected} inputProps={{ 'aria-labelledby': labelId }} />
+                <TableCell padding="checkbox" onClick={(event) => handleClick(event, row.id)}>
+                  <Radio
+                    disabled={isDisabled}
+                    checked={!isDisabled ? isItemSelected : false}
+                    inputProps={{ 'aria-labelledby': labelId }}
+                  />
                 </TableCell>
                 <TableCell component="th" id={labelId} scope="row" padding="none">
-                  {row.tag}
+                  <Button onClick={() => handleGeoDIDSelection(row.id)}>{row.id}</Button>
                 </TableCell>
                 <TableCell align="left">{row.type}</TableCell>
-                <TableCell align="left">{row.size}</TableCell>
-                <TableCell padding="checkbox" onClick={(event) => handleRemove(event, row.tag)}>
-                  <IconButton>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
+                <TableCell align="left">{row.cid}</TableCell>
               </TableRow>
             );
           })}
@@ -260,11 +260,21 @@ export default function AssetsTable(props) {
         </TableRow>
       </TableBody>
     );
-  } else if (emptyRows > 0) {
+  } else if (emptyRows > 0 && !loading) {
     tableBody = (
       <TableBody>
         <TableRow key="empty-2" style={{ height: 33 * emptyRows }}>
           <TableCell colSpan={6} />
+        </TableRow>
+      </TableBody>
+    );
+  } else if (loading) {
+    tableBody = (
+      <TableBody>
+        <TableRow key="loading" style={{ height: 33 * rowsPerPage }}>
+          <TableCell colSpan={6} style={{ alignItems: 'center', textAlign: 'center' }}>
+            <CircularProgress />
+          </TableCell>
         </TableRow>
       </TableBody>
     );
@@ -273,7 +283,11 @@ export default function AssetsTable(props) {
   return (
     <div className={classes.root}>
       <Paper className={classes.paper}>
-        <EnhancedTableToolbar numSelected={selectedAsset ? 1 : 0} />
+        <EnhancedTableToolbar
+          numSelected={selected ? 1 : 0}
+          selected={selected}
+          geoDIDID={geoDIDID}
+        />
         <TableContainer>
           <Table
             className={classes.table}
@@ -283,11 +297,12 @@ export default function AssetsTable(props) {
           >
             <EnhancedTableHead
               classes={classes}
-              numSelected={selectedAsset ? 1 : 0}
+              numSelected={selected ? 1 : 0}
+              selected={selected}
               order={order}
               orderBy={orderBy}
               onRequestSort={handleRequestSort}
-              rowCount={files.length}
+              rowCount={allAvailableParents.length}
             />
             {tableBody}
           </Table>
@@ -295,7 +310,7 @@ export default function AssetsTable(props) {
         <TablePagination
           rowsPerPageOptions={[5, maxNumberOfRows]}
           component="div"
-          count={files.length}
+          count={allAvailableParents.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onChangePage={handleChangePage}
@@ -305,3 +320,15 @@ export default function AssetsTable(props) {
     </div>
   );
 }
+
+const mapStateToProps = (state) => ({
+  geoDIDID: state.spatialAssets.geoDIDID,
+  selected: state.spatialAssets.parent,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  dispatchSetSelectedParentCreation: (parent) => dispatch(setSelectedParentCreation(parent)),
+  dispatchSetSelectedGeoDID: (geoDIDID) => dispatch(setSelectedGeoDID(geoDIDID)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ParentGeoDIDsTable);
