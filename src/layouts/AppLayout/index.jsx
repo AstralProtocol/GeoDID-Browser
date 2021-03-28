@@ -258,9 +258,6 @@ function AppLayout(props) {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAccount: state.login.selectedAccount,
-  isLoggedIn: state.login.isLoggedIn,
-  signingOut: state.login.signingOut,
   openError: state.modals.openError,
   errorMsg: state.modals.errorMsg,
 });
