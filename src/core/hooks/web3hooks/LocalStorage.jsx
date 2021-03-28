@@ -11,7 +11,6 @@ export default function useLocalStorage(key, initialValue) {
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
       // If error also return initialValue
-      console.log(error);
       return initialValue;
     }
   });

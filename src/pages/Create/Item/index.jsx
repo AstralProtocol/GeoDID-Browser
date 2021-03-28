@@ -14,7 +14,14 @@ import {
 // import geoDIDQuery from 'core/graphql/geoDIDQuery';
 import { DropzoneAreaBase } from 'material-ui-dropzone';
 import Map from 'components/Map';
-import { readFileAsync, loadLoam, getBytes32FromGeoDIDid, getBytes32FromCid } from 'utils';
+import {
+  readFileAsync,
+  loadLoam,
+  getBytes32FromGeoDIDid,
+  getBytes32FromCid,
+  jsonToArray,
+  blobToUint8,
+} from 'utils';
 import { useSnackbar } from 'notistack';
 import { useSubscription } from '@apollo/react-hooks';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
@@ -24,6 +31,7 @@ import { ethers } from 'ethers';
 import Authorize from 'components/LayoutComponents/Authorize';
 import { setSelectedParentCreation } from 'core/redux/spatial-assets/actions';
 import geoDIDsSubscription from 'core/graphql/geoDIDsSubscription';
+
 import ParentGeoDIDsTable from './ParentGeoDIDsTable';
 
 import AssetsTable from './AssetsTable';
@@ -153,13 +161,14 @@ const Item = (props) => {
                   try {
                     const readFile = await readFileAsync(fNew, true);
                     const geoJsonData = JSON.parse(readFile);
+                    const jsonBytes = jsonToArray(readFile);
 
                     newFile = {
                       tag: fNew.name,
                       type: 'GeoJSON',
                       size: fNew.size,
                       data: geoJsonData,
-                      bytes: new Uint8Array(geoJsonData).buffer,
+                      bytes: jsonBytes,
                     };
                     enqueueSnackbar(`${newFile.tag} added`, {
                       variant: 'success',
@@ -176,12 +185,14 @@ const Item = (props) => {
                   try {
                     const loam = await loadLoam();
                     const loadedData = await loam.open(fNew);
+                    const uint8Array = await blobToUint8(fNew);
+
                     newFile = {
                       tag: fNew.name,
                       type: 'GeoTIFF',
                       size: fNew.size,
                       data: loadedData,
-                      bytes: loadedData,
+                      bytes: uint8Array,
                     };
                     enqueueSnackbar(`${newFile.tag} added`, {
                       variant: 'success',
@@ -205,26 +216,28 @@ const Item = (props) => {
               if (fNew.type === 'application/json') {
                 const readFile = await readFileAsync(fNew, true);
                 const geoJsonData = JSON.parse(readFile);
+                const jsonBytes = jsonToArray(readFile);
 
                 newFile = {
                   tag: fNew.name,
                   type: 'GeoJSON',
                   size: fNew.size,
                   data: geoJsonData,
-                  bytes: new Uint8Array(geoJsonData).buffer,
+                  bytes: jsonBytes,
                 };
                 currentFiles = [...currentFiles, newFile];
                 currentFileObjects = [...currentFileObjects, f];
               } else {
                 const loam = await loadLoam();
                 const loadedData = await loam.open(fNew);
+                const uint8Array = await blobToUint8(fNew);
 
                 newFile = {
                   tag: fNew.name,
                   type: 'GeoTIFF',
                   size: fNew.size,
                   data: loadedData,
-                  bytes: loadedData,
+                  bytes: uint8Array,
                 };
                 currentFiles = [...currentFiles, newFile];
                 currentFileObjects = [...currentFileObjects, f];

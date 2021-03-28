@@ -80,9 +80,6 @@ const AccountArea = () => {
 
   let rolesArea;
 
-  console.log(adminRole);
-  console.log(creatorRole);
-
   if (adminRole && (creatorRole || !creatorRole)) {
     rolesArea = (
       <List>
@@ -107,7 +104,7 @@ const AccountArea = () => {
       <AstralButton
         key="enableMinter"
         click={() => handleAddMinterRole()}
-        title="Enable asdf to create GeoDIDs"
+        title="Enable GeoDID creation"
       />
     );
   }
@@ -147,6 +144,45 @@ const AccountArea = () => {
     setTokenId(tokenIdTextField);
     setShowToken(false);
   };
+
+  let tokenIdArea;
+
+  if (tokenId) {
+    tokenIdArea = (
+      <List>
+        <ListItem key="tokenArea" role={undefined} dense button>
+          <TextField
+            name="token"
+            label="Your token"
+            type={showToken ? 'text' : 'password'}
+            value={tokenId}
+            style={{ minWidth: '400px' }}
+          />
+          <IconButton onClick={() => setShowToken(!showToken)}>
+            {showToken ? <VisibilityIcon /> : <VisibilityOffIcon />}
+          </IconButton>
+        </ListItem>
+      </List>
+    );
+  } else {
+    tokenIdArea = (
+      <List>
+        <ListItem key="tokenArea" role={undefined} dense button>
+          <TextField
+            name="token"
+            label="Add your token and press the + sign"
+            type="text"
+            onChange={(e) => handleChange(e)}
+            value={tokenIdTextField}
+            style={{ minWidth: '400px' }}
+          />
+          <IconButton onClick={() => handleAdd()}>
+            <AddIcon />
+          </IconButton>
+        </ListItem>
+      </List>
+    );
+  }
   return (
     <Authorize redirect>
       <Card classes={{ root: classes.container }} variant="outlined" style={{ height: '96vh' }}>
@@ -156,34 +192,7 @@ const AccountArea = () => {
           </Typography>
           {rolesArea}
           {storageArea}
-          {tokenId ? (
-            <>
-              <TextField
-                name="token"
-                label="Your token"
-                type={showToken ? 'text' : 'password'}
-                value={tokenId}
-                style={{ minWidth: '400px' }}
-              />
-              <IconButton onClick={() => setShowToken(!showToken)}>
-                {showToken ? <VisibilityIcon /> : <VisibilityOffIcon />}
-              </IconButton>
-            </>
-          ) : (
-            <>
-              <TextField
-                name="token"
-                label="Add your token and press the + sign"
-                type="text"
-                onChange={(e) => handleChange(e)}
-                value={tokenIdTextField}
-                style={{ minWidth: '400px' }}
-              />
-              <IconButton onClick={() => handleAdd()}>
-                <AddIcon />
-              </IconButton>
-            </>
-          )}
+          {tokenIdArea}
         </CardContent>
       </Card>
     </Authorize>

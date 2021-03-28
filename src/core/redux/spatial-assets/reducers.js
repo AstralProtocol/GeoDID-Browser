@@ -12,16 +12,6 @@ const initialState = {
   fetchingSpatialAsset: false,
   fetchedSpatialAsset: false,
   docRes: null,
-
-  // unused for now
-  loadedCogs: null,
-  loadedTiffJson: [],
-  selectedCog: null,
-  registeringSpatialAsset: false,
-  spatialAssetRegistered: false,
-  spatialAssetId: null,
-  enablingStorage: false,
-  storageEnabled: false,
 };
 
 export default function spatialAssetsReducer(state = initialState, action) {

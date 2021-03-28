@@ -4,6 +4,7 @@ import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import createParser from 'core/parsers/parserFactory';
 import { ImageOverlay, GeoJSON, Map, TileLayer } from 'react-leaflet';
+import { LinearProgress } from '@material-ui/core';
 import { IMAGE_OVERLAY, GEO_JSON_MARKER_OPTIONS, GEOJSON_OVERLAY } from 'utils/constants';
 import { uuidv4 } from 'utils';
 
@@ -38,9 +39,6 @@ const LeafletMap = (props) => {
   const [showLoader, setShowLoader] = useState(false);
   const [showError, setShowError] = useState(false);
   const [overlays, setOverlays] = useState([]);
-
-  console.log(showLoader);
-  console.log(showError);
 
   function onMoveEnd(e) {
     const center = e.target.getCenter();
@@ -93,44 +91,64 @@ const LeafletMap = (props) => {
     }
   }
 
-  console.log(zoomPosition);
-  console.log(overlays);
+  let assetsLoadedArea;
+
+  if (overlays && overlays.length > 0) {
+    assetsLoadedArea = (
+      <div style={{ height: '5%', width: '100%', textAlign: 'center' }}> Asset Loaded</div>
+    );
+  } else if (!showLoader) {
+    assetsLoadedArea = (
+      <div style={{ height: '5%', width: '100%', textAlign: 'center' }}>
+        Load an asset to view it on the map
+      </div>
+    );
+  } else if (showLoader && !showError) {
+    assetsLoadedArea = (
+      <div style={{ height: '5%', width: '100%', textAlign: 'center' }}>
+        <LinearProgress />
+      </div>
+    );
+  }
   return (
-    <Map
-      style={{ height: '100%', width: '100%' }}
-      center={zoomPosition.center}
-      zoom={zoomPosition.zoom}
-      onMoveEnd={onMoveEnd}
-      maxZoom={30}
-      ref={map}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-      />
-      {overlays.map((overlay) => {
-        if (overlay.data.type === IMAGE_OVERLAY && overlay.show) {
-          return (
-            <ImageOverlay
-              key={overlay.id}
-              url={overlay.data.imageUrl}
-              bounds={overlay.data.bounds}
-            />
-          );
-        }
-        if (overlay.data.type === GEOJSON_OVERLAY && overlay.show) {
-          return (
-            <GeoJSON
-              key={overlay.id}
-              data={overlay.data.data}
-              pointToLayer={pointToLayer}
-              onEachFeature={popUp}
-            />
-          );
-        }
-        return null;
-      })}
-    </Map>
+    <>
+      {assetsLoadedArea}
+      <Map
+        style={{ height: '95%', width: '100%' }}
+        center={zoomPosition.center}
+        zoom={zoomPosition.zoom}
+        onMoveEnd={onMoveEnd}
+        maxZoom={30}
+        ref={map}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        />
+        {overlays.map((overlay) => {
+          if (overlay.data.type === IMAGE_OVERLAY && overlay.show) {
+            return (
+              <ImageOverlay
+                key={overlay.id}
+                url={overlay.data.imageUrl}
+                bounds={overlay.data.bounds}
+              />
+            );
+          }
+          if (overlay.data.type === GEOJSON_OVERLAY && overlay.show) {
+            return (
+              <GeoJSON
+                key={overlay.id}
+                data={overlay.data.data}
+                pointToLayer={pointToLayer}
+                onEachFeature={popUp}
+              />
+            );
+          }
+          return null;
+        })}
+      </Map>
+    </>
   );
 };
 

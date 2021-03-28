@@ -65,10 +65,21 @@ const web3Modal = new Web3Modal({
 const logoutOfWeb3Modal = async () => {
   await web3Modal.clearCachedProvider();
   setTimeout(() => {
+    window.localStorage.setItem('powergateTokenId', JSON.stringify(''));
     window.location.reload();
   }, 1);
   history.push('/Landing');
 };
+
+/* eslint-disable no-unused-expressions */
+window.ethereum &&
+  window.ethereum.on('accountsChanged', () => {
+    setTimeout(() => {
+      window.localStorage.setItem('powergateTokenId', JSON.stringify(''));
+      window.location.reload();
+    }, 1);
+  });
+/* eslint-enable no-unused-expressions */
 
 /* eslint-disable no-unused-expressions */
 window.ethereum &&
@@ -132,7 +143,7 @@ export function WalletContextProvider({ children }) {
   // keep track of a variable from the contract in the local React state:
   // pass these below in memo to use in useWallet
   const creatorRole = useContractReader(contracts, 'SpatialAssets', 'hasRole', [
-    ethers.utils.formatBytes32String('DATA_SUPPLIER'),
+    ethers.utils.keccak256(ethers.utils.toUtf8Bytes('DATA_SUPPLIER')),
     address,
   ]);
 
@@ -144,8 +155,6 @@ export function WalletContextProvider({ children }) {
   const filecoinAllowed = useContractReader(contracts, 'SpatialAssets', 'allowedStorages', [
     ethers.utils.formatBytes32String('FILECOIN'),
   ]);
-
-  const [tokenId, setTokenId] = useLocalStorage('powergateTokenId_' + address, null);
 
   // 📟 Listen for broadcast events
 
@@ -169,6 +178,8 @@ export function WalletContextProvider({ children }) {
       loadWeb3Modal();
     }
   }, [loadWeb3Modal]);
+
+  const [tokenId, setTokenId] = useLocalStorage(`powergateTokenId`);
 
   const wallet = useMemo(
     () => ({

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { setSelectedGeoDID, fetchSpatialAsset } from 'core/redux/spatial-assets/actions';
+import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import SearchBar from 'material-ui-search-bar';
 import {
@@ -606,8 +606,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   dispatchSetSelectedGeoDID: (geoDIDID) => dispatch(setSelectedGeoDID(geoDIDID)),
-  dispatchFetchSpatialAsset: (astral, geoDIDID, tokenId) =>
-    dispatch(fetchSpatialAsset(astral, geoDIDID, tokenId)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);

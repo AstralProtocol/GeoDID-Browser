@@ -14,3 +14,7 @@ export { default as iff } from './iff';
 export { default as readFileAsync } from './readFileAsync';
 export { default as uuidv4 } from './uuidv4';
 export { default as loadLoam } from './loadLoam';
+export { default as jsonToArray } from './jsonToArray';
+export { default as arrayToJson } from './arrayToJson';
+export { default as blobToUint8 } from './blobToUint8';
+export { default as uint8ToBlob } from './uint8ToBlob';
