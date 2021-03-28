@@ -4,6 +4,9 @@ export const actions = {
   SET_SPATIAL_ASSET: 'spatial-assets/SET_SPATIAL_ASSET',
   SET_SELECTED_CHILDREN_CREATION: 'spatial-assets/SET_SELECTED_CHILDREN_CREATION',
   SET_SELECTED_PARENT_CREATION: 'spatial-assets/SET_SELECTED_PARENT_CREATION',
+  FETCH_SPATIAL_ASSET: 'spatial-assets/FETCH_SPATIAL_ASSET',
+  FETCHING_SPATIAL_ASSET: 'spatial-assets/FETCHING_SPATIAL_ASSET',
+  FETCHED_SPATIAL_ASSET: 'spatial-assets/FETCHED_SPATIAL_ASSET',
 
   // unused for now
   LOAD_COGS: 'spatial-assets/LOAD_COGS',
@@ -15,13 +18,19 @@ export const actions = {
   SPATIAL_ASSET_REGISTERED: 'spatial-assets/SPATIAL_ASSET_REGISTERED',
   STOP_CHANNEL_FORK: 'spatial-assets/STOP_CHANNEL_FORK',
   CLEAN_REGISTRATION_STATUS: 'spatial-assets/REGISTRATION_CLEANED',
-  FETCH_SPATIAL_ASSET: 'spatial-assets/FETCH_SPATIAL_ASSET',
-  FETCHING_SPATIAL_ASSET: 'spatial-assets/FETCHING_SPATIAL_ASSET',
-  FETCHED_SPATIAL_ASSET: 'spatial-assets/FETCHED_SPATIAL_ASSET',
   ENABLE_STORAGE: 'spatial-assets/ENABLE_STORAGE',
   ENABLING_STORAGE: 'spatial-assets/ENABLING_STORAGE',
   STORAGE_ENABLED: 'spatial-assets/STORAGE_ENABLED',
 };
+
+export const fetchSpatialAsset = (astral, geoDIDID, tokenId) => ({
+  type: actions.FETCH_SPATIAL_ASSET,
+  payload: {
+    astral,
+    geoDIDID,
+    tokenId,
+  },
+});
 
 export const setSelectedGeoDID = (geoDIDID) => ({
   type: actions.SET_SELECTED_GEODID,
@@ -92,13 +101,6 @@ export const cleanRegistrationStatus = () => ({
   type: actions.CLEAN_REGISTRATION_STATUS,
   payload: {
     spatialAssetRegistered: false,
-  },
-});
-
-export const fetchSpatialAsset = (stacId) => ({
-  type: actions.FETCH_SPATIAL_ASSET,
-  payload: {
-    stacId,
   },
 });
 

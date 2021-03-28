@@ -10,8 +10,8 @@ import {
   useUserProvider,
   useContractLoader,
   useContractReader,
-  useEventListener,
   useBalance,
+  useLocalStorage,
   // useExternalContractLoader,
 } from 'core/hooks/web3hooks';
 import Transactor from 'utils/Transactor';
@@ -19,11 +19,12 @@ import { formatEther } from '@ethersproject/units';
 // import Hints from "./Hints";
 import { INFURA_ID, targetNetwork } from 'utils/constants';
 import { history } from 'core/redux/reducers';
+import { ethers } from 'ethers';
 
 const WalletContext = React.createContext();
 
 // 😬 Sorry for all the console logging
-const DEBUG = true;
+const DEBUG = false;
 
 // 🛰 providers
 if (DEBUG) console.log('📡 Connecting to Mainnet Ethereum');
@@ -130,10 +131,21 @@ export function WalletContextProvider({ children }) {
 
   // keep track of a variable from the contract in the local React state:
   // pass these below in memo to use in useWallet
-  const uri = useContractReader(contracts, 'SpatialAssets', 'uri');
-  console.log('🤗 uri:', uri);
+  const creatorRole = useContractReader(contracts, 'SpatialAssets', 'hasRole', [
+    ethers.utils.formatBytes32String('DATA_SUPPLIER'),
+    address,
+  ]);
+
+  const adminRole = useContractReader(contracts, 'SpatialAssets', 'hasRole', [
+    ethers.utils.formatBytes32String(''),
+    address,
+  ]);
+
+  const [tokenId, setTokenId] = useLocalStorage('powergateTokenId', null);
 
   // 📟 Listen for broadcast events
+
+  /*
   const spatialAssetRegisteredEvents = useEventListener(
     contracts,
     'SpatialAssets',
@@ -142,7 +154,7 @@ export function WalletContextProvider({ children }) {
     1,
   );
   console.log('📟 SpatialAssetRegistered events:', spatialAssetRegisteredEvents);
-
+*/
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
     setInjectedProvider(new Web3Provider(provider));
@@ -170,6 +182,10 @@ export function WalletContextProvider({ children }) {
       targetNetworkChainId,
       selectedChainId,
       targetNetwork,
+      tokenId,
+      setTokenId,
+      creatorRole,
+      adminRole,
     }),
     [
       address,
@@ -186,6 +202,10 @@ export function WalletContextProvider({ children }) {
       targetNetworkChainId,
       selectedChainId,
       targetNetwork,
+      tokenId,
+      setTokenId,
+      creatorRole,
+      adminRole,
     ],
   );
 

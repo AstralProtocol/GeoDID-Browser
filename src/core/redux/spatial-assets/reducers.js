@@ -9,6 +9,9 @@ const initialState = {
   spatialAssetLoaded: false,
   children: [],
   parent: null,
+  fetchingSpatialAsset: false,
+  fetchedSpatialAsset: false,
+  docRes: null,
 
   // unused for now
   loadedCogs: null,
@@ -16,8 +19,6 @@ const initialState = {
   selectedCog: null,
   registeringSpatialAsset: false,
   spatialAssetRegistered: false,
-  fetchingSpatialAsset: false,
-  fetchedSpatialAsset: false,
   spatialAssetId: null,
   enablingStorage: false,
   storageEnabled: false,
@@ -61,6 +62,21 @@ export default function spatialAssetsReducer(state = initialState, action) {
       };
       break;
 
+    case actions.FETCHING_SPATIAL_ASSET:
+      reduced = {
+        ...state,
+        ...action.payload,
+      };
+      break;
+
+    case actions.FETCHED_SPATIAL_ASSET:
+      reduced = {
+        ...state,
+        ...action.payload,
+      };
+      break;
+
+    // unused
     case actions.COGS_LOADED:
       reduced = {
         ...state,
@@ -104,20 +120,6 @@ export default function spatialAssetsReducer(state = initialState, action) {
       break;
 
     case actions.CLEAN_REGISTRATION_STATUS:
-      reduced = {
-        ...state,
-        ...action.payload,
-      };
-      break;
-
-    case actions.FETCHING_SPATIAL_ASSET:
-      reduced = {
-        ...state,
-        ...action.payload,
-      };
-      break;
-
-    case actions.FETCHED_SPATIAL_ASSET:
       reduced = {
         ...state,
         ...action.payload,

@@ -1,7 +1,15 @@
 import React, { useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
-import { Card, CardContent, Grid, Typography, ButtonBase } from '@material-ui/core';
+import {
+  Card,
+  CardContent,
+  Grid,
+  Typography,
+  ButtonBase,
+  LinearProgress,
+  IconButton,
+} from '@material-ui/core';
 // import { useQuery } from '@apollo/react-hooks';
 // import geoDIDQuery from 'core/graphql/geoDIDQuery';
 import { DropzoneAreaBase } from 'material-ui-dropzone';
@@ -9,7 +17,7 @@ import Map from 'components/Map';
 import { readFileAsync, loadLoam, getBytes32FromGeoDIDid, getBytes32FromCid } from 'utils';
 import { useSnackbar } from 'notistack';
 import { useSubscription } from '@apollo/react-hooks';
-
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 import { useAstral } from 'core/hooks/astral';
 import { useWallet } from 'core/hooks/web3';
 import { ethers } from 'ethers';
@@ -37,6 +45,38 @@ const useStyles = makeStyles((theme) => ({
   dropzone: {
     minHeight: '10vh',
   },
+  txArea: {
+    borderRadius: '20px',
+    marginTop: '3vh',
+    width: '100%',
+    height: '30vh',
+    textAlign: 'center',
+  },
+  createWarning: {
+    marginTop: '3vh',
+    width: '100%',
+    height: '15vh',
+    background: '#fff',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  createButtonWarning: {
+    borderRadius: '20px',
+    marginTop: '1vh',
+    width: '100%',
+    height: '15vh',
+    background: '#fff',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: 'transparent',
+    color: theme.palette.primary.grey,
+    '&:hover': {
+      background: 'linear-gradient(45deg, #ffa300 30%, #f97b3d 90%)',
+      color: '#fff',
+    },
+  },
   createButton: {
     borderRadius: '20px',
     marginTop: '3vh',
@@ -56,13 +96,20 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Item = (props) => {
-  const { tx, contracts, address } = useWallet();
+  const { tx, contracts, address, tokenId, setTokenId } = useWallet();
   const { astralInstance } = useAstral();
   const classes = useStyles();
   const parentRef = useRef(null);
   const [fileObjects, setFileObjs] = useState([]);
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [txState, setTxState] = useState({
+    txSending: false,
+    txComplete: false,
+  });
+  const [firstTime, setFirstTime] = useState(null);
+
+  console.log(txState);
   const { enqueueSnackbar } = useSnackbar();
   const { parent, dispatchSetSelectedParentCreation } = props;
 
@@ -195,8 +242,6 @@ const Item = (props) => {
     }
   };
 
-  console.log(files);
-  console.log(parent);
   const createGeoDID = async () => {
     let bytes32Parent;
 
@@ -208,45 +253,149 @@ const Item = (props) => {
 
     const genDocRes = await astralInstance.createGenesisGeoDID('item');
 
-    const results = await astralInstance.pinDocument(genDocRes);
+    let results;
+
+    if (tokenId) {
+      results = await astralInstance.pinDocument(genDocRes, tokenId);
+    } else {
+      results = await astralInstance.pinDocument(genDocRes);
+    }
 
     const bytes32GeoDID = getBytes32FromGeoDIDid(results.geodidid);
 
     const bytes32Cid = getBytes32FromCid(results.cid);
 
+    let txOptions = {
+      txState: {
+        setTxState,
+      },
+    };
+
+    if (files && files.length > 0) {
+      const dataArray = files.reduce((newDataArray, file) => {
+        newDataArray.push({
+          type: file.type,
+          tag: file.tag,
+          bytes: file.bytes,
+        });
+        return newDataArray;
+      }, []);
+      txOptions = {
+        ...txOptions,
+        addAssets: {
+          astralInstance,
+          geodidId: results.geodidid,
+          data: dataArray,
+        },
+      };
+    }
+
+    if (tokenId) {
+      txOptions = {
+        ...txOptions,
+        token: {
+          tokenId,
+          setTokenId,
+          firstTime: false,
+        },
+      };
+    } else {
+      txOptions = {
+        ...txOptions,
+        token: {
+          tokenId: results.token,
+          setTokenId,
+          firstTime: true,
+          setFirstTime,
+        },
+      };
+    }
     try {
-      await Promise.all(
-        await tx(
-          contracts.SpatialAssets.registerSpatialAsset(
-            address,
-            bytes32GeoDID,
-            bytes32Parent,
-            [],
-            bytes32Cid,
-            ethers.utils.formatBytes32String('FILECOIN'),
-            1,
-          ),
-          enqueueSnackbar,
+      await tx(
+        contracts.SpatialAssets.registerSpatialAsset(
+          address,
+          bytes32GeoDID,
+          bytes32Parent,
+          [],
+          bytes32Cid,
+          ethers.utils.formatBytes32String('FILECOIN'),
+          1,
         ),
+        enqueueSnackbar,
+        txOptions,
       );
       dispatchSetSelectedParentCreation(null);
     } catch (err) {
       console.log(err);
-    } finally {
-      if (files && files.length > 0) {
-        const dataArray = files.reduce((newDataArray, file) => {
-          newDataArray.push({
-            type: file.type,
-            tag: file.tag,
-            bytes: file.bytes,
-          });
-          return newDataArray;
-        }, []);
-
-        await astralInstance.addAssetsToItem(results.geodidid, dataArray, results.token);
-      }
     }
   };
+
+  let txArea;
+
+  if (txState.txSending && !txState.txComplete) {
+    txArea = (
+      <div className={classes.txArea}>
+        <Typography variant="h4" gutterBottom>
+          Creating GeoDID
+        </Typography>
+        <LinearProgress />
+      </div>
+    );
+  } else if (!txState.txSending && !txState.txComplete && !tokenId) {
+    txArea = (
+      <>
+        <Typography variant="body2" gutterBottom display="inline" className={classes.createWarning}>
+          ⚠️ Your token has not been detected, if you have one add it to your account area,
+          otherwise a new one will be created for you
+        </Typography>
+        <ButtonBase className={classes.createButtonWarning} onClick={() => createGeoDID()}>
+          <Typography variant="h4" gutterBottom display="inline">
+            Create GeoDID
+          </Typography>
+        </ButtonBase>
+      </>
+    );
+  } else if (!txState.txSending && !txState.txComplete && tokenId) {
+    txArea = (
+      <ButtonBase className={classes.createButton} onClick={() => createGeoDID()}>
+        <Typography variant="h4" gutterBottom>
+          Create GeoDID
+        </Typography>
+      </ButtonBase>
+    );
+  } else if (!txState.txSending && txState.txComplete && firstTime) {
+    txArea = (
+      <div className={classes.txArea}>
+        <Typography variant="h4" gutterBottom>
+          GeoDID Created
+        </Typography>
+        <Typography variant="body2" gutterBottom>
+          Click to view it
+        </Typography>
+        <Typography variant="body2" gutterBottom>
+          Token id: {tokenId}
+          <IconButton onClick={() => navigator.clipboard.writeText(tokenId)}>
+            <FileCopyIcon />
+          </IconButton>
+        </Typography>
+        <Typography variant="body2" gutterBottom>
+          Your token is the key to your GeoDIDs, keep it in a secure location as it is needed for
+          the next time
+        </Typography>
+      </div>
+    );
+  } else if (!txState.txSending && txState.txComplete && !firstTime) {
+    txArea = (
+      <div className={classes.txArea}>
+        <Typography variant="h4" gutterBottom>
+          GeoDID Created
+        </Typography>
+        <Typography variant="body2" gutterBottom>
+          Click to view it
+        </Typography>
+      </div>
+    );
+  }
 
   return (
     <Card classes={{ root: classes.container }} variant="outlined" style={{ height: '96vh' }}>
@@ -297,11 +446,7 @@ const Item = (props) => {
             >
               <Map selectedFile={selectedFile} />
             </Card>
-            <ButtonBase className={classes.createButton} onClick={() => createGeoDID()}>
-              <Typography variant="h4" gutterBottom>
-                Create GeoDID
-              </Typography>
-            </ButtonBase>
+            {txArea}
           </Grid>
         </Grid>
       </CardContent>

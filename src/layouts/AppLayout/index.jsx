@@ -16,8 +16,6 @@ import {
 } from '@material-ui/core';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import MaterialLink from '@material-ui/core/Link';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
-import MailIcon from '@material-ui/icons/Mail';
 import SearchBar from 'material-ui-search-bar';
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { NETWORK } from 'utils/constants';
@@ -139,10 +137,12 @@ function AppLayout(props) {
   if (address) {
     menuData = (
       <List className={classes.list}>
-        {loggedInMenuData.map((data, index) => (
+        {loggedInMenuData.map((data) => (
           <Link to={data.url} key={data.key}>
             <ListItem className={classes.listItem} button key={data.key}>
-              <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
+              <ListItemIcon>
+                {React.createElement(data.icon, { style: { fill: '#ffa300' } })}
+              </ListItemIcon>
               <ListItemText primary={data.title} />
             </ListItem>
           </Link>
@@ -152,10 +152,13 @@ function AppLayout(props) {
   } else {
     menuData = (
       <List className={classes.list}>
-        {defaultMenuData.map((data, index) => (
+        {defaultMenuData.map((data) => (
           <Link to={data.url} key={data.key}>
             <ListItem className={classes.listItem} button key={data.key}>
-              <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
+              <ListItemIcon>
+                {' '}
+                {React.createElement(data.icon, { style: { fill: '#ffa300' } })}
+              </ListItemIcon>
               <ListItemText primary={data.title} />
             </ListItem>
           </Link>

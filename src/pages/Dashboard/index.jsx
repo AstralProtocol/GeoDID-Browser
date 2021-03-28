@@ -1,7 +1,7 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
+import { setSelectedGeoDID, fetchSpatialAsset } from 'core/redux/spatial-assets/actions';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import SearchBar from 'material-ui-search-bar';
 import {
@@ -37,6 +37,7 @@ import { useWallet } from 'core/hooks/web3';
 import StyledTreeItem from 'components/StyledTreeItem';
 import Map from 'components/Map';
 import { iff } from 'utils';
+import { useAstral } from 'core/hooks/astral';
 
 const AstralSwitch = withStyles({
   switchBase: {
@@ -140,7 +141,6 @@ const Dashboard = (props) => {
   const { geoDIDID, dispatchSetSelectedGeoDID } = props;
   const history = useHistory();
   const classes = useStyles();
-  const parentRef = useRef(null);
   const [searchValue, setSearchValue] = useState('');
   const [typeFilter, setTypeFilter] = useState(null);
   const [toggleTree, setToggleTree] = useState(true);
@@ -148,6 +148,8 @@ const Dashboard = (props) => {
     variant: 'popover',
     popupId: 'filterPopup',
   });
+  const { astralInstance } = useAstral();
+  const { address, tokenId } = useWallet();
 
   const handleTypeFilterChange = (event) => {
     setSearchValue('');
@@ -160,8 +162,6 @@ const Dashboard = (props) => {
       setTypeFilter('All');
     }
   };
-
-  const { address } = useWallet();
 
   const { data, loading: loadingTree } = useSubscription(geoDIDsSubscription, {
     variables: {
@@ -295,6 +295,19 @@ const Dashboard = (props) => {
     };
     return components;
   }, []);
+
+  useEffect(() => {
+    const loadDocument = async () => {
+      if (selectedGeoDID && selectedGeoDID.type === 'Item' && astralInstance && tokenId) {
+        const docRes = await astralInstance.loadDocument(selectedGeoDID.id, tokenId);
+
+        console.log(docRes);
+        // dispatchFetchSpatialAsset(astralInstance, selectedGeoDID.id, tokenId);
+      }
+    };
+
+    loadDocument();
+  }, [selectedGeoDID, astralInstance, tokenId]);
 
   if (treeGeoDIDs.length > 0 && !loadingTree && toggleTree) {
     listArea = (
@@ -532,13 +545,8 @@ const Dashboard = (props) => {
       <Grid item xs={8}>
         <Grid container spacing={0} className={classes.container}>
           <Grid item xs={12}>
-            <Card
-              classes={{ root: classes.map }}
-              variant="outlined"
-              style={{ height: '48vh' }}
-              ref={parentRef}
-            >
-              <Map parentRef={parentRef} />
+            <Card classes={{ root: classes.map }} variant="outlined" style={{ height: '48vh' }}>
+              <Map />
             </Card>
           </Grid>
           <Grid item xs={12}>
@@ -556,6 +564,8 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   dispatchSetSelectedGeoDID: (geoDIDID) => dispatch(setSelectedGeoDID(geoDIDID)),
+  dispatchFetchSpatialAsset: (astral, geoDIDID, tokenId) =>
+    dispatch(fetchSpatialAsset(astral, geoDIDID, tokenId)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);

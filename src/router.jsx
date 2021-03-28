@@ -46,6 +46,12 @@ const routes = [
     component: loadable(() => import('pages/GeoDIDView')),
     exact: true,
   },
+  {
+    path: '/account',
+    name: 'Account',
+    component: loadable(() => import('pages/AccountArea')),
+    exact: true,
+  },
 ];
 
 function Router() {

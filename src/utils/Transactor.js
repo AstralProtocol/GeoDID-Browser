@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-
+// import { useState } from 'react';
 import { hexlify } from '@ethersproject/bytes';
 import { parseUnits } from '@ethersproject/units';
 
@@ -10,7 +10,14 @@ const NOTIFY_APY_KEY = process.env.REACT_APP_BNC_NOTIFY_API_KEY;
 export default function Transactor(provider, gasPrice, etherscan) {
   if (typeof provider !== 'undefined') {
     // eslint-disable-next-line consistent-return
-    return async (tx, enqueueSnackbar) => {
+    return async (tx, enqueueSnackbar, txOptions = {}) => {
+      if (txOptions.txState) {
+        txOptions.txState.setTxState({
+          txSending: true,
+          txComplete: false,
+        });
+      }
+
       const signer = provider.getSigner();
       const network = await provider.getNetwork();
       console.log('network', network);
@@ -59,6 +66,43 @@ export default function Transactor(provider, gasPrice, etherscan) {
           emitter.on('all', (transaction) => ({
             onclick: () => window.open((etherscan || etherscanTxUrl) + transaction.hash),
           }));
+          emitter.on('txConfirmed', async () => {
+            console.log(txOptions);
+            if (txOptions.txState) {
+              txOptions.txState.setTxState({
+                txSending: false,
+                txComplete: true,
+              });
+            }
+
+            let tokenId;
+
+            if (txOptions.token) {
+              tokenId = txOptions.token.tokenId;
+              txOptions.token.setTokenId(tokenId);
+
+              if (txOptions.token.firstTime) {
+                txOptions.token.setFirstTime(true);
+              }
+            }
+
+            if (txOptions.addAssets) {
+              const addAssetsRes = await txOptions.addAssets.astralInstance.addAssetsToItem(
+                txOptions.addAssets.geodidId,
+                txOptions.addAssets.data,
+                tokenId,
+              );
+
+              console.log(addAssetsRes);
+              await txOptions.addAssets.astralInstance.pinDocument(addAssetsRes);
+              const doc = await txOptions.addAssets.astralInstance.loadDocument(
+                txOptions.addAssets.geodidId,
+                tokenId,
+              );
+
+              console.log(doc);
+            }
+          });
         } else {
           enqueueSnackbar(`Local transaction sent: ${result.hash}`, {
             variant: 'info',
@@ -73,6 +117,13 @@ export default function Transactor(provider, gasPrice, etherscan) {
         enqueueSnackbar(`Transaction Error`, {
           variant: 'warning',
         });
+
+        if (txOptions.txState) {
+          txOptions.txState.setTxState({
+            txSending: false,
+            txComplete: false,
+          });
+        }
       }
     };
   }

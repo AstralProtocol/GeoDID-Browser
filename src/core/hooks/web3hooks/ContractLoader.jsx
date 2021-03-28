@@ -15,7 +15,6 @@ const loadContract = (contract, signer, chainId) => {
 };
 
 export default function useContractLoader(providerOrSigner) {
-  console.log(providerOrSigner);
   const [contracts, setContracts] = useState();
   useEffect(() => {
     async function loadContracts() {
