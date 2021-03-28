@@ -141,7 +141,11 @@ export function WalletContextProvider({ children }) {
     address,
   ]);
 
-  const [tokenId, setTokenId] = useLocalStorage('powergateTokenId', null);
+  const filecoinAllowed = useContractReader(contracts, 'SpatialAssets', 'allowedStorages', [
+    ethers.utils.formatBytes32String('FILECOIN'),
+  ]);
+
+  const [tokenId, setTokenId] = useLocalStorage('powergateTokenId_' + address, null);
 
   // 📟 Listen for broadcast events
 
@@ -186,6 +190,7 @@ export function WalletContextProvider({ children }) {
       setTokenId,
       creatorRole,
       adminRole,
+      filecoinAllowed,
     }),
     [
       address,
@@ -206,6 +211,7 @@ export function WalletContextProvider({ children }) {
       setTokenId,
       creatorRole,
       adminRole,
+      filecoinAllowed,
     ],
   );
 

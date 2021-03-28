@@ -176,7 +176,7 @@ const GeoDIDView = (props) => {
   const { data, loading } = useSubscription(geoDIDsSubscription, {
     variables: {
       where: {
-        ...{},
+        ...{ active: true },
       },
     },
   });

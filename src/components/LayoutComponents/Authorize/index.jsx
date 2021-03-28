@@ -1,21 +1,21 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import { notification } from 'antd';
+import { useSnackbar } from 'notistack';
+import { useWallet } from 'core/hooks/web3';
 
 const Authorize = (props) => {
-  const { selectedAccount } = props; // current user role
-  const { children, redirect = false, to = '/404', authorizedAccounts = [] } = props;
-  const authorized = selectedAccount && authorizedAccounts.includes(selectedAccount);
+  const { address } = useWallet();
+  const { enqueueSnackbar } = useSnackbar();
+  const { children, redirect = false, to = '/' } = props;
+  const authorized = !!address;
 
   const AuthorizedChildren = () => {
     // if user not equal needed role and if component is a page - make redirect to needed route
     if (!authorized && redirect) {
-      notification.warning({
-        message: 'Unauthorized Access',
-        description: 'You have to login to access this page!',
-        placement: 'bottomRight',
+      enqueueSnackbar(`You have to login to access this page!`, {
+        variant: 'warning',
       });
+
       return <Redirect to={to} />;
     }
     // if user not authorized return null to component
@@ -28,8 +28,4 @@ const Authorize = (props) => {
   return AuthorizedChildren();
 };
 
-const mapStateToProps = (state) => ({
-  selectedAccount: state.login.selectedAccount,
-});
-
-export default connect(mapStateToProps, null)(Authorize);
+export default Authorize;

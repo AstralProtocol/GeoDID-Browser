@@ -1,9 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Card, CardContent, Typography } from '@material-ui/core';
+import {
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+} from '@material-ui/core';
 import { useWallet } from 'core/hooks/web3';
 import { useSnackbar } from 'notistack';
 import AstralButton from 'components/AstralButton';
+import VisibilityIcon from '@material-ui/icons/Visibility';
+import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
+import AddIcon from '@material-ui/icons/Add';
+import { ethers } from 'ethers';
+import Authorize from 'components/LayoutComponents/Authorize';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -39,55 +53,140 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AccountArea = () => {
-  const { tokenId, tx, contracts, adminRole, creatorRole } = useWallet();
+  const {
+    setTokenId,
+    tokenId,
+    tx,
+    contracts,
+    adminRole,
+    creatorRole,
+    filecoinAllowed,
+  } = useWallet();
   const { enqueueSnackbar } = useSnackbar();
-
+  const [showToken, setShowToken] = useState(false);
   const classes = useStyles();
+  const [tokenIdTextField, setTokenIdTextField] = useState('');
 
   const handleAddMinterRole = async () => {
     await tx(contracts.SpatialAssets.registerRole(), enqueueSnackbar);
   };
 
+  const handleEnableFilecoin = async () => {
+    await tx(
+      contracts.SpatialAssets.enableStorage(ethers.utils.formatBytes32String('FILECOIN')),
+      enqueueSnackbar,
+    );
+  };
+
   let rolesArea;
 
-  if (adminRole) {
+  console.log(adminRole);
+  console.log(creatorRole);
+
+  if (adminRole && (creatorRole || !creatorRole)) {
     rolesArea = (
-      <>
-        <Typography variant="h6" gutterBottom>
-          GeoDID Admin Role Enabled
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          GeoDID Creator Role Enabled
-        </Typography>
-      </>
+      <List>
+        <ListItem key="adminRole" role={undefined} dense>
+          <ListItemText id="adminRole" primary="GeoDID Admin Role" secondary="Enabled ✅" />
+        </ListItem>
+        <ListItem key="creatorRole" role={undefined} dense>
+          <ListItemText id="creatorRole" primary="GeoDID Creator Role" secondary="Enabled ✅" />
+        </ListItem>
+      </List>
     );
   } else if (!adminRole && creatorRole) {
     rolesArea = (
-      <Typography variant="h6" gutterBottom>
-        GeoDID Creator Role Enabled
-      </Typography>
+      <List>
+        <ListItem key="creatorRole" role={undefined} dense>
+          <ListItemText id="creatorRole" primary="GeoDID Creator Role" secondary="Enabled ✅" />
+        </ListItem>
+      </List>
     );
   } else if (!adminRole && !creatorRole) {
     rolesArea = (
       <AstralButton
-        key="view"
+        key="enableMinter"
         click={() => handleAddMinterRole()}
-        title="Enable ability to create GeoDIDs"
+        title="Enable asdf to create GeoDIDs"
       />
     );
   }
+
+  let storageArea;
+
+  if (filecoinAllowed) {
+    storageArea = (
+      <List>
+        <ListItem key="filecoinEnabled" role={undefined} dense>
+          <ListItemText id="filecoinEnabled" primary="Filecoin Storage" secondary="Enabled ✅" />
+        </ListItem>
+      </List>
+    );
+  } else {
+    storageArea = (
+      <List>
+        <ListItem
+          key="enableStorage"
+          role={undefined}
+          dense
+          button
+          onClick={() => handleEnableFilecoin()}
+        >
+          <ListItemText id="enableStorage" primary="Filecoin Storage" secondary="Click to enable" />
+        </ListItem>
+      </List>
+    );
+  }
+
+  const handleChange = (e) => {
+    setTokenIdTextField(e.target.value);
+  };
+  const handleAdd = () => {
+    // validate token
+
+    setTokenId(tokenIdTextField);
+    setShowToken(false);
+  };
   return (
-    <Card classes={{ root: classes.container }} variant="outlined" style={{ height: '96vh' }}>
-      <CardContent>
-        <Typography variant="h3" component="h1" gutterBottom>
-          Your account
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Your token {tokenId}
-        </Typography>
-        {rolesArea}
-      </CardContent>
-    </Card>
+    <Authorize redirect>
+      <Card classes={{ root: classes.container }} variant="outlined" style={{ height: '96vh' }}>
+        <CardContent>
+          <Typography variant="h3" component="h1" gutterBottom>
+            Your account
+          </Typography>
+          {rolesArea}
+          {storageArea}
+          {tokenId ? (
+            <>
+              <TextField
+                name="token"
+                label="Your token"
+                type={showToken ? 'text' : 'password'}
+                value={tokenId}
+                style={{ minWidth: '400px' }}
+              />
+              <IconButton onClick={() => setShowToken(!showToken)}>
+                {showToken ? <VisibilityIcon /> : <VisibilityOffIcon />}
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <TextField
+                name="token"
+                label="Add your token and press the + sign"
+                type="text"
+                onChange={(e) => handleChange(e)}
+                value={tokenIdTextField}
+                style={{ minWidth: '400px' }}
+              />
+              <IconButton onClick={() => handleAdd()}>
+                <AddIcon />
+              </IconButton>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </Authorize>
   );
 };
 

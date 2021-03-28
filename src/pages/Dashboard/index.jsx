@@ -23,6 +23,7 @@ import {
   Radio,
   RadioGroup,
   Switch,
+  LinearProgress,
 } from '@material-ui/core';
 import AstralButton from 'components/AstralButton';
 import { usePopupState, bindTrigger, bindPopover } from 'material-ui-popup-state/hooks';
@@ -150,6 +151,10 @@ const Dashboard = (props) => {
   });
   const { astralInstance } = useAstral();
   const { address, tokenId } = useWallet();
+  const [assetsState, setAssetsState] = useState({
+    loading: false,
+    loaded: false,
+  });
 
   const handleTypeFilterChange = (event) => {
     setSearchValue('');
@@ -299,9 +304,23 @@ const Dashboard = (props) => {
   useEffect(() => {
     const loadDocument = async () => {
       if (selectedGeoDID && selectedGeoDID.type === 'Item' && astralInstance && tokenId) {
-        const docRes = await astralInstance.loadDocument(selectedGeoDID.id, tokenId);
+        try {
+          setAssetsState({
+            loading: true,
+            loaded: false,
+          });
+          const docRes = await astralInstance.loadDocument(selectedGeoDID.id, tokenId);
 
-        console.log(docRes);
+          console.log(docRes);
+
+          setAssetsState({
+            loading: false,
+            loaded: true,
+          });
+        } catch {
+          console.log('Not able to load assets for this geodid item');
+        }
+
         // dispatchFetchSpatialAsset(astralInstance, selectedGeoDID.id, tokenId);
       }
     };
@@ -373,11 +392,33 @@ const Dashboard = (props) => {
   let geoDIDMetadata;
 
   if (selectedGeoDID) {
+    let assetsArea = '';
+
+    if (selectedGeoDID.type === 'Item') {
+      console.log(assetsState);
+      if (assetsState.loading && !assetsState.loaded) {
+        assetsArea = (
+          <>
+            <Typography variant="h5" component="h1" gutterBottom>
+              Loading assets
+            </Typography>
+            <LinearProgress />
+          </>
+        );
+      } else if (!assetsState.loading && assetsState.loaded) {
+        assetsArea = (
+          <Typography variant="h5" component="h1" gutterBottom>
+            Assets Loaded
+          </Typography>
+        );
+      }
+    }
+
     geoDIDMetadata = (
       <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '48vh' }}>
         <CardHeader style={{ height: '10%' }} title="GeoDID Metadata" />
         <CardContent style={{ height: '90%' }}>
-          <Grid container style={{ height: '100%' }} spacing={2} direction="row" justify="center">
+          <Grid container style={{ height: '50%' }} spacing={2} direction="row" justify="center">
             <Grid item xs={2}>
               <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
                 GeoDID ID
@@ -408,6 +449,7 @@ const Dashboard = (props) => {
               />
             </Grid>
           </Grid>
+          {assetsArea}
         </CardContent>
       </Card>
     );

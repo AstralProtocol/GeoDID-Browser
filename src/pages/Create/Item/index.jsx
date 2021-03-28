@@ -21,6 +21,7 @@ import FileCopyIcon from '@material-ui/icons/FileCopy';
 import { useAstral } from 'core/hooks/astral';
 import { useWallet } from 'core/hooks/web3';
 import { ethers } from 'ethers';
+import Authorize from 'components/LayoutComponents/Authorize';
 import { setSelectedParentCreation } from 'core/redux/spatial-assets/actions';
 import geoDIDsSubscription from 'core/graphql/geoDIDsSubscription';
 import ParentGeoDIDsTable from './ParentGeoDIDsTable';
@@ -116,7 +117,7 @@ const Item = (props) => {
   const { data, loading } = useSubscription(geoDIDsSubscription, {
     variables: {
       where: {
-        ...{},
+        ...{ active: true },
       },
     },
   });
@@ -310,6 +311,8 @@ const Item = (props) => {
         },
       };
     }
+
+    console.log(txOptions);
     try {
       await tx(
         contracts.SpatialAssets.registerSpatialAsset(
@@ -386,71 +389,70 @@ const Item = (props) => {
     );
   } else if (!txState.txSending && txState.txComplete && !firstTime) {
     txArea = (
-      <div className={classes.txArea}>
+      <ButtonBase className={classes.createButton} onClick={() => createGeoDID()}>
         <Typography variant="h4" gutterBottom>
-          GeoDID Created
+          Create another GeoDID
         </Typography>
-        <Typography variant="body2" gutterBottom>
-          Click to view it
-        </Typography>
-      </div>
+      </ButtonBase>
     );
   }
 
   return (
-    <Card classes={{ root: classes.container }} variant="outlined" style={{ height: '96vh' }}>
-      <CardContent>
-        <Typography variant="h3" component="h1" gutterBottom>
-          {'Create GeoDID > Item'}
-        </Typography>
-        <Grid container style={{ height: '100%' }} spacing={2} direction="row" justify="center">
-          <Grid item xs={6}>
-            <DropzoneAreaBase
-              fileObjects={fileObjects}
-              onAdd={(added) => handleAdd(added)}
-              dropzoneText="Drag and drop GeoJSON or GeoTIFF files"
-              acceptedFiles={['image/tiff', 'application/json']}
-              clearOnUnmount
-              showAlerts={false}
-              showPreviewsInDropzone={false}
-              dropzoneClass={classes.dropzone}
-            />
-            <div className={classes.assetsTable}>
-              <AssetsTable
-                selectedAsset={selectedFile}
-                setSelectedAsset={setSelectedFile}
-                files={files}
+    <Authorize redirect>
+      <Card classes={{ root: classes.container }} variant="outlined" style={{ height: '96vh' }}>
+        <CardContent>
+          <Typography variant="h3" component="h1" gutterBottom>
+            {'Create GeoDID > Item'}
+          </Typography>
+          <Grid container style={{ height: '100%' }} spacing={2} direction="row" justify="center">
+            <Grid item xs={6}>
+              <DropzoneAreaBase
                 fileObjects={fileObjects}
-                maxNumberOfRows={5}
-                setFiles={setFiles}
-                setFileObjs={setFileObjs}
-                maxFileSize={10000000}
+                onAdd={(added) => handleAdd(added)}
+                dropzoneText="Drag and drop GeoJSON or GeoTIFF files"
+                acceptedFiles={['image/tiff', 'application/json']}
+                clearOnUnmount
+                showAlerts={false}
+                showPreviewsInDropzone={false}
+                dropzoneClass={classes.dropzone}
               />
-            </div>
-            <div className={classes.tableParent}>
-              <ParentGeoDIDsTable
-                type="Add"
-                allAvailableParents={allAvailableParentsToAdd}
-                loading={loading}
-                maxNumberOfRows={5}
-                isDisabled={false}
-              />
-            </div>
+              <div className={classes.assetsTable}>
+                <AssetsTable
+                  selectedAsset={selectedFile}
+                  setSelectedAsset={setSelectedFile}
+                  files={files}
+                  fileObjects={fileObjects}
+                  maxNumberOfRows={5}
+                  setFiles={setFiles}
+                  setFileObjs={setFileObjs}
+                  maxFileSize={10000000}
+                />
+              </div>
+              <div className={classes.tableParent}>
+                <ParentGeoDIDsTable
+                  type="Add"
+                  allAvailableParents={allAvailableParentsToAdd}
+                  loading={loading}
+                  maxNumberOfRows={5}
+                  isDisabled={false}
+                />
+              </div>
+            </Grid>
+            <Grid item xs={6} style={{ height: '100%' }}>
+              <Card
+                classes={{ root: classes.map }}
+                variant="outlined"
+                style={{ height: '48vh' }}
+                ref={parentRef}
+              >
+                <Map selectedFile={selectedFile} />
+              </Card>
+              {txArea}
+            </Grid>
           </Grid>
-          <Grid item xs={6} style={{ height: '100%' }}>
-            <Card
-              classes={{ root: classes.map }}
-              variant="outlined"
-              style={{ height: '48vh' }}
-              ref={parentRef}
-            >
-              <Map selectedFile={selectedFile} />
-            </Card>
-            {txArea}
-          </Grid>
-        </Grid>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Authorize>
   );
 };
 

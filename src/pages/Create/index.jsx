@@ -2,6 +2,7 @@ import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { ButtonBase, Typography } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
+import Authorize from 'components/LayoutComponents/Authorize';
 
 const useStyles = makeStyles((theme) => ({
   interactionAreaContainer: {
@@ -47,7 +48,7 @@ export default function Create() {
   const history = useHistory();
 
   return (
-    <>
+    <Authorize redirect>
       <div className={classes.interactionAreaContainer}>
         <ButtonBase
           className={classes.collection}
@@ -63,6 +64,6 @@ export default function Create() {
           </Typography>
         </ButtonBase>
       </div>
-    </>
+    </Authorize>
   );
 }

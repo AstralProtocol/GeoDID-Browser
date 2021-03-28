@@ -12,7 +12,10 @@ import {
   FormGroup,
   FormControlLabel,
   FormControl,
+  LinearProgress,
+  IconButton,
 } from '@material-ui/core';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 import { useSubscription } from '@apollo/react-hooks';
 import geoDIDsSubscription from 'core/graphql/geoDIDsSubscription';
 import {
@@ -23,6 +26,7 @@ import { useAstral } from 'core/hooks/astral';
 import { useWallet } from 'core/hooks/web3';
 import { useSnackbar } from 'notistack';
 import { getBytes32FromGeoDIDid, getBytes32FromCid } from 'utils';
+import Authorize from 'components/LayoutComponents/Authorize';
 import ChildrenGeoDIDsTable from './ChildrenGeoDIDsTable';
 import ParentGeoDIDsTable from './ParentGeoDIDsTable';
 
@@ -70,10 +74,14 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Collection = (props) => {
-  const { tx, contracts, address } = useWallet();
+  const { tx, contracts, address, tokenId, setTokenId } = useWallet();
   const { astralInstance } = useAstral();
   const { enqueueSnackbar } = useSnackbar();
-
+  const [txState, setTxState] = useState({
+    txSending: false,
+    txComplete: false,
+  });
+  const [firstTime, setFirstTime] = useState(null);
   const classes = useStyles();
   const [selectedRoot, setSelectedRoot] = useState(false);
 
@@ -94,7 +102,7 @@ const Collection = (props) => {
   const { data, loading } = useSubscription(geoDIDsSubscription, {
     variables: {
       where: {
-        ...{},
+        ...{ active: true },
       },
     },
   });
@@ -158,11 +166,44 @@ const Collection = (props) => {
 
     const genDocRes = await astralInstance.createGenesisGeoDID('collection');
 
-    const results = await astralInstance.pinDocument(genDocRes);
+    let results;
+
+    if (tokenId) {
+      results = await astralInstance.pinDocument(genDocRes, tokenId);
+    } else {
+      results = await astralInstance.pinDocument(genDocRes);
+    }
 
     const bytes32GeoDID = getBytes32FromGeoDIDid(results.geodidid);
 
     const bytes32Cid = getBytes32FromCid(results.cid);
+
+    let txOptions = {
+      txState: {
+        setTxState,
+      },
+    };
+
+    if (tokenId) {
+      txOptions = {
+        ...txOptions,
+        token: {
+          tokenId,
+          setTokenId,
+          firstTime: false,
+        },
+      };
+    } else {
+      txOptions = {
+        ...txOptions,
+        token: {
+          tokenId: results.token,
+          setTokenId,
+          firstTime: true,
+          setFirstTime,
+        },
+      };
+    }
 
     try {
       tx(
@@ -176,6 +217,7 @@ const Collection = (props) => {
           0,
         ),
         enqueueSnackbar,
+        txOptions,
       );
       dispatchSetSelectedParentCreation(null);
       dispatchSetSelectedChildrenCreation([]);
@@ -183,60 +225,123 @@ const Collection = (props) => {
       console.log(err);
     }
   };
+
+  let txArea;
+
+  if (txState.txSending && !txState.txComplete) {
+    txArea = (
+      <div className={classes.txArea}>
+        <Typography variant="h4" gutterBottom>
+          Creating GeoDID
+        </Typography>
+        <LinearProgress />
+      </div>
+    );
+  } else if (!txState.txSending && !txState.txComplete && !tokenId) {
+    txArea = (
+      <>
+        <Typography variant="body2" gutterBottom display="inline" className={classes.createWarning}>
+          ⚠️ Your token has not been detected, if you have one add it to your account area,
+          otherwise a new one will be created for you
+        </Typography>
+        <ButtonBase className={classes.createButtonWarning} onClick={() => createGeoDID()}>
+          <Typography variant="h4" gutterBottom display="inline">
+            Create GeoDID
+          </Typography>
+        </ButtonBase>
+      </>
+    );
+  } else if (!txState.txSending && !txState.txComplete && tokenId) {
+    txArea = (
+      <ButtonBase className={classes.createButton} onClick={() => createGeoDID()}>
+        <Typography variant="h4" gutterBottom>
+          Create GeoDID
+        </Typography>
+      </ButtonBase>
+    );
+  } else if (!txState.txSending && txState.txComplete && firstTime) {
+    txArea = (
+      <div className={classes.txArea}>
+        <Typography variant="h4" gutterBottom>
+          GeoDID Created
+        </Typography>
+        <Typography variant="body2" gutterBottom>
+          Click to view it
+        </Typography>
+        <Typography variant="body2" gutterBottom>
+          Token id: {tokenId}
+          <IconButton onClick={() => navigator.clipboard.writeText(tokenId)}>
+            <FileCopyIcon />
+          </IconButton>
+        </Typography>
+        <Typography variant="body2" gutterBottom>
+          Your token is the key to your GeoDIDs, keep it in a secure location as it is needed for
+          the next time
+        </Typography>
+      </div>
+    );
+  } else if (!txState.txSending && txState.txComplete && !firstTime) {
+    txArea = (
+      <ButtonBase className={classes.createButton} onClick={() => createGeoDID()}>
+        <Typography variant="h4" gutterBottom>
+          Create another
+        </Typography>
+      </ButtonBase>
+    );
+  }
+
   return (
-    <Card classes={{ root: classes.container }} variant="outlined" style={{ height: '96vh' }}>
-      <CardContent>
-        <Grid container style={{ height: '100%' }} spacing={2} direction="row" justify="center">
-          <Grid item xs={10}>
-            <Typography variant="h3" component="h1" gutterBottom>
-              {'Create GeoDID > Collection'}
-            </Typography>
-            <FormControl component="fieldset">
-              <FormGroup aria-label="position" row>
-                <FormControlLabel
-                  value="start"
-                  control={
-                    <AstralCheckbox
-                      checked={selectedRoot}
-                      onChange={handleChangeRoot}
-                      name="root"
-                    />
-                  }
-                  label={
-                    <Typography variant="h5" component="h1">
-                      Root GeoDID?
-                    </Typography>
-                  }
-                  labelPlacement="start"
-                />
-              </FormGroup>
-            </FormControl>
-            <div className={classes.tables}>
-              <ParentGeoDIDsTable
-                type="Add"
-                allAvailableParents={allAvailableParentsToAdd}
-                loading={loading}
-                maxNumberOfRows={5}
-                isDisabled={selectedRoot}
-              />
-              <ChildrenGeoDIDsTable
-                type="Add"
-                allAvailableChildren={allAvailableChildrenToAdd}
-                loading={loading}
-                maxNumberOfRows={5}
-              />
-            </div>
-          </Grid>
-          <Grid item xs={2}>
-            <ButtonBase className={classes.createButton} onClick={() => createGeoDID()}>
-              <Typography variant="h4" gutterBottom>
-                Create
+    <Authorize redirect>
+      <Card classes={{ root: classes.container }} variant="outlined" style={{ height: '96vh' }}>
+        <CardContent>
+          <Grid container style={{ height: '100%' }} spacing={2} direction="row" justify="center">
+            <Grid item xs={8}>
+              <Typography variant="h3" component="h1" gutterBottom>
+                {'Create GeoDID > Collection'}
               </Typography>
-            </ButtonBase>
+              <FormControl component="fieldset">
+                <FormGroup aria-label="position" row>
+                  <FormControlLabel
+                    value="start"
+                    control={
+                      <AstralCheckbox
+                        checked={selectedRoot}
+                        onChange={handleChangeRoot}
+                        name="root"
+                      />
+                    }
+                    label={
+                      <Typography variant="h5" component="h1">
+                        Root GeoDID?
+                      </Typography>
+                    }
+                    labelPlacement="start"
+                  />
+                </FormGroup>
+              </FormControl>
+              <div className={classes.tables}>
+                <ParentGeoDIDsTable
+                  type="Add"
+                  allAvailableParents={allAvailableParentsToAdd}
+                  loading={loading}
+                  maxNumberOfRows={5}
+                  isDisabled={selectedRoot}
+                />
+                <ChildrenGeoDIDsTable
+                  type="Add"
+                  allAvailableChildren={allAvailableChildrenToAdd}
+                  loading={loading}
+                  maxNumberOfRows={5}
+                />
+              </div>
+            </Grid>
+            <Grid item xs={4}>
+              {txArea}
+            </Grid>
           </Grid>
-        </Grid>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Authorize>
   );
 };
 

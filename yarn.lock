@@ -133,10 +133,10 @@
     ajv "^6.12.2"
     compare-versions "^3.6.0"
 
-"@astralprotocol/contracts@^1.0.9":
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/@astralprotocol/contracts/-/contracts-1.0.9.tgz#0364690c5ba45976f74152e890289d14d17b14d4"
-  integrity sha512-58Wze1gwxZUfK/DtEZGRaymiaj53LPXL1tEwmKyMOUd/oCPvFZZKf75JWy+GMwJeOzhatlvnk7eYA+nk5hD3pQ==
+"@astralprotocol/contracts@^1.0.11":
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/@astralprotocol/contracts/-/contracts-1.0.11.tgz#06c2b3d30df14f522f911f0fca6403ca0449c653"
+  integrity sha512-6u71u76F6sPJNEhR7EJtJk0M622KNWl5GdYFUL+l1x6hISwmvA+HIYJClfVAu1Pq6CZps6BZ0zjjM7rYNan7Ww==
   dependencies:
     "@astralprotocol/core" "^0.1.10"
     "@openzeppelin/contracts" "^3.2.0"
@@ -173,10 +173,10 @@
     multihashing-async "^2.0.1"
     reflect-metadata "^0.1.13"
 
-"@astralprotocol/core@^1.0.55":
-  version "1.0.55"
-  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-1.0.55.tgz#b2265640e3f40a6a4a99d4b823a0be2f4c243994"
-  integrity sha512-ckB/BUyMRRY/rwt5UVFhxnfZgsw/ompRChKBvJrWPJmRJ/mz9v6TpBwkM7O0kqWAgMBS0kweFHqZOBITN9Thtg==
+"@astralprotocol/core@^1.0.56":
+  version "1.0.56"
+  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-1.0.56.tgz#67620824929180aa2495e9e9a1e63cd55eabf561"
+  integrity sha512-CY89hUZYDcwvNydbLKURBKxeSjp5XxVoUwTTtA3BK1OornyYO60Ku6vR4/YbO+r+zDjiI6fOEidXwXDFfEa6jQ==
   dependencies:
     "@textile/powergate-client" "^4.0.0"
     "@types/ora" "^3.2.0"
