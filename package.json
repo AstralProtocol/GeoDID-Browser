@@ -56,6 +56,7 @@
     "bnc-notify": "^1.5.1",
     "bs58": "^4.0.1",
     "burner-provider": "^1.0.38",
+    "cache-base": "^4.0.0",
     "clsx": "^1.1.1",
     "connected-react-router": "^6.8.0",
     "eth-hooks": "^1.1.2",
