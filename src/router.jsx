@@ -1,11 +1,11 @@
 import React from 'react';
-import { Switch, Route, Redirect } from 'react-router-dom';
+import { Switch, Route } from 'react-router-dom';
 import loadable from '@loadable/component';
 import MainLayout from 'layouts';
 
 const routes = [
   {
-    path: '/landing',
+    path: '/',
     name: 'Landing',
     component: loadable(() => import('pages/Landing')),
     exact: true,
@@ -58,7 +58,6 @@ function Router() {
   return (
     <MainLayout>
       <Switch>
-        <Route exact path="/" render={() => <Redirect to="/Landing" />} />
         {routes.map((route) => (
           <Route
             path={route.path}

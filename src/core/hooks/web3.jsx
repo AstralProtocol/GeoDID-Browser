@@ -68,7 +68,7 @@ const logoutOfWeb3Modal = async () => {
     window.localStorage.setItem('powergateTokenId', JSON.stringify(''));
     window.location.reload();
   }, 1);
-  history.push('/Landing');
+  history.push('/');
 };
 
 /* eslint-disable no-unused-expressions */

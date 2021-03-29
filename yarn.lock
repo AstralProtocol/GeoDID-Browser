@@ -129,36 +129,10 @@
     solidity-coverage "^0.7.13"
     truffle "^5.1.49"
 
-"@astralprotocol/core@^0.1.10":
-  version "0.1.10"
-  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-0.1.10.tgz#b8b4c20a0982d28d1673b905b69a25adc6387016"
-  integrity sha512-DyR0tKK1xn21DdfL8gKW5fCQd347KQykF7aSmHdekcDDJlw6qFmYbJKLVG7Z/biVC0DX8UPWw307aKoXV26dbg==
-  dependencies:
-    "@textile/powergate-client" "^4.0.0"
-    ajv "^6.12.5"
-    async "^3.2.0"
-    axios "^0.20.0"
-    blob "^0.1.0"
-    cids "^1.0.0"
-    class-transformer "^0.3.1"
-    cli-progress "^3.8.2"
-    cross-fetch "^3.0.6"
-    did-jwt "^4.5.1"
-    did-resolver "^2.1.1"
-    dids "^0.5.1"
-    events "^3.2.0"
-    fetch-json "^2.2.7"
-    fs "^0.0.1-security"
-    graphql "^15.5.0"
-    graphql-request "^3.4.0"
-    lodash.clonedeep "^4.5.0"
-    multihashing-async "^2.0.1"
-    reflect-metadata "^0.1.13"
-
-"@astralprotocol/core@^1.0.56":
-  version "1.0.56"
-  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-1.0.56.tgz#67620824929180aa2495e9e9a1e63cd55eabf561"
-  integrity sha512-CY89hUZYDcwvNydbLKURBKxeSjp5XxVoUwTTtA3BK1OornyYO60Ku6vR4/YbO+r+zDjiI6fOEidXwXDFfEa6jQ==
+"@astralprotocol/core@1.0.58":
+  version "1.0.58"
+  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-1.0.58.tgz#939e6e4d9caed5ce7e57e33b436610e4770414bf"
+  integrity sha512-uMTFr0Ie2PpHCGz2KFJQd9ME7DG9SHuvBFVQxtW7W09A0Ix9yxy0XdsvMWFTo6n0ztseSEZR5TU6ZqxykxHE+Q==
   dependencies:
     "@textile/powergate-client" "^4.0.0"
     "@types/ora" "^3.2.0"
@@ -187,6 +161,32 @@
     ora "^5.3.0"
     reflect-metadata "^0.1.13"
     set-interval-async "1.0.34"
+
+"@astralprotocol/core@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-0.1.10.tgz#b8b4c20a0982d28d1673b905b69a25adc6387016"
+  integrity sha512-DyR0tKK1xn21DdfL8gKW5fCQd347KQykF7aSmHdekcDDJlw6qFmYbJKLVG7Z/biVC0DX8UPWw307aKoXV26dbg==
+  dependencies:
+    "@textile/powergate-client" "^4.0.0"
+    ajv "^6.12.5"
+    async "^3.2.0"
+    axios "^0.20.0"
+    blob "^0.1.0"
+    cids "^1.0.0"
+    class-transformer "^0.3.1"
+    cli-progress "^3.8.2"
+    cross-fetch "^3.0.6"
+    did-jwt "^4.5.1"
+    did-resolver "^2.1.1"
+    dids "^0.5.1"
+    events "^3.2.0"
+    fetch-json "^2.2.7"
+    fs "^0.0.1-security"
+    graphql "^15.5.0"
+    graphql-request "^3.4.0"
+    lodash.clonedeep "^4.5.0"
+    multihashing-async "^2.0.1"
+    reflect-metadata "^0.1.13"
 
 "@babel/code-frame@7.10.4":
   version "7.10.4"
@@ -2182,6 +2182,7 @@
     "@hapi/hoek" "^8.3.0"
 
 "@hot-loader/react-dom@^17.0.1", "react-dom@npm:@hot-loader/react-dom":
+  name react-dom
   version "17.0.1"
   resolved "https://registry.yarnpkg.com/@hot-loader/react-dom/-/react-dom-17.0.1.tgz#0c75b4dd068f819435dafb3e8809ca1749695656"
   integrity sha512-QttzEibkIFkl/WV1dsLXg73YIweNo9ySbB0/26068RqFGWyv7pKyictWsaQXqSj1y66/BDn3kglCHgroGrv3vA==

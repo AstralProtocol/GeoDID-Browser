@@ -68,7 +68,6 @@ const LeafletMap = (props) => {
 
   useEffect(() => {
     const loadGeoTiff = async () => {
-      console.log(selectedFile);
       if (selectedFile && selectedFile.type === 'GeoTIFF') {
         console.log(selectedFile);
         setShowError(false);
@@ -76,7 +75,6 @@ const LeafletMap = (props) => {
         try {
           const buffer = await readFileAsync(selectedFile.data, false);
           const s = L.ScalarField.fromGeoTIFF(buffer);
-          console.log(s);
           const layer = L.canvasLayer.scalarField(s).addTo(map.current.leafletElement);
 
           map.current.leafletElement.fitBounds(layer.getBounds());

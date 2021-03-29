@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import { connect } from 'react-redux';
-import { ethers } from 'ethers';
 import { useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import {
@@ -19,21 +18,19 @@ import {
   Modal,
   Tooltip,
 } from '@material-ui/core';
-import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 import { useSubscription } from '@apollo/react-hooks';
 import geoDIDSubscription from 'core/graphql/geoDIDSubscription';
 import geoDIDsSubscription from 'core/graphql/geoDIDsSubscription';
 import Map from 'components/Map';
-import { useAstral } from 'core/hooks/astral';
 import { useWallet } from 'core/hooks/web3';
 import {
   snackbarError,
   toggleAddGeoDIDAsChildrenModal,
   toggleAddGeoDIDAsParentModal,
 } from 'core/redux/modals/actions';
-import { getBytes32FromGeoDIDid, getBytes32FromCid } from 'utils';
+import { getBytes32FromGeoDIDid } from 'utils';
 import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
 import { useSpring, animated } from 'react-spring/web.cjs'; // web.cjs is required for IE 11 support
 import ChildrenGeoDIDsTable from 'components/ChildrenGeoDIDsTable';
@@ -148,8 +145,7 @@ const useStyles = makeStyles((theme) => ({
 
 const GeoDIDView = (props) => {
   const history = useHistory();
-  const { tx, contracts, address } = useWallet();
-  const { astralInstance } = useAstral();
+  const { tx, contracts } = useWallet();
   const {
     match: { params },
     dispatchSnackbarError,
@@ -218,44 +214,6 @@ const GeoDIDView = (props) => {
       }, [])
     : [];
 
-  const createGeoDID = async () => {
-    const genDocRes = await astralInstance.createGenesisGeoDID('item');
-    console.log(genDocRes);
-
-    // With the returned IDocumentInfo from the last function, we can pin it.
-    // Since no token was specified the client will assign a new auth Token to the user.
-
-    const results = await astralInstance.pinDocument(genDocRes);
-    console.log(results);
-
-    // const token = results.token;
-
-    // register the geodid id and cid obtained. Type 0 because it is a collection
-
-    console.log(results.geodidid);
-    console.log(results.cid);
-
-    const bytes32GeoDID = getBytes32FromGeoDIDid(results.geodidid);
-    const bytes32Cid = getBytes32FromCid(results.cid);
-
-    try {
-      tx(
-        contracts.SpatialAssets.registerSpatialAsset(
-          address,
-          bytes32GeoDID,
-          ethers.utils.formatBytes32String(''),
-          [],
-          bytes32Cid,
-          ethers.utils.formatBytes32String('FILECOIN'),
-          1,
-        ),
-        enqueueSnackbar,
-      );
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
   const handleParentDelete = (parentGeoDID) => {
     if (selectedGeoDID) {
       tx(
@@ -312,12 +270,6 @@ const GeoDIDView = (props) => {
                   Quick Actions
                 </Typography>
                 <List component="nav" aria-label="main mailbox folders">
-                  <ListItem button onClick={createGeoDID}>
-                    <ListItemIcon>
-                      <EditIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="Edit" />
-                  </ListItem>
                   <ListItem button onClick={handleDeletion}>
                     <ListItemIcon>
                       <DeleteIcon />

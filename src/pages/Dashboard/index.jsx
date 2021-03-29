@@ -150,7 +150,7 @@ const Dashboard = (props) => {
     popupId: 'filterPopup',
   });
   const { astralInstance } = useAstral();
-  const { address, tokenId } = useWallet();
+  const { address } = useWallet();
   const [assetsState, setAssetsState] = useState({
     loading: false,
     loaded: false,
@@ -303,13 +303,13 @@ const Dashboard = (props) => {
 
   useEffect(() => {
     const loadDocument = async () => {
-      if (selectedGeoDID && selectedGeoDID.type === 'Item' && astralInstance && tokenId) {
+      if (selectedGeoDID && selectedGeoDID.type === 'Item' && astralInstance) {
         try {
           setAssetsState({
             loading: true,
             loaded: false,
           });
-          const docRes = await astralInstance.loadDocument(selectedGeoDID.id, tokenId);
+          const docRes = await astralInstance.loadDocument(selectedGeoDID.id);
 
           console.log(docRes);
 
@@ -326,7 +326,7 @@ const Dashboard = (props) => {
     };
 
     loadDocument();
-  }, [selectedGeoDID, astralInstance, tokenId]);
+  }, [selectedGeoDID, astralInstance]);
 
   if (treeGeoDIDs.length > 0 && !loadingTree && toggleTree) {
     listArea = (

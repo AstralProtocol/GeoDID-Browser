@@ -7,21 +7,42 @@ import { AstralClient } from '@astralprotocol/core';
 const AstralContext = React.createContext();
 
 export function AstralContextProvider({ children }) {
-  const { address } = useWallet();
+  const { address, tokenId, setTokenId } = useWallet();
   const [astralInstance, setAstralInstance] = useState();
+  const [astralLoaded, setAstralLoaded] = useState(false);
 
   useEffect(() => {
-    if (address) {
-      const newAstral = new AstralClient(address, SUBGRAPH_ENDPOINT);
-      setAstralInstance(newAstral);
-    }
-  }, [address]);
+    const loadAstral = async () => {
+      if (address && !astralLoaded && !tokenId) {
+        try {
+          const newAstral = await AstralClient.build(address, SUBGRAPH_ENDPOINT);
+
+          setTokenId(newAstral._token);
+          setAstralInstance(newAstral);
+          setAstralLoaded(true);
+        } catch {
+          console.log('Error loading astral');
+        }
+      } else if (address && !astralLoaded && tokenId) {
+        try {
+          const newAstral = await AstralClient.build(address, SUBGRAPH_ENDPOINT, tokenId);
+          setAstralInstance(newAstral);
+          setAstralLoaded(true);
+        } catch {
+          console.log('Error loading astral');
+        }
+      }
+    };
+
+    loadAstral();
+  }, [address, astralLoaded]);
 
   const astral = useMemo(
     () => ({
       astralInstance,
+      astralLoaded,
     }),
-    [astralInstance],
+    [astralInstance, astralLoaded],
   );
 
   return <AstralContext.Provider value={astral}>{children}</AstralContext.Provider>;

@@ -13,9 +13,7 @@ import {
   FormControlLabel,
   FormControl,
   LinearProgress,
-  IconButton,
 } from '@material-ui/core';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
 import { useSubscription } from '@apollo/react-hooks';
 import geoDIDsSubscription from 'core/graphql/geoDIDsSubscription';
 import {
@@ -74,14 +72,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Collection = (props) => {
-  const { tx, contracts, address, tokenId, setTokenId } = useWallet();
+  const { tx, contracts, address } = useWallet();
   const { astralInstance } = useAstral();
   const { enqueueSnackbar } = useSnackbar();
   const [txState, setTxState] = useState({
     txSending: false,
     txComplete: false,
   });
-  const [firstTime, setFirstTime] = useState(null);
   const classes = useStyles();
   const [selectedRoot, setSelectedRoot] = useState(false);
 
@@ -102,6 +99,7 @@ const Collection = (props) => {
   const { data, loading } = useSubscription(geoDIDsSubscription, {
     variables: {
       where: {
+        ...(address ? { owner: address.toLowerCase() } : {}),
         ...{ active: true },
       },
     },
@@ -166,44 +164,21 @@ const Collection = (props) => {
 
     const genDocRes = await astralInstance.createGenesisGeoDID('collection');
 
-    let results;
-
-    if (tokenId) {
-      results = await astralInstance.pinDocument(genDocRes, tokenId);
-    } else {
-      results = await astralInstance.pinDocument(genDocRes);
-    }
+    const results = await astralInstance.pinDocument(genDocRes);
 
     const bytes32GeoDID = getBytes32FromGeoDIDid(results.geodidid);
 
     const bytes32Cid = getBytes32FromCid(results.cid);
 
-    let txOptions = {
+    console.log(results);
+
+    const txOptions = {
       txState: {
         setTxState,
       },
+      dispatchSetSelectedParentCreation,
+      dispatchSetSelectedChildrenCreation,
     };
-
-    if (tokenId) {
-      txOptions = {
-        ...txOptions,
-        token: {
-          tokenId,
-          setTokenId,
-          firstTime: false,
-        },
-      };
-    } else {
-      txOptions = {
-        ...txOptions,
-        token: {
-          tokenId: results.token,
-          setTokenId,
-          firstTime: true,
-          setFirstTime,
-        },
-      };
-    }
 
     try {
       tx(
@@ -219,8 +194,6 @@ const Collection = (props) => {
         enqueueSnackbar,
         txOptions,
       );
-      dispatchSetSelectedParentCreation(null);
-      dispatchSetSelectedChildrenCreation([]);
     } catch (err) {
       console.log(err);
     }
@@ -237,21 +210,7 @@ const Collection = (props) => {
         <LinearProgress />
       </div>
     );
-  } else if (!txState.txSending && !txState.txComplete && !tokenId) {
-    txArea = (
-      <>
-        <Typography variant="body2" gutterBottom display="inline" className={classes.createWarning}>
-          ⚠️ Your token has not been detected, if you have one add it to your account area,
-          otherwise a new one will be created for you
-        </Typography>
-        <ButtonBase className={classes.createButtonWarning} onClick={() => createGeoDID()}>
-          <Typography variant="h4" gutterBottom display="inline">
-            Create GeoDID
-          </Typography>
-        </ButtonBase>
-      </>
-    );
-  } else if (!txState.txSending && !txState.txComplete && tokenId) {
+  } else if (!txState.txSending && !txState.txComplete) {
     txArea = (
       <ButtonBase className={classes.createButton} onClick={() => createGeoDID()}>
         <Typography variant="h4" gutterBottom>
@@ -259,28 +218,7 @@ const Collection = (props) => {
         </Typography>
       </ButtonBase>
     );
-  } else if (!txState.txSending && txState.txComplete && firstTime) {
-    txArea = (
-      <div className={classes.txArea}>
-        <Typography variant="h4" gutterBottom>
-          GeoDID Created
-        </Typography>
-        <Typography variant="body2" gutterBottom>
-          Click to view it
-        </Typography>
-        <Typography variant="body2" gutterBottom>
-          Token id: {tokenId}
-          <IconButton onClick={() => navigator.clipboard.writeText(tokenId)}>
-            <FileCopyIcon />
-          </IconButton>
-        </Typography>
-        <Typography variant="body2" gutterBottom>
-          Your token is the key to your GeoDIDs, keep it in a secure location as it is needed for
-          the next time
-        </Typography>
-      </div>
-    );
-  } else if (!txState.txSending && txState.txComplete && !firstTime) {
+  } else if (!txState.txSending && txState.txComplete) {
     txArea = (
       <ButtonBase className={classes.createButton} onClick={() => createGeoDID()}>
         <Typography variant="h4" gutterBottom>
