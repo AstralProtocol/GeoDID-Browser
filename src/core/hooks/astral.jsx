@@ -20,16 +20,18 @@ export function AstralContextProvider({ children }) {
           setTokenId(newAstral._token);
           setAstralInstance(newAstral);
           setAstralLoaded(true);
-        } catch {
+        } catch (e) {
           console.log('Error loading astral');
+          console.log(e);
         }
       } else if (address && !astralLoaded && tokenId) {
         try {
           const newAstral = await AstralClient.build(address, SUBGRAPH_ENDPOINT, tokenId);
           setAstralInstance(newAstral);
           setAstralLoaded(true);
-        } catch {
+        } catch (e) {
           console.log('Error loading astral');
+          console.log(e);
         }
       }
     };
