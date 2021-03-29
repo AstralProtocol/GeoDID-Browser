@@ -16,7 +16,6 @@ import { DropzoneAreaBase } from 'material-ui-dropzone';
 import Map from 'components/Map';
 import {
   readFileAsync,
-  loadLoam,
   getBytes32FromGeoDIDid,
   getBytes32FromCid,
   jsonToArray,
@@ -118,7 +117,6 @@ const Item = (props) => {
   });
   const [firstTime, setFirstTime] = useState(null);
 
-  console.log(txState);
   const { enqueueSnackbar } = useSnackbar();
   const { parent, dispatchSetSelectedParentCreation } = props;
 
@@ -183,15 +181,15 @@ const Item = (props) => {
                   }
                 } else {
                   try {
-                    const loam = await loadLoam();
-                    const loadedData = await loam.open(fNew);
+                    // const loam = await loadLoam();
+                    // const loadedData = await loam.open(fNew);
                     const uint8Array = await blobToUint8(fNew);
 
                     newFile = {
                       tag: fNew.name,
                       type: 'GeoTIFF',
                       size: fNew.size,
-                      data: loadedData,
+                      data: fNew,
                       bytes: uint8Array,
                     };
                     enqueueSnackbar(`${newFile.tag} added`, {
@@ -228,15 +226,15 @@ const Item = (props) => {
                 currentFiles = [...currentFiles, newFile];
                 currentFileObjects = [...currentFileObjects, f];
               } else {
-                const loam = await loadLoam();
-                const loadedData = await loam.open(fNew);
+                // const loam = await loadLoam();
+                // const loadedData = await loam.open(fNew);
                 const uint8Array = await blobToUint8(fNew);
 
                 newFile = {
                   tag: fNew.name,
                   type: 'GeoTIFF',
                   size: fNew.size,
-                  data: loadedData,
+                  data: fNew,
                   bytes: uint8Array,
                 };
                 currentFiles = [...currentFiles, newFile];
