@@ -575,9 +575,15 @@ const Dashboard = (props) => {
           <Grid item xs={12} style={{ height: '86vh' }}>
             <Card classes={{ root: classes.list }} variant="outlined">
               <CardContent style={{ height: '100%' }}>
-                <Typography variant="h5" component="h1" gutterBottom>
-                  Browse GeoDIDs
-                </Typography>
+                {address ? (
+                  <Typography variant="h5" component="h1" gutterBottom>
+                    Your GeoDIDs
+                  </Typography>
+                ) : (
+                  <Typography variant="h5" component="h1" gutterBottom>
+                    Browse all GeoDIDs
+                  </Typography>
+                )}
                 {listArea}
               </CardContent>
             </Card>

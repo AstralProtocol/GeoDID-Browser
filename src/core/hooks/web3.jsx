@@ -73,16 +73,6 @@ const logoutOfWeb3Modal = async () => {
 
 /* eslint-disable no-unused-expressions */
 window.ethereum &&
-  window.ethereum.on('accountsChanged', () => {
-    setTimeout(() => {
-      window.localStorage.setItem('powergateTokenId', JSON.stringify(''));
-      window.location.reload();
-    }, 1);
-  });
-/* eslint-enable no-unused-expressions */
-
-/* eslint-disable no-unused-expressions */
-window.ethereum &&
   window.ethereum.on('chainChanged', () => {
     setTimeout(() => {
       window.location.reload();
@@ -171,6 +161,16 @@ export function WalletContextProvider({ children }) {
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
     setInjectedProvider(new Web3Provider(provider));
+
+    /* eslint-disable no-unused-expressions */
+    window.ethereum &&
+      window.ethereum.on('accountsChanged', () => {
+        setTimeout(() => {
+          window.localStorage.setItem('powergateTokenId', JSON.stringify(''));
+          window.location.reload();
+        }, 1);
+      });
+    /* eslint-enable no-unused-expressions */
   }, [setInjectedProvider]);
 
   useEffect(() => {

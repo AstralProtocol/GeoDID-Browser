@@ -114,7 +114,7 @@ const LeafletMap = (props) => {
     <>
       {assetsLoadedArea}
       <Map
-        style={{ height: '95%', width: '100%' }}
+        style={{ height: '95%', width: '100%', zIndex: 1 }}
         center={zoomPosition.center}
         zoom={zoomPosition.zoom}
         onMoveEnd={onMoveEnd}
