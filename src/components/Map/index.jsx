@@ -3,10 +3,29 @@ import { useState, useRef, useEffect } from 'react';
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import createParser from 'core/parsers/parserFactory';
-import { GeoJSON, Map, TileLayer } from 'react-leaflet';
+import { ImageOverlay, GeoJSON, Map, TileLayer } from 'react-leaflet';
 import { LinearProgress } from '@material-ui/core';
-import { GEO_JSON_MARKER_OPTIONS, GEOJSON_OVERLAY } from 'utils/constants';
-import { uuidv4, readFileAsync } from 'utils';
+import { IMAGE_OVERLAY, GEO_JSON_MARKER_OPTIONS, GEOJSON_OVERLAY } from 'utils/constants';
+import { uuidv4 } from 'utils';
+
+/* This code and underlying dependencies have been based on https://github.com/aviklai/react-leaflet-load-geodata
+   with adaptations to load loam dependencies from unpkg
+    <link rel="prefetch" href="https://unpkg.com/gdal-js@2.0.0/gdal.js" />
+    <link rel="prefetch" href="https://unpkg.com/gdal-js@2.0.0/gdal.data" />
+    <link rel="prefetch" href="https://unpkg.com/gdal-js@2.0.0/gdal.wasm" />
+    <link rel="prefetch" href="https://unpkg.com/loam@1.0.0-rc.2/lib/loam-worker.js" />
+Have been added to public/index.html to prefetch
+*/
+
+/* eslint-disable */
+/* This code is needed to properly load the images in the Leaflet CSS */
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
+/* eslint-enable */
 
 const LeafletMap = (props) => {
   const { selectedFile } = props;
@@ -27,18 +46,8 @@ const LeafletMap = (props) => {
   }
 
   useEffect(() => {
-    // load script
-    const script = document.createElement('script');
-    script.src =
-      'https://ihcantabria.github.io/Leaflet.CanvasLayer.Field/dist/leaflet.canvaslayer.field.js';
-    script.async = true;
-
-    document.body.appendChild(script);
-  }, []);
-
-  useEffect(() => {
-    const loadGeoJson = async () => {
-      if (selectedFile && selectedFile.type === 'GeoJSON') {
+    const loadAsset = async () => {
+      if (selectedFile) {
         console.log(selectedFile);
         setShowError(false);
         setShowLoader(true);
@@ -63,39 +72,7 @@ const LeafletMap = (props) => {
       }
     };
 
-    loadGeoJson();
-  }, [selectedFile]);
-
-  useEffect(() => {
-    const loadGeoTiff = async () => {
-      console.log(selectedFile);
-      if (selectedFile && selectedFile.type === 'GeoTIFF') {
-        console.log(selectedFile);
-        setShowError(false);
-        setShowLoader(true);
-        try {
-          const buffer = await readFileAsync(selectedFile.data);
-          const s = L.ScalarField.fromGeoTIFF(buffer);
-          console.log(s);
-          const layer = L.canvasLayer.scalarField(s).addTo(map.current.leafletElement);
-
-          map.current.leafletElement.fitBounds(layer.getBounds());
-        } catch (ex) {
-          console.log(ex);
-          setShowError(true);
-        } finally {
-          setShowLoader(false);
-        }
-      } else {
-        setZoomPosition({
-          zoom: 5,
-          center: L.latLng(20, 0),
-        });
-        setOverlays([]);
-      }
-    };
-
-    loadGeoTiff();
+    loadAsset();
   }, [selectedFile]);
 
   function pointToLayer(feature, latlng) {
@@ -121,13 +98,13 @@ const LeafletMap = (props) => {
     );
   } else if (!showLoader) {
     assetsLoadedArea = (
-      <div style={{ height: '5vh', width: '100%', textAlign: 'center' }}>
+      <div style={{ height: '5%', width: '100%', textAlign: 'center' }}>
         Load an asset to view it on the map
       </div>
     );
   } else if (showLoader && !showError) {
     assetsLoadedArea = (
-      <div style={{ height: '5vh', width: '100%', textAlign: 'center' }}>
+      <div style={{ height: '5%', width: '100%', textAlign: 'center' }}>
         <LinearProgress />
       </div>
     );
@@ -136,7 +113,7 @@ const LeafletMap = (props) => {
     <>
       {assetsLoadedArea}
       <Map
-        style={{ height: '95vh', width: '100%', zIndex: 1 }}
+        style={{ height: '95%', width: '100%', zIndex: 1 }}
         center={zoomPosition.center}
         zoom={zoomPosition.zoom}
         onMoveEnd={onMoveEnd}
@@ -148,6 +125,15 @@ const LeafletMap = (props) => {
           attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         />
         {overlays.map((overlay) => {
+          if (overlay.data.type === IMAGE_OVERLAY && overlay.show) {
+            return (
+              <ImageOverlay
+                key={overlay.id}
+                url={overlay.data.imageUrl}
+                bounds={overlay.data.bounds}
+              />
+            );
+          }
           if (overlay.data.type === GEOJSON_OVERLAY && overlay.show) {
             return (
               <GeoJSON
