@@ -251,23 +251,9 @@ const Item = (props) => {
       bytes32Parent = ethers.utils.formatBytes32String('');
     }
 
-    const genDocRes = await astralInstance.createGenesisGeoDID('item');
-
-    const results = await astralInstance.pinDocument(genDocRes);
-
-    const bytes32GeoDID = getBytes32FromGeoDIDid(results.geodidid);
-
-    const bytes32Cid = getBytes32FromCid(results.cid);
-
-    let txOptions = {
-      txState: {
-        setTxState,
-      },
-      dispatchSetSelectedParentCreation,
-    };
-
+    let dataArray;
     if (files && files.length > 0) {
-      const dataArray = files.reduce((newDataArray, file) => {
+      dataArray = files.reduce((newDataArray, file) => {
         newDataArray.push({
           type: file.type,
           tag: file.tag,
@@ -275,17 +261,32 @@ const Item = (props) => {
         });
         return newDataArray;
       }, []);
-      txOptions = {
-        ...txOptions,
-        addAssets: {
-          astralInstance,
-          geodidId: results.geodidid,
-          data: dataArray,
-        },
-      };
+    } else {
+      dataArray = [];
     }
 
-    console.log(txOptions);
+    setTxState({
+      txSending: true,
+      txComplete: false,
+    });
+
+    const genDocRes = await astralInstance.createGenesisGeoDID('item', dataArray);
+    console.log(genDocRes);
+
+    const results = await astralInstance.pinDocument(genDocRes);
+
+    console.log(results);
+    const bytes32GeoDID = getBytes32FromGeoDIDid(results.geodidid);
+
+    const bytes32Cid = getBytes32FromCid(results.cid);
+
+    const txOptions = {
+      txState: {
+        setTxState,
+      },
+      dispatchSetSelectedParentCreation,
+    };
+
     try {
       await tx(
         contracts.SpatialAssets.registerSpatialAsset(

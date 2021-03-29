@@ -67,21 +67,6 @@ export default function Transactor(provider, gasPrice, etherscan) {
             onclick: () => window.open((etherscan || etherscanTxUrl) + transaction.hash),
           }));
           emitter.on('txConfirmed', async () => {
-            if (txOptions.addAssets) {
-              const addAssetsRes = await txOptions.addAssets.astralInstance.addAssetsToItem(
-                txOptions.addAssets.geodidId,
-                txOptions.addAssets.data,
-              );
-
-              console.log(addAssetsRes);
-              await txOptions.addAssets.astralInstance.pinDocument(addAssetsRes);
-              const doc = await txOptions.addAssets.astralInstance.loadDocument(
-                txOptions.addAssets.geodidId,
-              );
-
-              console.log(doc);
-            }
-
             if (txOptions.txState) {
               txOptions.txState.setTxState({
                 txSending: false,
