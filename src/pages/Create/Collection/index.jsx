@@ -262,14 +262,14 @@ const Collection = (props) => {
                   type="Add"
                   allAvailableParents={allAvailableParentsToAdd}
                   loading={loading}
-                  maxNumberOfRows={5}
+                  maxNumberOfRows={3}
                   isDisabled={selectedRoot}
                 />
                 <ChildrenGeoDIDsTable
                   type="Add"
                   allAvailableChildren={allAvailableChildrenToAdd}
                   loading={loading}
-                  maxNumberOfRows={5}
+                  maxNumberOfRows={3}
                 />
               </div>
             </Grid>

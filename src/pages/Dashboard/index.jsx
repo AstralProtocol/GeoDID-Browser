@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useHistory } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
@@ -23,7 +23,6 @@ import {
   Radio,
   RadioGroup,
   Switch,
-  LinearProgress,
 } from '@material-ui/core';
 import AstralButton from 'components/AstralButton';
 import { usePopupState, bindTrigger, bindPopover } from 'material-ui-popup-state/hooks';
@@ -38,7 +37,6 @@ import { useWallet } from 'core/hooks/web3';
 import StyledTreeItem from 'components/StyledTreeItem';
 import Map from 'components/Map';
 import { iff } from 'utils';
-import { useAstral } from 'core/hooks/astral';
 
 const AstralSwitch = withStyles({
   switchBase: {
@@ -149,12 +147,7 @@ const Dashboard = (props) => {
     variant: 'popover',
     popupId: 'filterPopup',
   });
-  const { astralInstance } = useAstral();
   const { address } = useWallet();
-  const [assetsState, setAssetsState] = useState({
-    loading: false,
-    loaded: false,
-  });
 
   const handleTypeFilterChange = (event) => {
     setSearchValue('');
@@ -301,33 +294,6 @@ const Dashboard = (props) => {
     return components;
   }, []);
 
-  useEffect(() => {
-    const loadDocument = async () => {
-      if (selectedGeoDID && selectedGeoDID.type === 'Item' && astralInstance) {
-        try {
-          setAssetsState({
-            loading: true,
-            loaded: false,
-          });
-          const docRes = await astralInstance.loadDocument(selectedGeoDID.id);
-
-          console.log(docRes);
-
-          setAssetsState({
-            loading: false,
-            loaded: true,
-          });
-        } catch {
-          console.log('Not able to load assets for this geodid item');
-        }
-
-        // dispatchFetchSpatialAsset(astralInstance, selectedGeoDID.id, tokenId);
-      }
-    };
-
-    loadDocument();
-  }, [selectedGeoDID, astralInstance]);
-
   if (treeGeoDIDs.length > 0 && !loadingTree && toggleTree) {
     listArea = (
       <Virtuoso
@@ -392,33 +358,11 @@ const Dashboard = (props) => {
   let geoDIDMetadata;
 
   if (selectedGeoDID) {
-    let assetsArea = '';
-
-    if (selectedGeoDID.type === 'Item') {
-      console.log(assetsState);
-      if (assetsState.loading && !assetsState.loaded) {
-        assetsArea = (
-          <>
-            <Typography variant="h5" component="h1" gutterBottom>
-              Loading assets
-            </Typography>
-            <LinearProgress />
-          </>
-        );
-      } else if (!assetsState.loading && assetsState.loaded) {
-        assetsArea = (
-          <Typography variant="h5" component="h1" gutterBottom>
-            Assets Loaded
-          </Typography>
-        );
-      }
-    }
-
     geoDIDMetadata = (
       <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '48vh' }}>
-        <CardHeader style={{ height: '10%' }} title="GeoDID Metadata" />
-        <CardContent style={{ height: '90%' }}>
-          <Grid container style={{ height: '50%' }} spacing={2} direction="row" justify="center">
+        <CardHeader style={{ height: '4vh' }} title="GeoDID Metadata" />
+        <CardContent style={{ height: '44vh' }}>
+          <Grid container style={{ height: '22vh' }} spacing={2} direction="row" justify="center">
             <Grid item xs={2}>
               <Typography variant="subtitle1" gutterBottom style={{ fontWeight: 600 }}>
                 GeoDID ID
@@ -441,15 +385,15 @@ const Dashboard = (props) => {
                 {selectedGeoDID.type}
               </Typography>
             </Grid>
-            <Grid item xs={3} className={classes.areaButton}>
-              <AstralButton
-                key="view"
-                click={() => history.push(`/browse/${geoDIDID}`)}
-                title="View or Edit GeoDID"
-              />
-            </Grid>
           </Grid>
-          {assetsArea}
+          <Grid container style={{ height: '22vh' }} spacing={2} direction="row" justify="center">
+            <AstralButton
+              key="view"
+              click={() => history.push(`/browse/${geoDIDID}`)}
+              title="View or Edit GeoDID"
+              className={classes.areaButton}
+            />
+          </Grid>
         </CardContent>
       </Card>
     );

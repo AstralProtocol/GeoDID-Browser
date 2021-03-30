@@ -360,7 +360,7 @@ const Item = (props) => {
                   setSelectedAsset={setSelectedFile}
                   files={files}
                   fileObjects={fileObjects}
-                  maxNumberOfRows={5}
+                  maxNumberOfRows={3}
                   setFiles={setFiles}
                   setFileObjs={setFileObjs}
                   maxFileSize={10000000}
@@ -371,7 +371,7 @@ const Item = (props) => {
                   type="Add"
                   allAvailableParents={allAvailableParentsToAdd}
                   loading={loading}
-                  maxNumberOfRows={5}
+                  maxNumberOfRows={3}
                   isDisabled={false}
                 />
               </div>

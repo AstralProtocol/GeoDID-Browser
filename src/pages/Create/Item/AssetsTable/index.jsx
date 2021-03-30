@@ -169,7 +169,7 @@ export default function AssetsTable(props) {
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('calories');
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rowsPerPage, setRowsPerPage] = React.useState(3);
 
   const {
     setSelectedAsset,
@@ -216,8 +216,6 @@ export default function AssetsTable(props) {
     setPage(0);
   };
 
-  const isSelected = (tag) => selectedAsset && selectedAsset.tag === tag;
-
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, files.length - page * rowsPerPage);
 
   let tableBody;
@@ -228,7 +226,8 @@ export default function AssetsTable(props) {
         {stableSort(files, getComparator(order, orderBy))
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row) => {
-            const isItemSelected = isSelected(row.tag);
+            const isItemSelected = selectedAsset ? selectedAsset.tag === row.tag : false;
+
             const labelId = `enhanced-table-checkbox-${row.tag}`;
             return (
               <TableRow
@@ -293,7 +292,7 @@ export default function AssetsTable(props) {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, maxNumberOfRows]}
+          rowsPerPageOptions={[1, maxNumberOfRows]}
           component="div"
           count={files.length}
           rowsPerPage={rowsPerPage}

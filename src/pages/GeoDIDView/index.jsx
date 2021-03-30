@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
@@ -17,6 +17,7 @@ import {
   Backdrop,
   Modal,
   Tooltip,
+  LinearProgress,
 } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
@@ -36,6 +37,8 @@ import { useSpring, animated } from 'react-spring/web.cjs'; // web.cjs is requir
 import ChildrenGeoDIDsTable from 'components/ChildrenGeoDIDsTable';
 import ParentGeoDIDsTable from 'components/ParentGeoDIDsTable';
 import { useSnackbar } from 'notistack';
+import { useAstral } from 'core/hooks/astral';
+import AssetsTable from './AssetsTable';
 
 const Fade = React.forwardRef((props, ref) => {
   const { in: open, children, onEnter, onExited, ...other } = props;
@@ -157,7 +160,14 @@ const GeoDIDView = (props) => {
   } = props;
   const { geoDIDID } = params;
   const { enqueueSnackbar } = useSnackbar();
-
+  const { astralInstance } = useAstral();
+  const [assetsState, setAssetsState] = useState({
+    loading: false,
+    loaded: false,
+  });
+  const [selectedAsset, setSelectedAsset] = useState(null);
+  const [doc, setDoc] = useState(null);
+  const [assets, setAssets] = useState(null);
   const classes = useStyles();
   const parentRef = useRef(null);
 
@@ -257,83 +267,165 @@ const GeoDIDView = (props) => {
     history.push(`/browse/${value}`);
   };
 
+  useEffect(() => {
+    const loadDocument = async () => {
+      if (selectedGeoDID && selectedGeoDID.type === 'Item' && astralInstance) {
+        try {
+          setAssetsState({
+            loading: true,
+            loaded: false,
+          });
+          const docRes = await astralInstance.loadDocument(selectedGeoDID.id);
+
+          console.log(docRes);
+          if (docRes) {
+            setDoc(docRes.documentInfo.documentVal);
+            setAssets(docRes.documentInfo.documentVal.service);
+          }
+          setAssetsState({
+            loading: false,
+            loaded: true,
+          });
+        } catch {
+          console.log('Not able to load assets for this geodid item');
+        }
+
+        // dispatchFetchSpatialAsset(astralInstance, selectedGeoDID.id, tokenId);
+      }
+    };
+
+    loadDocument();
+  }, [selectedGeoDID, astralInstance]);
+
+  useEffect(() => {
+    const loadDocument = async () => {
+      console.log(doc);
+      console.log(selectedAsset);
+      if (doc && selectedAsset && astralInstance) {
+        try {
+          const assetObj = await astralInstance.loadAsset(doc, selectedAsset.id);
+
+          console.log(assetObj);
+        } catch {
+          console.log('Not able to load assets for this geodid item');
+        }
+
+        // dispatchFetchSpatialAsset(astralInstance, selectedGeoDID.id, tokenId);
+      }
+    };
+
+    loadDocument();
+  }, [doc, selectedAsset, astralInstance]);
+
   let geoDIDMetadata;
 
   if (selectedGeoDID) {
+    let assetsArea = '';
+
+    if (selectedGeoDID.type === 'Item') {
+      if (assetsState.loading && !assetsState.loaded) {
+        assetsArea = (
+          <>
+            <Typography variant="h5" component="h1" gutterBottom>
+              Loading assets
+            </Typography>
+            <LinearProgress />
+          </>
+        );
+      } else if (!assetsState.loading && assetsState.loaded) {
+        assetsArea = (
+          <>
+            <Typography variant="h5" component="h1" gutterBottom>
+              Assets Loaded
+            </Typography>
+            <AssetsTable
+              selectedAsset={selectedAsset}
+              setSelectedAsset={setSelectedAsset}
+              assets={assets}
+              maxNumberOfRows={3}
+            />
+          </>
+        );
+      }
+    }
+
     geoDIDMetadata = (
       <Grid item xs={12}>
-        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '48vh' }}>
+        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '66vh' }}>
           <CardContent style={{ height: '100%' }}>
             <Grid container spacing={2}>
-              <Grid item xs={2}>
-                <Typography variant="h5" component="h1" gutterBottom display="inline">
-                  Quick Actions
-                </Typography>
-                <List component="nav" aria-label="main mailbox folders">
-                  <ListItem button onClick={handleDeletion}>
-                    <ListItemIcon>
-                      <DeleteIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="Deactivate GeoDID" />
-                  </ListItem>
-                </List>
-              </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={6}>
                 <Typography variant="h5" component="h1" gutterBottom>
                   GeoDID Metadata
                 </Typography>
-                <List className={classes.metadataList}>
-                  <ListItem key="geoDIDid" role={undefined} dense>
-                    <ListItemText id="geoDIDid" primary="GeoDID" secondary={selectedGeoDID.id} />
-                  </ListItem>
-                  <ListItem key="cid" role={undefined} dense>
-                    <ListItemText id="cid" primary="ContentID" secondary={selectedGeoDID.cid} />
-                  </ListItem>
-                  <ListItem key="type" role={undefined} dense>
-                    <ListItemText id="type" primary="Type" secondary={selectedGeoDID.type} />
-                  </ListItem>
-                  {selectedGeoDID.parent && selectedGeoDID.parent.length > 0 ? (
-                    <ListItem
-                      key="parent"
-                      role={undefined}
-                      dense
-                      onClick={() => handleGeoDIDSelection(selectedGeoDID.parent)}
-                      button
-                    >
-                      <ListItemText id="type" primary="Parent" secondary={selectedGeoDID.parent} />
-                      <ListItemSecondaryAction>
-                        <Tooltip title="Remove parent" aria-label="add">
-                          <IconButton
-                            edge="end"
-                            aria-label="comments"
-                            onClick={() => handleParentDelete(selectedGeoDID.parent)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </ListItemSecondaryAction>
+                <div style={{ width: '90%' }}>
+                  <List className={classes.metadataList}>
+                    <ListItem key="geoDIDid" role={undefined} dense>
+                      <ListItemText id="geoDIDid" primary="GeoDID" secondary={selectedGeoDID.id} />
                     </ListItem>
-                  ) : (
-                    <ListItem key="parent" role={undefined} dense onClick={() => null} button>
-                      <ListItemText
-                        id="type"
-                        primary="Parent"
-                        secondary="No Parent - click to add one"
-                      />
-                      <ListItemSecondaryAction>
-                        <Tooltip title="Add parent" aria-label="add">
-                          <IconButton
-                            edge="end"
-                            aria-label="comments"
-                            onClick={() => dispatchToggleAddGeoDIDAsParentModal(true)}
-                          >
-                            <AddIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </ListItemSecondaryAction>
+                    <ListItem key="cid" role={undefined} dense>
+                      <ListItemText id="cid" primary="ContentID" secondary={selectedGeoDID.cid} />
                     </ListItem>
-                  )}
-                </List>
+                    <ListItem key="type" role={undefined} dense>
+                      <ListItemText id="type" primary="Type" secondary={selectedGeoDID.type} />
+                    </ListItem>
+                    {selectedGeoDID.parent && selectedGeoDID.parent.length > 0 ? (
+                      <ListItem
+                        key="parent"
+                        role={undefined}
+                        onClick={() => handleGeoDIDSelection(selectedGeoDID.parent)}
+                        button
+                      >
+                        <ListItemText
+                          id="type"
+                          primary="Parent"
+                          secondary={selectedGeoDID.parent}
+                        />
+                        <ListItemSecondaryAction>
+                          <Tooltip title="Remove parent" aria-label="add">
+                            <IconButton
+                              edge="start"
+                              aria-label="comments"
+                              onClick={() => handleParentDelete(selectedGeoDID.parent)}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    ) : (
+                      <ListItem key="parent" role={undefined} onClick={() => null} button>
+                        <ListItemText
+                          id="type"
+                          primary="Parent"
+                          secondary="No Parent - click to add one"
+                        />
+                        <ListItemSecondaryAction>
+                          <Tooltip title="Add parent" aria-label="add">
+                            <IconButton
+                              edge="end"
+                              aria-label="comments"
+                              onClick={() => dispatchToggleAddGeoDIDAsParentModal(true)}
+                            >
+                              <AddIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    )}
+                  </List>
+                  <Typography variant="h5" component="h1" gutterBottom display="inline">
+                    Quick Actions
+                  </Typography>
+                  <List component="nav" aria-label="main mailbox folders">
+                    <ListItem button onClick={handleDeletion}>
+                      <ListItemIcon>
+                        <DeleteIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Deactivate GeoDID" />
+                    </ListItem>
+                  </List>
+                </div>
               </Grid>
               <Grid item xs={6}>
                 {selectedGeoDID.type === 'Collection' && (
@@ -358,6 +450,7 @@ const GeoDIDView = (props) => {
                     </Typography>
                   </>
                 )}
+                {assetsArea}
               </Grid>
             </Grid>
           </CardContent>
@@ -367,7 +460,7 @@ const GeoDIDView = (props) => {
   } else if (!selectedGeoDID && loadingSelected) {
     geoDIDMetadata = (
       <Grid item xs={12}>
-        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '48vh' }}>
+        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '66vh' }}>
           <CardContent style={{ height: '100%', alignItems: 'center', textAlign: 'center' }}>
             <CircularProgress />
           </CardContent>
@@ -377,7 +470,7 @@ const GeoDIDView = (props) => {
   } else {
     geoDIDMetadata = (
       <Grid item xs={12}>
-        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '48vh' }}>
+        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '66vh' }}>
           <CardContent style={{ height: '100%', alignItems: 'center', textAlign: 'center' }} />
         </Card>
       </Grid>
@@ -399,7 +492,7 @@ const GeoDIDView = (props) => {
             <Card
               classes={{ root: classes.map }}
               variant="outlined"
-              style={{ height: '48vh' }}
+              style={{ height: '30vh' }}
               ref={parentRef}
             >
               <Map parentRef={parentRef} />

@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import createParser from 'core/parsers/parserFactory';
 import { GeoJSON, Map, TileLayer } from 'react-leaflet';
 import { LinearProgress } from '@material-ui/core';
-import { GEO_JSON_MARKER_OPTIONS, GEOJSON_OVERLAY } from 'utils/constants';
+import { GEOJSON_OVERLAY } from 'utils/constants';
 import { uuidv4, readFileAsync } from 'utils';
 
 const LeafletMap = (props) => {
@@ -39,7 +39,6 @@ const LeafletMap = (props) => {
   useEffect(() => {
     const loadGeoJson = async () => {
       if (selectedFile && selectedFile.type === 'GeoJSON') {
-        console.log(selectedFile);
         setShowError(false);
         setShowLoader(true);
         try {
@@ -69,7 +68,6 @@ const LeafletMap = (props) => {
   useEffect(() => {
     const loadGeoTiff = async () => {
       if (selectedFile && selectedFile.type === 'GeoTIFF') {
-        console.log(selectedFile);
         setShowError(false);
         setShowLoader(true);
         try {
@@ -96,39 +94,12 @@ const LeafletMap = (props) => {
     loadGeoTiff();
   }, [selectedFile]);
 
-  function pointToLayer(feature, latlng) {
-    return L.circleMarker(latlng, GEO_JSON_MARKER_OPTIONS);
-  }
-
-  function popUp(f, l) {
-    const out = [];
-    if (f.properties) {
-      // eslint-disable-next-line
-      for (const key in f.properties) {
-        out.push(key + ': ' + f.properties[key]);
-      }
-      l.bindPopup(out.join('<br />'));
-    }
-  }
-
   let assetsLoadedArea;
 
-  if (overlays && overlays.length > 0) {
-    assetsLoadedArea = (
-      <div style={{ height: '5%', width: '100%', textAlign: 'center' }}> Asset Loaded</div>
-    );
-  } else if (!showLoader) {
-    assetsLoadedArea = (
-      <div style={{ height: '5vh', width: '100%', textAlign: 'center' }}>
-        Load an asset to view it on the map
-      </div>
-    );
+  if (!showLoader && !showError) {
+    assetsLoadedArea = <LinearProgress variant="determinate" value={100} />;
   } else if (showLoader && !showError) {
-    assetsLoadedArea = (
-      <div style={{ height: '5vh', width: '100%', textAlign: 'center' }}>
-        <LinearProgress />
-      </div>
-    );
+    assetsLoadedArea = <LinearProgress />;
   }
   return (
     <>
@@ -147,14 +118,7 @@ const LeafletMap = (props) => {
         />
         {overlays.map((overlay) => {
           if (overlay.data.type === GEOJSON_OVERLAY && overlay.show) {
-            return (
-              <GeoJSON
-                key={overlay.id}
-                data={overlay.data.data}
-                pointToLayer={pointToLayer}
-                onEachFeature={popUp}
-              />
-            );
+            return <GeoJSON key={overlay.id} data={overlay.data.data} />;
           }
           return null;
         })}
