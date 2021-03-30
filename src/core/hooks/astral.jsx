@@ -53,6 +53,7 @@ export function AstralContextProvider({ children }) {
     loadAstral();
   }, [address, astralLoaded, astralSpace]);
 
+  console.log(astralInstance);
   const astral = useMemo(
     () => ({
       astralInstance,

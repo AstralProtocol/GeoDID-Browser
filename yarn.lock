@@ -234,10 +234,10 @@
     solidity-coverage "^0.7.13"
     truffle "^5.1.49"
 
-"@astralprotocol/core@1.0.58":
-  version "1.0.58"
-  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-1.0.58.tgz#939e6e4d9caed5ce7e57e33b436610e4770414bf"
-  integrity sha512-uMTFr0Ie2PpHCGz2KFJQd9ME7DG9SHuvBFVQxtW7W09A0Ix9yxy0XdsvMWFTo6n0ztseSEZR5TU6ZqxykxHE+Q==
+"@astralprotocol/core@1.0.60":
+  version "1.0.60"
+  resolved "https://registry.yarnpkg.com/@astralprotocol/core/-/core-1.0.60.tgz#61881efe5d0a1e96e49357b9092cb89ea2e3178e"
+  integrity sha512-/wQy+jxyPM4LUFipcsboTtHeHFATvLftLfQzBTaOd0RWcGu/Djv8vmBYHAxUkCLHoLhnKxSxD3gT7td0fhRBXQ==
   dependencies:
     "@textile/powergate-client" "^4.0.0"
     "@types/ora" "^3.2.0"

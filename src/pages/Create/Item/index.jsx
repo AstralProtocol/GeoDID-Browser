@@ -140,7 +140,6 @@ const Item = (props) => {
           ) {
             if (currentFiles.length > 0) {
               const foundFile = currentFiles.find((file) => file.tag === fNew.name);
-              console.log(foundFile);
               if (!foundFile) {
                 let newFile = {};
                 if (fNew.type === 'application/json') {

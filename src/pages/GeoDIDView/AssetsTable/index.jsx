@@ -171,7 +171,6 @@ export default function AssetsTable(props) {
 
   const { setSelectedAsset, selectedAsset, assets, maxNumberOfRows } = props;
 
-  console.log(assets);
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');

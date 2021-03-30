@@ -142,9 +142,12 @@ const AccountArea = () => {
     tokenIdArea = (
       <List>
         <ListItem key="tokenArea" role={undefined} dense button>
+          <ListItemText id="filecoinEnabled" primary="Your token" />
+        </ListItem>
+        <ListItem>
           <TextField
             name="token"
-            label="Your token securely saved on 3box. Click to view."
+            label="Securely stored on 3box"
             type={showToken ? 'text' : 'password'}
             value={tokenId}
             style={{ minWidth: '400px' }}
