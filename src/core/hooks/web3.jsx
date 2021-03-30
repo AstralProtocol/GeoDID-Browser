@@ -11,7 +11,6 @@ import {
   useContractLoader,
   useContractReader,
   useBalance,
-  useLocalStorage,
   // useExternalContractLoader,
 } from 'core/hooks/web3hooks';
 import Transactor from 'utils/Transactor';
@@ -20,6 +19,7 @@ import { formatEther } from '@ethersproject/units';
 import { INFURA_ID, targetNetwork } from 'utils/constants';
 import { history } from 'core/redux/reducers';
 import { ethers } from 'ethers';
+import Box from '3box';
 
 const WalletContext = React.createContext();
 
@@ -65,7 +65,6 @@ const web3Modal = new Web3Modal({
 const logoutOfWeb3Modal = async () => {
   await web3Modal.clearCachedProvider();
   setTimeout(() => {
-    window.localStorage.setItem('powergateTokenId', JSON.stringify(''));
     window.location.reload();
   }, 1);
   history.push('/');
@@ -80,7 +79,9 @@ window.ethereum &&
   });
 /* eslint-enable no-unused-expressions */
 
-export function WalletContextProvider({ children }) {
+export function WalletContextProvider({ children, setLoading }) {
+  const [box, setBox] = useState();
+  const [astralSpace, setAstralSpace] = useState();
   const [injectedProvider, setInjectedProvider] = useState();
   /* 💵 This hook will get the price of ETH from 🦄 Uniswap: */
   const price = useExchangePrice(targetNetwork, mainnetProvider);
@@ -162,11 +163,21 @@ export function WalletContextProvider({ children }) {
     const provider = await web3Modal.connect();
     setInjectedProvider(new Web3Provider(provider));
 
+    const { selectedAddress } = provider;
+    setLoading(true);
+
+    const newBox = await Box.openBox(selectedAddress, provider);
+    await newBox.syncDone;
+    const newAstralSpace = await newBox.openSpace('Astral');
+    await newAstralSpace.syncDone;
+
+    setBox(newBox);
+    setAstralSpace(newAstralSpace);
+    setLoading(false);
     /* eslint-disable no-unused-expressions */
     window.ethereum &&
       window.ethereum.on('accountsChanged', () => {
         setTimeout(() => {
-          window.localStorage.setItem('powergateTokenId', JSON.stringify(''));
           window.location.reload();
         }, 1);
       });
@@ -178,8 +189,6 @@ export function WalletContextProvider({ children }) {
       loadWeb3Modal();
     }
   }, [loadWeb3Modal]);
-
-  const [tokenId, setTokenId] = useLocalStorage(`powergateTokenId`);
 
   const wallet = useMemo(
     () => ({
@@ -197,11 +206,11 @@ export function WalletContextProvider({ children }) {
       targetNetworkChainId,
       selectedChainId,
       targetNetwork,
-      tokenId,
-      setTokenId,
       creatorRole,
       adminRole,
       filecoinAllowed,
+      box,
+      astralSpace,
     }),
     [
       address,
@@ -218,11 +227,11 @@ export function WalletContextProvider({ children }) {
       targetNetworkChainId,
       selectedChainId,
       targetNetwork,
-      tokenId,
-      setTokenId,
       creatorRole,
       adminRole,
       filecoinAllowed,
+      box,
+      astralSpace,
     ],
   );
 

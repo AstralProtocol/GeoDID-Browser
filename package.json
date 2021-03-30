@@ -28,6 +28,7 @@
     "lint:eslint": "eslint --fix 'src/**/*.{js,jsx}'"
   },
   "dependencies": {
+    "3box": "1.22.2-beta.0",
     "@apollo/react-hooks": "^4.0.0",
     "@astralprotocol/contracts": "^1.0.11",
     "@astralprotocol/core": "1.0.58",

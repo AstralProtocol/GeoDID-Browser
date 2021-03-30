@@ -271,11 +271,9 @@ const Item = (props) => {
     });
 
     const genDocRes = await astralInstance.createGenesisGeoDID('item', dataArray);
-    console.log(genDocRes);
 
     const results = await astralInstance.pinDocument(genDocRes);
 
-    console.log(results);
     const bytes32GeoDID = getBytes32FromGeoDIDid(results.geodidid);
 
     const bytes32Cid = getBytes32FromCid(results.cid);

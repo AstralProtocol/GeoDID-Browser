@@ -170,8 +170,6 @@ const Collection = (props) => {
 
     const bytes32Cid = getBytes32FromCid(results.cid);
 
-    console.log(results);
-
     const txOptions = {
       txState: {
         setTxState,

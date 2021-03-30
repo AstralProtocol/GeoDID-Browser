@@ -8,44 +8,51 @@ import { useSnackbar } from 'notistack';
 const AstralContext = React.createContext();
 
 export function AstralContextProvider({ children }) {
-  const { address, tokenId, setTokenId } = useWallet();
+  const { address, astralSpace } = useWallet();
   const [astralInstance, setAstralInstance] = useState();
   const [astralLoaded, setAstralLoaded] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     const loadAstral = async () => {
-      console.log(tokenId);
-      if (address && !astralLoaded && !tokenId) {
-        try {
-          const newAstral = await AstralClient.build(address, SUBGRAPH_ENDPOINT);
+      if (astralSpace) {
+        const tokenId = await astralSpace.private.get('tokenId');
 
-          setTokenId(newAstral._token);
-          setAstralInstance(newAstral);
-          setAstralLoaded(true);
-          enqueueSnackbar(`Please save the Astral token that was created for you in 'Account'`, {
-            variant: 'info',
-          });
-        } catch (e) {
-          console.log('Error loading astral');
-          console.log(e);
-        }
-      } else if (address && !astralLoaded && tokenId) {
-        try {
-          const newAstral = await AstralClient.build(address, SUBGRAPH_ENDPOINT, tokenId);
-          setAstralInstance(newAstral);
-          setAstralLoaded(true);
-        } catch (e) {
-          console.log('Error loading astral');
-          console.log(e);
+        if (address && !astralLoaded && !tokenId) {
+          try {
+            const newAstral = await AstralClient.build(address, SUBGRAPH_ENDPOINT);
+
+            await astralSpace.private.set('tokenId', newAstral._token);
+            setAstralInstance(newAstral);
+            setAstralLoaded(true);
+
+            enqueueSnackbar(`Astral token securely saved on your behalf with 3box`, {
+              variant: 'info',
+            });
+          } catch (e) {
+            console.log('Error loading astral');
+            console.log(e);
+          }
+        } else if (address && !astralLoaded && tokenId) {
+          try {
+            const newAstral = await AstralClient.build(address, SUBGRAPH_ENDPOINT, tokenId);
+            setAstralInstance(newAstral);
+            setAstralLoaded(true);
+
+            enqueueSnackbar(`Astral successfuly loaded, you may interact with the app`, {
+              variant: 'success',
+            });
+          } catch (e) {
+            console.log('Error loading astral');
+            console.log(e);
+          }
         }
       }
     };
 
     loadAstral();
-  }, [address, astralLoaded]);
+  }, [address, astralLoaded, astralSpace]);
 
-  console.log(astralInstance);
   const astral = useMemo(
     () => ({
       astralInstance,
