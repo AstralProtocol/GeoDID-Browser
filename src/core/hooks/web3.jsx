@@ -178,7 +178,7 @@ export function WalletContextProvider({ children, setLoading }) {
     window.ethereum &&
       window.ethereum.on('accountsChanged', () => {
         setTimeout(() => {
-          window.location.reload();
+          logoutOfWeb3Modal();
         }, 1);
       });
     /* eslint-enable no-unused-expressions */

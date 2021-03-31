@@ -305,6 +305,11 @@ const GeoDIDView = (props) => {
         try {
           const assetObj = await astralInstance.loadAsset(doc, selectedAsset.id);
 
+          const fileName = selectedAsset.id.split('#')[1];
+
+          const fileExt = fileName.split('.').pop();
+
+          console.log(fileExt);
           console.log(assetObj);
         } catch {
           console.log('Not able to load assets for this geodid item');

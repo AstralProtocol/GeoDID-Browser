@@ -256,7 +256,7 @@ const Item = (props) => {
         newDataArray.push({
           type: file.type,
           tag: file.tag,
-          bytes: file.bytes,
+          data: file.bytes,
         });
         return newDataArray;
       }, []);
@@ -268,6 +268,8 @@ const Item = (props) => {
       txSending: true,
       txComplete: false,
     });
+
+    console.log(dataArray);
 
     const genDocRes = await astralInstance.createGenesisGeoDID('item', dataArray);
 
