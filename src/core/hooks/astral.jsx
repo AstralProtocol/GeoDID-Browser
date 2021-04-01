@@ -20,7 +20,11 @@ export function AstralContextProvider({ children }) {
 
         if (address && !astralLoaded && !tokenId) {
           try {
-            const newAstral = await AstralClient.build(address, SUBGRAPH_ENDPOINT);
+            const newAstral = await AstralClient.build(
+              address,
+              SUBGRAPH_ENDPOINT,
+              'https://astralinstance.tk',
+            );
 
             await astralSpace.private.set('tokenId', newAstral._token);
             setAstralInstance(newAstral);
@@ -35,7 +39,12 @@ export function AstralContextProvider({ children }) {
           }
         } else if (address && !astralLoaded && tokenId) {
           try {
-            const newAstral = await AstralClient.build(address, SUBGRAPH_ENDPOINT, tokenId);
+            const newAstral = await AstralClient.build(
+              address,
+              SUBGRAPH_ENDPOINT,
+              'https://astralinstance.tk',
+              tokenId,
+            );
             setAstralInstance(newAstral);
             setAstralLoaded(true);
 
