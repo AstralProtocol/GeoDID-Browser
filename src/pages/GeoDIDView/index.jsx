@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
@@ -31,7 +31,7 @@ import {
   toggleAddGeoDIDAsChildrenModal,
   toggleAddGeoDIDAsParentModal,
 } from 'core/redux/modals/actions';
-import { getBytes32FromGeoDIDid } from 'utils';
+import { getBytes32FromGeoDIDid, uint8ToBlob, readFileAsync, jsonToArray } from 'utils';
 import { setSelectedGeoDID } from 'core/redux/spatial-assets/actions';
 import { useSpring, animated } from 'react-spring/web.cjs'; // web.cjs is required for IE 11 support
 import ChildrenGeoDIDsTable from 'components/ChildrenGeoDIDsTable';
@@ -168,9 +168,10 @@ const GeoDIDView = (props) => {
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [doc, setDoc] = useState(null);
   const [assets, setAssets] = useState(null);
+  const [file, setFile] = useState(null);
   const classes = useStyles();
-  const parentRef = useRef(null);
 
+  console.log(file);
   const { data: dataSelected, loading: loadingSelected } = useSubscription(geoDIDSubscription, {
     variables: {
       geoDIDID,
@@ -309,6 +310,33 @@ const GeoDIDView = (props) => {
 
           const fileExt = fileName.split('.').pop();
 
+          console.log(assetObj.data);
+          if (fileExt === 'tif' || fileExt === 'json') {
+            const blob = uint8ToBlob(assetObj.data, fileExt);
+            if (fileExt === 'tif') {
+              setFile({
+                tag: blob.name,
+                type: 'GeoTIFF',
+                size: blob.size,
+                data: blob,
+                bytes: assetObj.data,
+              });
+            } else if (fileExt === 'json') {
+              const readFile = await readFileAsync(blob, true);
+              const geoJsonData = JSON.parse(readFile);
+              const jsonBytes = jsonToArray(readFile);
+              setFile({
+                tag: blob.name,
+                type: 'GeoJSON',
+                size: blob.size,
+                data: geoJsonData,
+                bytes: jsonBytes,
+              });
+            }
+            setFile(blob);
+          } else {
+            console.log('Error fetching file');
+          }
           console.log(fileExt);
           console.log(assetObj);
         } catch {
@@ -494,13 +522,8 @@ const GeoDIDView = (props) => {
       >
         <Grid container spacing={0} className={classes.container}>
           <Grid item xs={12}>
-            <Card
-              classes={{ root: classes.map }}
-              variant="outlined"
-              style={{ height: '30vh' }}
-              ref={parentRef}
-            >
-              <Map parentRef={parentRef} />
+            <Card classes={{ root: classes.map }} variant="outlined" style={{ height: '30vh' }}>
+              <Map selectedFile={file} />
             </Card>
           </Grid>
           {geoDIDMetadata}
