@@ -1,6 +1,23 @@
 # Filecoin GeoDID front-end browser.
 
-### A dApp for storing Spatio Temporal Asset Catalogs (https://stacspec.org) over Filecoin, using The Graph
+Available at https://studio.astral.global
+
+### Instructions to try the dApp
+
+The current requirements are an Ethereum account connected to the Ropsten network preloaded with some faucet ETH. Browsers should be either Chrome or Brave (please check for any extensions that may be restricting features, such as Brave Site Shield, they must (!) be disabled for now, otherwise the token to access the powergate instance cannot be fetched).
+
+The current process goes like this:
+
+As soon as the user has some test ETH, they may log-in in our dapp, go into the 'Account' section in the left panel and enable their GeoDID creator role (currently this requires a small test eth fee).
+
+Then, they are able to create GeoDID Collections, Items, Create/Update the relationships between them and add assets that represent anything in the map. These assets are currently restricted to:
+
+- GeoJSONs 
+- GeoTIFFs referenced in the WGS84 coordinate system (important!)
+
+Disclaimer: some small bugs are to be expected. Please report them in issues.
+
+### Introduction: A dApp for storing GeoDIDs over Filecoin, using The Graph
 
 This will be the front-end interface that allows spatial data providers to register spatial assets
 that follow the STAC spec and transform them into a GeoDID format, managing all the related
@@ -24,35 +41,16 @@ provides the DID Controller full sovereignty over their spatial data assets.
 1. `yarn`
 2. Create a .env file with the following variables:
 
-- REACT_APP_GRAPHQL_HTTP_ENDPOINT=
-- REACT_APP_GRAPHQL_WS_ENDPOINT=
-- REACT_APP_MapboxAccessToken= ADD A MAPBOX API KEY HERE, YOU CAN GET ONE BY REGISTERING AT https://www.mapbox.com/
+- REACT_APP_GRAPHQL_HTTP_ENDPOINT=https://api.thegraph.com/subgraphs/name/astralprotocol/spatialassetsfinalv1
+- REACT_APP_GRAPHQL_WS_ENDPOINT=wss://api.thegraph.com/subgraphs/name/astralprotocol/spatialassetsfinalv1
+- REACT_APP_HTTP_ENDPOINT=https://ropsten.infura.io/v3/YOUR_KEY
+- REACT_APP_INFURA_ID=YOUR_KEY
+- REACT_APP_NETWORK_ID=3
+- REACT_APP_ETHERSCAN_KEY=YOUR_ETHERSCAN_KEY
+- REACT_APP_BNC_NOTIFY_API_KEY=YOUR_BNC_NOTIFY_KEY (https://docs.blocknative.com/notify)
 
-3. Do `yarn start`. Connect with your metamask wallet to the Ropsten network. You should be able to authenticate with the dApp
+3. Do `yarn start`. Connect with your metamask wallet to the Ropsten network. You should be able to authenticate with the dApp. You need test ETH to interact.
 
-4. Upload some test stac items. You can find some examples here:
+4. Enable the GeoDID creator role in your Account
 
-- [planet.stac.cloud](https://planet.stac.cloud) ([catalog on GitHub](https://github.com/cholmes/pdd-stac/))
-- [CBERS](https://cbers.stac.cloud) ([catalog tools on GitHub](https://github.com/fredliporace/cbers-2-stac))
-- [Google Earth Engine](https://gee.stac.cloud)
-- [sat-api.stac.cloud](https://sat-api.stac.cloud) ([sat-api on GitHub](https://github.com/sat-utils/sat-api))
-
-If a specific STAC item throws an error when trying to register it, change its ID by opening the json file and saving it again. The dApp was built with the assumption that a single STAC item belongs to a single ethereum address.
-
----
-
-## Introduction
-
-Spatial data contains information relevant to locations in the physical world. Different locations have different rules - depending on where you are you have to abide to a different regulatory framework.
-
-To create decentralized applications that leverage spatial data and location information, we need to be able to store and access spatial data in ways that ensure it is simple and reliable for Web3 developers to work with.
-
-For the past 10 years, the go-to standard for storing, retrieving, processing, and analyzing geospatial data, has traditionally been with cloud service providers.
-
-As a result, most of the tooling, workflows, specifications, and projects have been built to compliment the web2 space. The Spatio Temporal Asset Catalog(STAC) specification and the Cloud Optimized GeoTIFFs (COGs) are two of the leading specifications/standards used within the geospatial industry.
-
-STAC is supported by an active community of developers, with involvement from a large range of organizations, including Radiant Earth Foundation, Microsoft, Google Earth Engine, Near Space Labs, L3Harris, etc. In addition, COGs are gaining widespread adoption from the likes of Raster Foundry, GDAL, Google Earth Engine, QGIS, and interoperability with Amazon S3.
-
-The problem is that the aforementioned specification and file standard are only beneficial for the web2 ecosystem. They are optimized and designed to leverage cloud architecture, and location based addresses. When porting these to web3, we see that they become useless because they are not interoperable with CIDs and distributed file systems, as they do not offer web3 leveraged features.
-
-In order to solve these problems, we decided to hack geospatial applications into the Skynet Ecosystem and ultimately the greater web3 ecosystem as well. We believe that SkyDB can be a leading distributed file system of geospatial data in the web3 ecosystem.
+6. Upload some test geojson or geotiff (wgs84) items or changes the GeoDID relationships.
