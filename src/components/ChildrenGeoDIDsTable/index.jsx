@@ -171,8 +171,6 @@ const EnhancedTableToolbar = (props) => {
         }, [])
       : [];
 
-    console.log('geodid', getBytes32FromGeoDIDid(geoDIDID));
-    console.log(childrenGeoDIDsAsBytes);
     tx(
       contracts.SpatialAssets.removeChildrenGeoDIDs(
         getBytes32FromGeoDIDid(geoDIDID),

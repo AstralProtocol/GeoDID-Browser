@@ -123,7 +123,6 @@ function AppLayout(props) {
   const { children, openError, errorMsg, dispatchSnackbarError, dispatchCloseSnackbar } = props;
 
   const handleSearchRequest = (value) => {
-    console.log(value);
     const reg = /^did:geo:([1-9a-km-zA-HJ-NP-Z]{46})$/g;
     if (value.match(reg)) {
       history.push(`/browse/${value}`);

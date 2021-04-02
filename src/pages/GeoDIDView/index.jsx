@@ -171,7 +171,6 @@ const GeoDIDView = (props) => {
   const [file, setFile] = useState(null);
   const classes = useStyles();
 
-  console.log(file);
   const { data: dataSelected, loading: loadingSelected } = useSubscription(geoDIDSubscription, {
     variables: {
       geoDIDID,
@@ -266,6 +265,7 @@ const GeoDIDView = (props) => {
   const handleGeoDIDSelection = (value) => {
     dispatchSetSelectedGeoDID(value);
     history.push(`/browse/${value}`);
+    setFile(null);
   };
 
   useEffect(() => {
@@ -278,7 +278,6 @@ const GeoDIDView = (props) => {
           });
           const docRes = await astralInstance.loadDocument(selectedGeoDID.id);
 
-          console.log(docRes);
           if (docRes) {
             setDoc(docRes.documentInfo.documentVal);
             setAssets(docRes.documentInfo.documentVal.service);
@@ -300,8 +299,6 @@ const GeoDIDView = (props) => {
 
   useEffect(() => {
     const loadDocument = async () => {
-      console.log(doc);
-      console.log(selectedAsset);
       if (doc && selectedAsset && astralInstance) {
         try {
           const assetObj = await astralInstance.loadAsset(doc, selectedAsset.id);
@@ -310,16 +307,17 @@ const GeoDIDView = (props) => {
 
           const fileExt = fileName.split('.').pop();
 
-          console.log(assetObj.data);
+          const arrOfBytes = assetObj.data.split(/\s*,\s*/).map(Number);
+          const uint8Data = new Uint8Array(arrOfBytes);
           if (fileExt === 'tif' || fileExt === 'json') {
-            const blob = uint8ToBlob(assetObj.data, fileExt);
+            const blob = uint8ToBlob(uint8Data, fileExt);
             if (fileExt === 'tif') {
               setFile({
                 tag: blob.name,
                 type: 'GeoTIFF',
                 size: blob.size,
                 data: blob,
-                bytes: assetObj.data,
+                bytes: uint8Data,
               });
             } else if (fileExt === 'json') {
               const readFile = await readFileAsync(blob, true);
@@ -329,7 +327,7 @@ const GeoDIDView = (props) => {
                 tag: blob.name,
                 type: 'GeoJSON',
                 size: blob.size,
-                data: geoJsonData,
+                data: JSON.parse(geoJsonData),
                 bytes: jsonBytes,
               });
             }
@@ -337,8 +335,6 @@ const GeoDIDView = (props) => {
           } else {
             console.log('Error fetching file');
           }
-          console.log(fileExt);
-          console.log(assetObj);
         } catch {
           console.log('Not able to load assets for this geodid item');
         }
@@ -384,7 +380,7 @@ const GeoDIDView = (props) => {
 
     geoDIDMetadata = (
       <Grid item xs={12}>
-        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '66vh' }}>
+        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '56vh' }}>
           <CardContent style={{ height: '100%' }}>
             <Grid container spacing={2}>
               <Grid item xs={6}>
@@ -493,7 +489,7 @@ const GeoDIDView = (props) => {
   } else if (!selectedGeoDID && loadingSelected) {
     geoDIDMetadata = (
       <Grid item xs={12}>
-        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '66vh' }}>
+        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '56vh' }}>
           <CardContent style={{ height: '100%', alignItems: 'center', textAlign: 'center' }}>
             <CircularProgress />
           </CardContent>
@@ -503,7 +499,7 @@ const GeoDIDView = (props) => {
   } else {
     geoDIDMetadata = (
       <Grid item xs={12}>
-        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '66vh' }}>
+        <Card classes={{ root: classes.metadata }} variant="outlined" style={{ height: '56vh' }}>
           <CardContent style={{ height: '100%', alignItems: 'center', textAlign: 'center' }} />
         </Card>
       </Grid>
@@ -522,7 +518,7 @@ const GeoDIDView = (props) => {
       >
         <Grid container spacing={0} className={classes.container}>
           <Grid item xs={12}>
-            <Card classes={{ root: classes.map }} variant="outlined" style={{ height: '30vh' }}>
+            <Card classes={{ root: classes.map }} variant="outlined" style={{ height: '40vh' }}>
               <Map selectedFile={file} />
             </Card>
           </Grid>
