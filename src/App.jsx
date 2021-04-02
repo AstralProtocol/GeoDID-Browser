@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { hot } from 'react-hot-loader/root';
 // Apollo
 import ApolloClient from 'apollo-client';
@@ -19,9 +19,9 @@ import { createLogger } from 'redux-logger';
 import { routerMiddleware, ConnectedRouter } from 'connected-react-router';
 import { WalletContextProvider } from 'core/hooks/web3';
 import { AstralContextProvider } from 'core/hooks/astral';
+import { CircularProgress, Typography } from '@material-ui/core';
 
 import Router from './router';
-// Web3
 
 const wsLink = new WebSocketLink({
   uri: process.env.REACT_APP_GRAPHQL_WS_ENDPOINT,
@@ -65,10 +65,30 @@ const store = createStore(rootReducer, compose(applyMiddleware(...middlewares)))
 sagaMiddleware.run(rootSaga);
 
 function App() {
+  const [loading, setLoading] = useState(false);
   return (
     <Provider store={store}>
       <ApolloProvider client={client}>
-        <WalletContextProvider>
+        {loading && (
+          <div
+            style={{
+              position: 'fixed',
+              right: '10%',
+              bottom: '0%',
+              margin: '0 auto',
+              background: 'none',
+            }}
+          >
+            <Typography variant="h6" component="h1" gutterBottom>
+              Loading Astral
+            </Typography>
+            <div style={{ textAlign: 'center' }}>
+              <CircularProgress />
+            </div>
+          </div>
+        )}
+
+        <WalletContextProvider setLoading={setLoading}>
           <AstralContextProvider>
             <ConnectedRouter history={history}>
               <Router />

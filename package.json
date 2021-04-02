@@ -1,6 +1,6 @@
 {
   "name": "geodid-browser",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "keywords": [
     "blockchain",
@@ -28,9 +28,10 @@
     "lint:eslint": "eslint --fix 'src/**/*.{js,jsx}'"
   },
   "dependencies": {
+    "3box": "1.22.2-beta.0",
     "@apollo/react-hooks": "^4.0.0",
     "@astralprotocol/contracts": "^1.0.11",
-    "@astralprotocol/core": "^1.0.56",
+    "@astralprotocol/core": "1.0.66",
     "@ethersproject/address": "^5.0.9",
     "@ethersproject/bytes": "^5.0.9",
     "@ethersproject/constants": "^5.0.8",

@@ -3,30 +3,10 @@ import { useState, useRef, useEffect } from 'react';
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import createParser from 'core/parsers/parserFactory';
-import { ImageOverlay, GeoJSON, Map, TileLayer } from 'react-leaflet';
+import { GeoJSON, Map, TileLayer } from 'react-leaflet';
 import { LinearProgress } from '@material-ui/core';
-import { IMAGE_OVERLAY, GEO_JSON_MARKER_OPTIONS, GEOJSON_OVERLAY } from 'utils/constants';
-import { uuidv4 } from 'utils';
-
-/* This code and underlying dependencies have been based on https://github.com/aviklai/react-leaflet-load-geodata
-   with adaptations to load loam dependencies from unpkg
-
-    <link rel="prefetch" href="https://unpkg.com/gdal-js@2.0.0/gdal.js" />
-    <link rel="prefetch" href="https://unpkg.com/gdal-js@2.0.0/gdal.data" />
-    <link rel="prefetch" href="https://unpkg.com/gdal-js@2.0.0/gdal.wasm" />
-    <link rel="prefetch" href="https://unpkg.com/loam@1.0.0-rc.2/lib/loam-worker.js" />
-Have been added to public/index.html to prefetch
-*/
-
-/* eslint-disable */
-/* This code is needed to properly load the images in the Leaflet CSS */
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-});
-/* eslint-enable */
+import { GEOJSON_OVERLAY } from 'utils/constants';
+import { uuidv4, readFileAsync } from 'utils';
 
 const LeafletMap = (props) => {
   const { selectedFile } = props;
@@ -47,9 +27,18 @@ const LeafletMap = (props) => {
   }
 
   useEffect(() => {
-    const loadAsset = async () => {
-      if (selectedFile) {
-        console.log(selectedFile);
+    // load script
+    const script = document.createElement('script');
+    script.src =
+      'https://ihcantabria.github.io/Leaflet.CanvasLayer.Field/dist/leaflet.canvaslayer.field.js';
+    script.async = true;
+
+    document.body.appendChild(script);
+  }, []);
+
+  useEffect(() => {
+    const loadGeoJson = async () => {
+      if (selectedFile && selectedFile.type === 'GeoJSON') {
         setShowError(false);
         setShowLoader(true);
         try {
@@ -73,48 +62,50 @@ const LeafletMap = (props) => {
       }
     };
 
-    loadAsset();
+    loadGeoJson();
   }, [selectedFile]);
 
-  function pointToLayer(feature, latlng) {
-    return L.circleMarker(latlng, GEO_JSON_MARKER_OPTIONS);
-  }
+  useEffect(() => {
+    const loadGeoTiff = async () => {
+      if (selectedFile && selectedFile.type === 'GeoTIFF') {
+        setShowError(false);
+        setShowLoader(true);
+        try {
+          const buffer = await readFileAsync(selectedFile.data, false);
+          const s = L.ScalarField.fromGeoTIFF(buffer);
+          const layer = L.canvasLayer.scalarField(s).addTo(map.current.leafletElement);
 
-  function popUp(f, l) {
-    const out = [];
-    if (f.properties) {
-      // eslint-disable-next-line
-      for (const key in f.properties) {
-        out.push(key + ': ' + f.properties[key]);
+          map.current.leafletElement.fitBounds(layer.getBounds());
+        } catch (ex) {
+          console.log(ex);
+          setShowError(true);
+        } finally {
+          setShowLoader(false);
+        }
+      } else {
+        setZoomPosition({
+          zoom: 5,
+          center: L.latLng(20, 0),
+        });
+        setOverlays([]);
       }
-      l.bindPopup(out.join('<br />'));
-    }
-  }
+    };
+
+    loadGeoTiff();
+  }, [selectedFile]);
 
   let assetsLoadedArea;
 
-  if (overlays && overlays.length > 0) {
-    assetsLoadedArea = (
-      <div style={{ height: '5%', width: '100%', textAlign: 'center' }}> Asset Loaded</div>
-    );
-  } else if (!showLoader) {
-    assetsLoadedArea = (
-      <div style={{ height: '5%', width: '100%', textAlign: 'center' }}>
-        Load an asset to view it on the map
-      </div>
-    );
+  if (!showLoader && !showError) {
+    assetsLoadedArea = <LinearProgress variant="determinate" value={100} />;
   } else if (showLoader && !showError) {
-    assetsLoadedArea = (
-      <div style={{ height: '5%', width: '100%', textAlign: 'center' }}>
-        <LinearProgress />
-      </div>
-    );
+    assetsLoadedArea = <LinearProgress />;
   }
   return (
     <>
       {assetsLoadedArea}
       <Map
-        style={{ height: '95%', width: '100%', zIndex: 1 }}
+        style={{ height: '95vh', width: '100%', zIndex: 1 }}
         center={zoomPosition.center}
         zoom={zoomPosition.zoom}
         onMoveEnd={onMoveEnd}
@@ -126,24 +117,8 @@ const LeafletMap = (props) => {
           attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         />
         {overlays.map((overlay) => {
-          if (overlay.data.type === IMAGE_OVERLAY && overlay.show) {
-            return (
-              <ImageOverlay
-                key={overlay.id}
-                url={overlay.data.imageUrl}
-                bounds={overlay.data.bounds}
-              />
-            );
-          }
           if (overlay.data.type === GEOJSON_OVERLAY && overlay.show) {
-            return (
-              <GeoJSON
-                key={overlay.id}
-                data={overlay.data.data}
-                pointToLayer={pointToLayer}
-                onEachFeature={popUp}
-              />
-            );
+            return <GeoJSON key={overlay.id} data={overlay.data.data} />;
           }
           return null;
         })}

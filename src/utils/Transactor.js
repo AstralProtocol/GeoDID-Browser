@@ -67,7 +67,6 @@ export default function Transactor(provider, gasPrice, etherscan) {
             onclick: () => window.open((etherscan || etherscanTxUrl) + transaction.hash),
           }));
           emitter.on('txConfirmed', async () => {
-            console.log(txOptions);
             if (txOptions.txState) {
               txOptions.txState.setTxState({
                 txSending: false,
@@ -75,32 +74,11 @@ export default function Transactor(provider, gasPrice, etherscan) {
               });
             }
 
-            let tokenId;
-
-            if (txOptions.token) {
-              tokenId = txOptions.token.tokenId;
-              txOptions.token.setTokenId(tokenId);
-
-              if (txOptions.token.firstTime) {
-                txOptions.token.setFirstTime(true);
-              }
+            if (txOptions.dispatchSetSelectedParentCreation) {
+              txOptions.dispatchSetSelectedParentCreation(null);
             }
-
-            if (txOptions.addAssets) {
-              const addAssetsRes = await txOptions.addAssets.astralInstance.addAssetsToItem(
-                txOptions.addAssets.geodidId,
-                txOptions.addAssets.data,
-                tokenId,
-              );
-
-              console.log(addAssetsRes);
-              await txOptions.addAssets.astralInstance.pinDocument(addAssetsRes);
-              const doc = await txOptions.addAssets.astralInstance.loadDocument(
-                txOptions.addAssets.geodidId,
-                tokenId,
-              );
-
-              console.log(doc);
+            if (txOptions.dispatchSetSelectedChildrenCreation) {
+              txOptions.dispatchSetSelectedChildrenCreation([]);
             }
           });
         } else {

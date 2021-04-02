@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import {
   Card,
@@ -15,7 +15,6 @@ import { useSnackbar } from 'notistack';
 import AstralButton from 'components/AstralButton';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
-import AddIcon from '@material-ui/icons/Add';
 import { ethers } from 'ethers';
 import Authorize from 'components/LayoutComponents/Authorize';
 
@@ -53,23 +52,25 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AccountArea = () => {
-  const {
-    setTokenId,
-    tokenId,
-    tx,
-    contracts,
-    adminRole,
-    creatorRole,
-    filecoinAllowed,
-  } = useWallet();
+  const { tx, contracts, adminRole, creatorRole, filecoinAllowed, astralSpace } = useWallet();
   const { enqueueSnackbar } = useSnackbar();
   const [showToken, setShowToken] = useState(false);
   const classes = useStyles();
-  const [tokenIdTextField, setTokenIdTextField] = useState('');
 
+  const [tokenId, setTokenId] = useState(null);
   const handleAddMinterRole = async () => {
     await tx(contracts.SpatialAssets.registerRole(), enqueueSnackbar);
   };
+
+  useEffect(() => {
+    const loadToken = async () => {
+      const token = await astralSpace.private.get('tokenId');
+
+      setTokenId(token);
+    };
+
+    loadToken();
+  }, [astralSpace]);
 
   const handleEnableFilecoin = async () => {
     await tx(
@@ -135,25 +136,18 @@ const AccountArea = () => {
     );
   }
 
-  const handleChange = (e) => {
-    setTokenIdTextField(e.target.value);
-  };
-  const handleAdd = () => {
-    // validate token
-
-    setTokenId(tokenIdTextField);
-    setShowToken(false);
-  };
-
   let tokenIdArea;
 
   if (tokenId) {
     tokenIdArea = (
       <List>
         <ListItem key="tokenArea" role={undefined} dense button>
+          <ListItemText id="filecoinEnabled" primary="Your token" />
+        </ListItem>
+        <ListItem>
           <TextField
             name="token"
-            label="Your token"
+            label="Securely stored on 3box"
             type={showToken ? 'text' : 'password'}
             value={tokenId}
             style={{ minWidth: '400px' }}
@@ -170,15 +164,10 @@ const AccountArea = () => {
         <ListItem key="tokenArea" role={undefined} dense button>
           <TextField
             name="token"
-            label="Add your token and press the + sign"
+            label="Error loading token"
             type="text"
-            onChange={(e) => handleChange(e)}
-            value={tokenIdTextField}
             style={{ minWidth: '400px' }}
           />
-          <IconButton onClick={() => handleAdd()}>
-            <AddIcon />
-          </IconButton>
         </ListItem>
       </List>
     );

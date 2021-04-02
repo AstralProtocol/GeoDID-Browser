@@ -14,9 +14,8 @@ import {
   Typography,
   Paper,
   Radio,
-  IconButton,
 } from '@material-ui/core';
-import DeleteIcon from '@material-ui/icons/Delete';
+import { getShortGeoDID, uuidv4 } from 'utils';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -45,9 +44,9 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
-  { id: 'tag', numeric: false, disablePadding: true, label: 'Tag' },
+  { id: 'id', numeric: false, disablePadding: true, label: 'Id' },
   { id: 'type', numeric: false, disablePadding: false, label: 'Type' },
-  { id: 'size', numeric: false, disablePadding: false, label: 'size' },
+  { id: 'serviceEndpoint', numeric: false, disablePadding: false, label: 'Endpoint' },
 ];
 
 function EnhancedTableHead(props) {
@@ -81,7 +80,6 @@ function EnhancedTableHead(props) {
             </TableSortLabel>
           </TableCell>
         ))}
-        <TableCell padding="checkbox" />
       </TableRow>
     </TableHead>
   );
@@ -171,15 +169,7 @@ export default function AssetsTable(props) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-  const {
-    setSelectedAsset,
-    selectedAsset,
-    fileObjects,
-    setFileObjs,
-    files,
-    setFiles,
-    maxNumberOfRows,
-  } = props;
+  const { setSelectedAsset, selectedAsset, assets, maxNumberOfRows } = props;
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -187,24 +177,13 @@ export default function AssetsTable(props) {
     setOrderBy(property);
   };
 
-  const handleClick = (event, tag) => {
-    if (selectedAsset && selectedAsset.tag === tag) {
+  const handleClick = (event, id) => {
+    if (selectedAsset && selectedAsset.id === id) {
       setSelectedAsset(null);
     } else {
-      const foundAsset = files.find((file) => file.tag === tag);
+      const foundAsset = assets.find((file) => file.id === id);
       setSelectedAsset(foundAsset);
     }
-  };
-
-  const handleRemove = (event, tag) => {
-    if (selectedAsset && selectedAsset.tag === tag) {
-      setSelectedAsset(null);
-    }
-    const newFiles = files.filter((file) => file.tag !== tag);
-
-    const newFileObjs = fileObjects.filter((file) => file.file.name !== tag);
-    setFiles(newFiles);
-    setFileObjs(newFileObjs);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -216,41 +195,37 @@ export default function AssetsTable(props) {
     setPage(0);
   };
 
-  const isSelected = (tag) => selectedAsset && selectedAsset.tag === tag;
-
-  const emptyRows = rowsPerPage - Math.min(rowsPerPage, files.length - page * rowsPerPage);
+  const emptyRows = rowsPerPage - Math.min(rowsPerPage, assets.length - page * rowsPerPage);
 
   let tableBody;
 
-  if (files.length > 0) {
+  if (assets.length > 0) {
     tableBody = (
       <TableBody>
-        {stableSort(files, getComparator(order, orderBy))
+        {stableSort(assets, getComparator(order, orderBy))
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row) => {
-            const isItemSelected = isSelected(row.tag);
-            const labelId = `enhanced-table-checkbox-${row.tag}`;
+            const isItemSelected = selectedAsset ? selectedAsset.id === row.id : false;
+            const labelId = `enhanced-table-checkbox-${row.id}`;
+
             return (
               <TableRow
                 hover
                 role="checkbox"
                 aria-checked={isItemSelected}
                 tabIndex={-1}
-                key={row.tag}
+                key={row.id}
                 selected={isItemSelected}
               >
-                <TableCell padding="checkbox" onClick={(event) => handleClick(event, row.tag)}>
+                <TableCell padding="checkbox" onClick={(event) => handleClick(event, row.id)}>
                   <Radio checked={isItemSelected} inputProps={{ 'aria-labelledby': labelId }} />
                 </TableCell>
                 <TableCell component="th" id={labelId} scope="row" padding="none">
-                  {row.tag}
+                  {`${row.id.substr(0, 13)}... ${row.id.split('#')[1]}`}
                 </TableCell>
                 <TableCell align="left">{row.type}</TableCell>
-                <TableCell align="left">{row.size}</TableCell>
-                <TableCell padding="checkbox" onClick={(event) => handleRemove(event, row.tag)}>
-                  <IconButton>
-                    <DeleteIcon />
-                  </IconButton>
+                <TableCell key={uuidv4()} align="left">
+                  {getShortGeoDID(row.serviceEndpoint)}
                 </TableCell>
               </TableRow>
             );
@@ -287,7 +262,7 @@ export default function AssetsTable(props) {
               order={order}
               orderBy={orderBy}
               onRequestSort={handleRequestSort}
-              rowCount={files.length}
+              rowCount={assets.length}
             />
             {tableBody}
           </Table>
@@ -295,7 +270,7 @@ export default function AssetsTable(props) {
         <TablePagination
           rowsPerPageOptions={[5, maxNumberOfRows]}
           component="div"
-          count={files.length}
+          count={assets.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onChangePage={handleChangePage}

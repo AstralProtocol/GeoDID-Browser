@@ -1,22 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
-import {
-  Card,
-  CardContent,
-  Grid,
-  Typography,
-  ButtonBase,
-  LinearProgress,
-  IconButton,
-} from '@material-ui/core';
-// import { useQuery } from '@apollo/react-hooks';
-// import geoDIDQuery from 'core/graphql/geoDIDQuery';
+import { Card, CardContent, Grid, Typography, ButtonBase, LinearProgress } from '@material-ui/core';
 import { DropzoneAreaBase } from 'material-ui-dropzone';
 import Map from 'components/Map';
 import {
   readFileAsync,
-  loadLoam,
   getBytes32FromGeoDIDid,
   getBytes32FromCid,
   jsonToArray,
@@ -24,7 +13,6 @@ import {
 } from 'utils';
 import { useSnackbar } from 'notistack';
 import { useSubscription } from '@apollo/react-hooks';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
 import { useAstral } from 'core/hooks/astral';
 import { useWallet } from 'core/hooks/web3';
 import { ethers } from 'ethers';
@@ -105,7 +93,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Item = (props) => {
-  const { tx, contracts, address, tokenId, setTokenId } = useWallet();
+  const { tx, contracts, address } = useWallet();
   const { astralInstance } = useAstral();
   const classes = useStyles();
   const parentRef = useRef(null);
@@ -116,15 +104,13 @@ const Item = (props) => {
     txSending: false,
     txComplete: false,
   });
-  const [firstTime, setFirstTime] = useState(null);
-
-  console.log(txState);
   const { enqueueSnackbar } = useSnackbar();
   const { parent, dispatchSetSelectedParentCreation } = props;
 
   const { data, loading } = useSubscription(geoDIDsSubscription, {
     variables: {
       where: {
+        ...(address ? { owner: address.toLowerCase() } : {}),
         ...{ active: true },
       },
     },
@@ -154,7 +140,6 @@ const Item = (props) => {
           ) {
             if (currentFiles.length > 0) {
               const foundFile = currentFiles.find((file) => file.tag === fNew.name);
-              console.log(foundFile);
               if (!foundFile) {
                 let newFile = {};
                 if (fNew.type === 'application/json') {
@@ -183,15 +168,15 @@ const Item = (props) => {
                   }
                 } else {
                   try {
-                    const loam = await loadLoam();
-                    const loadedData = await loam.open(fNew);
+                    // const loam = await loadLoam();
+                    // const loadedData = await loam.open(fNew);
                     const uint8Array = await blobToUint8(fNew);
 
                     newFile = {
                       tag: fNew.name,
                       type: 'GeoTIFF',
                       size: fNew.size,
-                      data: loadedData,
+                      data: fNew,
                       bytes: uint8Array,
                     };
                     enqueueSnackbar(`${newFile.tag} added`, {
@@ -228,15 +213,15 @@ const Item = (props) => {
                 currentFiles = [...currentFiles, newFile];
                 currentFileObjects = [...currentFileObjects, f];
               } else {
-                const loam = await loadLoam();
-                const loadedData = await loam.open(fNew);
+                // const loam = await loadLoam();
+                // const loadedData = await loam.open(fNew);
                 const uint8Array = await blobToUint8(fNew);
 
                 newFile = {
                   tag: fNew.name,
                   type: 'GeoTIFF',
                   size: fNew.size,
-                  data: loadedData,
+                  data: fNew,
                   bytes: uint8Array,
                 };
                 currentFiles = [...currentFiles, newFile];
@@ -265,67 +250,40 @@ const Item = (props) => {
       bytes32Parent = ethers.utils.formatBytes32String('');
     }
 
-    const genDocRes = await astralInstance.createGenesisGeoDID('item');
-
-    let results;
-
-    if (tokenId) {
-      results = await astralInstance.pinDocument(genDocRes, tokenId);
+    let dataArray;
+    if (files && files.length > 0) {
+      dataArray = files.reduce((newDataArray, file) => {
+        newDataArray.push({
+          type: file.type,
+          tag: file.tag,
+          data: file.bytes,
+        });
+        return newDataArray;
+      }, []);
     } else {
-      results = await astralInstance.pinDocument(genDocRes);
+      dataArray = [];
     }
+
+    setTxState({
+      txSending: true,
+      txComplete: false,
+    });
+
+    const genDocRes = await astralInstance.createGenesisGeoDID('item', dataArray);
+
+    const results = await astralInstance.pinDocument(genDocRes);
 
     const bytes32GeoDID = getBytes32FromGeoDIDid(results.geodidid);
 
     const bytes32Cid = getBytes32FromCid(results.cid);
 
-    let txOptions = {
+    const txOptions = {
       txState: {
         setTxState,
       },
+      dispatchSetSelectedParentCreation,
     };
 
-    if (files && files.length > 0) {
-      const dataArray = files.reduce((newDataArray, file) => {
-        newDataArray.push({
-          type: file.type,
-          tag: file.tag,
-          bytes: file.bytes,
-        });
-        return newDataArray;
-      }, []);
-      txOptions = {
-        ...txOptions,
-        addAssets: {
-          astralInstance,
-          geodidId: results.geodidid,
-          data: dataArray,
-        },
-      };
-    }
-
-    if (tokenId) {
-      txOptions = {
-        ...txOptions,
-        token: {
-          tokenId,
-          setTokenId,
-          firstTime: false,
-        },
-      };
-    } else {
-      txOptions = {
-        ...txOptions,
-        token: {
-          tokenId: results.token,
-          setTokenId,
-          firstTime: true,
-          setFirstTime,
-        },
-      };
-    }
-
-    console.log(txOptions);
     try {
       await tx(
         contracts.SpatialAssets.registerSpatialAsset(
@@ -340,7 +298,6 @@ const Item = (props) => {
         enqueueSnackbar,
         txOptions,
       );
-      dispatchSetSelectedParentCreation(null);
     } catch (err) {
       console.log(err);
     }
@@ -357,50 +314,15 @@ const Item = (props) => {
         <LinearProgress />
       </div>
     );
-  } else if (!txState.txSending && !txState.txComplete && !tokenId) {
+  } else if (!txState.txSending && !txState.txComplete) {
     txArea = (
-      <>
-        <Typography variant="body2" gutterBottom display="inline" className={classes.createWarning}>
-          ⚠️ Your token has not been detected, if you have one add it to your account area,
-          otherwise a new one will be created for you
-        </Typography>
-        <ButtonBase className={classes.createButtonWarning} onClick={() => createGeoDID()}>
-          <Typography variant="h4" gutterBottom display="inline">
-            Create GeoDID
-          </Typography>
-        </ButtonBase>
-      </>
-    );
-  } else if (!txState.txSending && !txState.txComplete && tokenId) {
-    txArea = (
-      <ButtonBase className={classes.createButton} onClick={() => createGeoDID()}>
-        <Typography variant="h4" gutterBottom>
+      <ButtonBase className={classes.createButtonWarning} onClick={() => createGeoDID()}>
+        <Typography variant="h4" gutterBottom display="inline">
           Create GeoDID
         </Typography>
       </ButtonBase>
     );
-  } else if (!txState.txSending && txState.txComplete && firstTime) {
-    txArea = (
-      <div className={classes.txArea}>
-        <Typography variant="h4" gutterBottom>
-          GeoDID Created
-        </Typography>
-        <Typography variant="body2" gutterBottom>
-          Click to view it
-        </Typography>
-        <Typography variant="body2" gutterBottom>
-          Token id: {tokenId}
-          <IconButton onClick={() => navigator.clipboard.writeText(tokenId)}>
-            <FileCopyIcon />
-          </IconButton>
-        </Typography>
-        <Typography variant="body2" gutterBottom>
-          Your token is the key to your GeoDIDs, keep it in a secure location as it is needed for
-          the next time
-        </Typography>
-      </div>
-    );
-  } else if (!txState.txSending && txState.txComplete && !firstTime) {
+  } else if (!txState.txSending && txState.txComplete) {
     txArea = (
       <ButtonBase className={classes.createButton} onClick={() => createGeoDID()}>
         <Typography variant="h4" gutterBottom>
@@ -435,7 +357,7 @@ const Item = (props) => {
                   setSelectedAsset={setSelectedFile}
                   files={files}
                   fileObjects={fileObjects}
-                  maxNumberOfRows={5}
+                  maxNumberOfRows={3}
                   setFiles={setFiles}
                   setFileObjs={setFileObjs}
                   maxFileSize={10000000}
@@ -446,7 +368,7 @@ const Item = (props) => {
                   type="Add"
                   allAvailableParents={allAvailableParentsToAdd}
                   loading={loading}
-                  maxNumberOfRows={5}
+                  maxNumberOfRows={3}
                   isDisabled={false}
                 />
               </div>

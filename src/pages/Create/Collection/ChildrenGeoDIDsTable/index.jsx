@@ -178,7 +178,7 @@ function ChildrenGeoDIDsTable(props) {
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('calories');
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rowsPerPage, setRowsPerPage] = React.useState(3);
   const history = useHistory();
 
   const {
@@ -235,8 +235,6 @@ function ChildrenGeoDIDsTable(props) {
     setPage(0);
   };
 
-  const isSelected = (id) => selected.indexOf(id) !== -1;
-
   const handleGeoDIDSelection = (value) => {
     dispatchSetSelectedGeoDID(value);
     history.push(`/browse/${value}`);
@@ -253,7 +251,8 @@ function ChildrenGeoDIDsTable(props) {
         {stableSort(allAvailableChildren, getComparator(order, orderBy))
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row) => {
-            const isItemSelected = isSelected(row.id);
+            const isItemSelected = selected.indexOf(row.id) !== -1 || false;
+
             const labelId = `enhanced-table-checkbox-${row.id}`;
             return (
               <TableRow
@@ -324,7 +323,7 @@ function ChildrenGeoDIDsTable(props) {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, maxNumberOfRows]}
+          rowsPerPageOptions={[1, maxNumberOfRows]}
           component="div"
           count={allAvailableChildren.length}
           rowsPerPage={rowsPerPage}
